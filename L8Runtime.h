@@ -13,7 +13,7 @@
 
 @interface L8Runtime : NSObject
 
-@property (weak) id<L8RuntimeDelegate> delegate;
+@property (strong) id<L8RuntimeDelegate> delegate;
 
 - (void)start;
 

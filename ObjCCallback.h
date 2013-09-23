@@ -8,13 +8,18 @@
 
 #include "v8.h"
 
-@class L8Runtime;
+void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info);
+void ObjCMethodCall(const v8::FunctionCallbackInfo<v8::Value>& info);
 
-v8::Handle<v8::Object> ObjCCallbackFunctionForMethod(L8Runtime *runtime,
-													Class cls,
-													Protocol *protocol,
-													BOOL isInstanceMethod,
-													SEL sel,
-													const char *types);
-v8::Handle<v8::Object> ObjCCallbackFunctionForBlock(L8Runtime *runtime, id block);
+void ObjCNamedPropertySetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info);
+void ObjCNamedPropertyGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);
+void ObjCNamedPropertyQuery(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Integer>& info);
 
+void ObjCIndexedPropertySetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info);
+void ObjCIndexedPropertyGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& info);
+void ObjCIndexedPropertyQuery(uint32_t index, const v8::PropertyCallbackInfo<v8::Integer>& info);
+
+void ObjCAccessorSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &info);
+void ObjCAccessorGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &info);
+
+void ObjCWeakReferenceCallback(v8::Isolate *isolate, v8::Persistent<v8::External> *object, void *parameter);

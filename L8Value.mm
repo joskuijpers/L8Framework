@@ -652,6 +652,7 @@ static ObjCContainerConverter::Job objectToValueWithoutCopy(L8Runtime *runtime, 
 		return (ObjCContainerConverter::Job){ object, v8::Undefined(), COLLECTION_NONE };
 
 	if(![object conformsToProtocol:@protocol(L8Export)]) {
+
 		if([object isKindOfClass:[NSArray class]])
 			return (ObjCContainerConverter::Job){ object, v8::Array::New(), COLLECTION_ARRAY };
 

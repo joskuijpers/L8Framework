@@ -56,11 +56,10 @@
 - (v8::Local<v8::String>)V8StringWithIsolate:(v8::Isolate *)isolate
 {
 	v8::HandleScope scope(isolate);
-	//	if (self.length <= 256) // max for copy
+
 	v8::Local<v8::String> ret = v8::String::NewFromUtf8(isolate, [self UTF8String]);
+
 	return scope.Close(ret);
-	//	return v8::String::NewExternal(new V8ExternalASCIILiteral([self UTF8String], self.length));
-	// TODO: make external string literal covering NSString
 }
 
 @end

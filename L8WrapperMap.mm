@@ -7,6 +7,8 @@
 //
 
 #import <objc/runtime.h>
+#include <map>
+#include <vector>
 
 #import "L8WrapperMap.h"
 
@@ -19,14 +21,12 @@
 #import "ObjCCallback.h"
 
 #include "v8.h"
-#include <map>
-#import <vector>
 
 @class L8ClassInfo;
 
-@interface L8WrapperMap ()
-- (L8ClassInfo *)classInfoForClass:(Class)cls;
-@end
+/*Opt*/ static v8::Handle<v8::String> V8StringWithCString(const char *cstr) {
+	return [@(cstr) V8String];
+}
 
 static NSString *selectorToPropertyName(const char *start)
 {
@@ -67,25 +67,16 @@ done:
 	return result;
 }
 
-static v8::Handle<v8::Object> makeWrapper(v8::Handle<v8::Context> context, void *jsClass, id wrappedObject)
+v8::Handle<v8::External> makeWrapper(v8::Handle<v8::Context> context, id wrappedObject)
 {
-	NSLog(@"makeWrapper %@",wrappedObject);
+	v8::Handle<v8::External> ext = v8::External::New((__bridge_retained void *)wrappedObject);
+	v8::Persistent<v8::External> persist(context->GetIsolate(),ext);
+	persist.MakeWeak((__bridge void *)wrappedObject, ObjCWeakReferenceCallback);
 
-	v8::Handle<v8::ObjectTemplate> wrapperTemplate = v8::ObjectTemplate::New();
-	wrapperTemplate->SetInternalFieldCount(1);
-
-	v8::Handle<v8::Object> wrapper = wrapperTemplate->NewInstance();
-	wrapper->SetInternalField(0, v8::External::New((__bridge void *)wrappedObject));
-
-	return wrapper;
+	return ext;
 }
 
-static L8Value *objectWithCustomBrand(L8Runtime *runtime, NSString *brand, Class cls = Nil)
-{
-	return [L8Value valueWithNewObject];
-}
-
-static NSMutableDictionary *createRenameMap(Protocol *protocol, BOOL isInstanceMethod)
+/*??*/static NSMutableDictionary *createRenameMap(Protocol *protocol, BOOL isInstanceMethod)
 {
 	NSMutableDictionary *renameMap = [NSMutableDictionary dictionary];
 
@@ -106,77 +97,6 @@ static NSMutableDictionary *createRenameMap(Protocol *protocol, BOOL isInstanceM
 	return renameMap;
 }
 
-inline void putNonEnumerable(L8Value *base, NSString *property, L8Value *value)
-{
-	[base defineProperty:property
-				   value:value
-				writable:YES
-			  enumerable:NO
-			configurable:YES
-				  getter:nil
-				  setter:nil]; // nil is ObjC for undefined
-}
-
-static void copyMethodsToObject(L8Runtime *runtime, Class objectClass, Protocol *protocol,
-								BOOL isInstanceMethod, L8Value *object,
-								NSMutableDictionary *accessorMethods = nil)
-{
-	NSMutableDictionary *renameMap = createRenameMap(protocol, isInstanceMethod);
-
-	forEachMethodInProtocol(protocol, YES, isInstanceMethod, ^(SEL sel, const char *types) {
-		const char *cname = sel_getName(sel);
-		NSString *name = @(cname);
-		v8::Handle<v8::Object> method;
-		NSLog(@"Copy selector %@ for types %s",NSStringFromSelector(sel),types);
-		if(accessorMethods && accessorMethods[name]) {
-			method = ObjCCallbackFunctionForMethod(runtime, objectClass, protocol, isInstanceMethod, sel, types);
-			if(method.IsEmpty())
-				return;
-
-			accessorMethods[name] = [L8Value valueWithV8Value:method];
-		} else {
-			name = renameMap[name];
-			if(!name)
-				name = selectorToPropertyName(cname);
-
-			if([object hasProperty:name])
-				return;
-
-			method = ObjCCallbackFunctionForMethod(runtime, objectClass, protocol, isInstanceMethod, sel, types);
-			if(!method.IsEmpty())
-				putNonEnumerable(object, name, [L8Value valueWithV8Value:method]);
-		}
-	});
-}
-
-static bool parsePropertyAttributes(objc_property_t property, char *& getterName, char *& setterName)
-{
-	bool readonly = false;
-	unsigned int attributeCount;
-
-	objc_property_attribute_t *attributes = property_copyAttributeList(property, &attributeCount);
-
-	for(unsigned int i = 0; i < attributeCount; i++) {
-		switch(*(attributes[i].name)) {
-			case 'G': // Gettername
-				getterName = strdup(attributes[i].value);
-				break;
-			case 'S': // Settername
-				setterName = strdup(attributes[i].value);
-				break;
-			case 'R': // Readonly
-				readonly = true;
-				break;
-			default:
-				NSLog(@"Found unkown attribute %c",*(attributes[i].name));
-				break;
-		}
-	}
-
-	free(attributes);
-	return readonly;
-}
-
 static char *makeSetterName(const char *name)
 {
 	size_t length = strlen(name);
@@ -195,222 +115,245 @@ static char *makeSetterName(const char *name)
 	return setterName;
 }
 
-static void copyPrototypeProperties(L8Runtime *runtime, Class objectClass, Protocol *protocol, L8Value *prototypeValue)
+void copyMethodsToObject(L8WrapperMap *wrapperMap, Protocol *protocol,
+						 BOOL isInstanceMethod,
+						 v8::Handle<v8::ObjectTemplate> prototypeTemplate,
+						 NSMutableDictionary *accessorMethods = nil)
 {
-	struct Property {
+	forEachMethodInProtocol(protocol, YES, isInstanceMethod, ^(SEL sel, const char *types) {
+
+		const char *selName = sel_getName(sel);
+		NSString *rawName = @(selName);
+
+		if(accessorMethods[rawName]) {
+			accessorMethods[rawName] = [L8Value valueWithV8Value:v8::String::New(types)];
+		} else {
+			NSString *propertyName = selectorToPropertyName(selName);
+			v8::Handle<v8::String> v8Name = [propertyName V8String];
+
+			v8::Handle<v8::FunctionTemplate> function = v8::FunctionTemplate::New();
+
+			// only if want to suply data
+			v8::Handle<v8::Array> extraData = v8::Array::New();
+			extraData->Set(0, v8::String::New(selName));
+			extraData->Set(1, v8::String::New(types));
+
+			function->SetCallHandler(ObjCMethodCall,extraData);
+
+			prototypeTemplate->Set(v8Name, function);
+		}
+	});
+}
+
+void parsePropertyAttributes(objc_property_t property, char *&getterName, char *&setterName, bool &readonly, char *&type)
+{
+	unsigned int count;
+	objc_property_attribute_t *attributes = property_copyAttributeList(property, &count);
+	readonly = false;
+
+	for(unsigned int i = 0; i < count; i++) {
+		switch(*(attributes[i].name)) {
+			case 'R': // read-only (readonly)
+				readonly = true;
+				break;
+			case 'G': // G<name> custom getter name (eg GcustomGetter)
+				getterName = strdup(attributes[i].value);
+				break;
+			case 'S': // S<name> custom setter name (eg ScustomSetter:)
+				setterName = strdup(attributes[i].value);
+				break;
+			case 'T': // T<encoding>, type
+				type = strdup(attributes[i].value);
+				break;
+			case 'C': // copy of last value assigned (copy)
+			case '&': // reference to last value assigned (retain)
+			case 'N': // non-atomic (nonatomic)
+			case 'D': // dynamic (@dynamic)
+			case 'W': // weak reference (__weak / weak)
+			case 'P': // eligible for garbage collection
+			case 't': // t<encoding>, old style encoding
+				break;
+			default:
+				break;
+		}
+	}
+
+	free(attributes);
+}
+
+/*
+ * Because the list of methods from a class also contains getters (and setters) for properties,
+ * we first need to find all properties and get their getter (and setter). Then, when copying
+ * the methods, we should skip these as they are already covered by the property-accessors
+ */
+void copyPrototypeProperties(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectTemplate> prototypeTemplate,
+							 v8::Handle<v8::ObjectTemplate> instanceTemplate, Protocol *protocol)
+{
+	// Find all properties in the protocol
+	struct property_t {
 		const char *name;
 		char *getterName;
 		char *setterName;
+		char *type;
+		bool readonly;
 	};
-	__block std::vector<Property> propertyList;
 
+	__block std::vector<property_t> propertyList;
+
+	// Dictionary containing all accessor methods so they can be skipped when copying methods
 	NSMutableDictionary *accessorMethods = [NSMutableDictionary dictionary];
-	L8Value *undefined = [L8Value valueWithUndefined];
+	L8Value *undefinedValue = [L8Value valueWithUndefined];
 
 	forEachPropertyInProtocol(protocol, ^(objc_property_t property) {
-		char *getterName = 0, *setterName = 0;
-		bool readOnly = parsePropertyAttributes(property, getterName, setterName);
+		char *getterName = NULL;
+		char *setterName = NULL;
+		char *type = NULL;
+		bool readonly = false;
+		const char *propertyName = property_getName(property);
 
-		const char *name = property_getName(property);
+		// Get property information
+		parsePropertyAttributes(property, getterName, setterName, readonly, type);
 
-		if(!getterName)
-			getterName = strdup(name);
-		accessorMethods[@(getterName)] = undefined;
+		// Getter
+		if(getterName == NULL)
+			getterName = strdup((char *)propertyName);
+		accessorMethods[@(getterName)] = undefinedValue;
 
-		if(!readOnly) {
-			if(!setterName)
-				setterName = makeSetterName(name);
-			accessorMethods[@(setterName)] = undefined;
+		// Setter, if applicable
+		if(readonly == false) {
+			if(setterName == NULL)
+				setterName = makeSetterName(propertyName);
+			accessorMethods[@(setterName)] = undefinedValue;
 		}
 
-		NSLog(@"property with name %s, setter %s, getter %s",name,setterName,getterName);
-
-		propertyList.push_back((Property){ name, getterName, setterName });
+		property_t prop = { propertyName, getterName, setterName, type, readonly };
+		propertyList.push_back(prop);
 	});
 
-	copyMethodsToObject(runtime, objectClass, protocol, YES, prototypeValue, accessorMethods);
+	// Copy the instance methods except the accessors, which we get info for
+	copyMethodsToObject(wrapperMap, protocol, YES, prototypeTemplate, accessorMethods);
 
-	for(size_t i = 0; i < propertyList.size(); i++) {
-		Property& property = propertyList[i];
-		L8Value *getter, *setter = undefined;
+	// Add accessors for each property with correct name, setter, getter and attributes
+	for(int i = 0; i < propertyList.size(); i++) {
+		property_t& property = propertyList[i];
 
-		getter = accessorMethods[@(property.getterName)];
+		v8::Handle<v8::String> v8PropertyName = V8StringWithCString(property.name);
+		v8::Handle<v8::Array> extraData = v8::Array::New();
+
+		extraData->Set(0, v8PropertyName);
+		extraData->Set(1, v8::String::New(property.type)); // value type
+		extraData->Set(2, v8::String::New(property.getterName)); // getter SEL
+		extraData->Set(3, [accessorMethods[@(property.getterName)] V8Value]); // getter Types
+		extraData->Set(4, v8::String::New(property.setterName)); // setter SEL
+		extraData->Set(5, [accessorMethods[@(property.setterName)] V8Value]); // setter Types
+
+		free(property.type);
 		free(property.getterName);
-		assert(![getter isUndefined]);
+		free(property.setterName);
 
-		if(property.setterName) {
-			setter = accessorMethods[@(property.setterName)];
-			free(property.setterName);
-			assert(![setter isUndefined]);
-		}
-
-		[prototypeValue defineProperty:@(property.name)
-								 value:nil
-							  writable:NO
-							enumerable:NO
-						  configurable:YES
-								getter:getter
-								setter:setter];
+		instanceTemplate->SetAccessor(v8PropertyName, ObjCAccessorGetter, ObjCAccessorSetter, extraData,
+									  v8::AccessControl::DEFAULT,
+									  property.readonly ? v8::PropertyAttribute::ReadOnly : v8::PropertyAttribute::None
+									  /*| v8::PropertyAttribute::DontEnum*/);
 	}
 }
 
-@interface L8ClassInfo : NSObject {
-	L8Runtime *_runtime;
-	Class _class;
-	bool _block;
-	void *_classRef;
-	// weak objects: prototype and constructor
-	// persistent + makeWeak ?
-	v8::Handle<v8::Object> _prototype;
-	v8::Handle<v8::Object> _constructor;
-}
-
-- (instancetype)initWithRuntime:(L8Runtime *)runtime
-					   forClass:(Class)cls
-				 superClassInfo:(L8ClassInfo *)superClassInfo;
-- (L8Value *)wrapperForObject:(id)object;
-- (L8Value *)constructor;
-
-@end
-
-@implementation L8ClassInfo
-
-- (id)initWithRuntime:(L8Runtime *)runtime
-					   forClass:(Class)cls
-				 superClassInfo:(L8ClassInfo *)superClassInfo
+void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectTemplate> instanceTemplate, Class cls)
 {
-	self = [super init];
-	if(self) {
-		_runtime = runtime;
-		_class = cls;
-		_block = [cls isSubclassOfClass:objc_getClass("NSBlock")];
+	bool readonly = true;
 
-		NSLog(@"New class info :D");
-		// JS CLASS DEF
-		// def = kJSClassDefEmpty
-		// def.classname = classname
-		// _classref = jsclasscreate(&def)
+	if(class_respondsToSelector(cls, @selector(objectForKeyedSubscript:))) {
+		if(class_respondsToSelector(cls, @selector(setObject:forKeyedSubscript:)))
+			readonly = false;
 
-		[self allocateConstructorAndOrPrototypeWithSuperClassInfo:superClassInfo];
-	}
-	return self;
-}
-
-- (void)allocateConstructorAndOrPrototypeWithSuperClassInfo:(L8ClassInfo *)superClass
-{
-	assert(_constructor.IsEmpty() || _prototype.IsEmpty());
-	assert((_class == [NSObject class]) == !superClass);
-
-	if(!superClass) {
-		L8Value *constructor = _runtime[@"Object"];
-		if(_constructor.IsEmpty())
-			_constructor = [constructor V8Value]->ToObject();
-
-		if(_prototype.IsEmpty())
-			_prototype = [constructor[@"prototype"] V8Value]->ToObject();
-	} else {
-		const char *className = class_getName(_class);
-		L8Value *prototype, *constructor;
-
-		if(!_prototype.IsEmpty())
-			prototype = [L8Value valueWithV8Value:_prototype];
-		else
-			prototype = objectWithCustomBrand(_runtime, [NSString stringWithFormat:@"%sPrototype",className]);
-
-		if(!_constructor.IsEmpty())
-			constructor = [L8Value valueWithV8Value:_constructor];
-		else
-			constructor = objectWithCustomBrand(_runtime, [NSString stringWithFormat:@"%sConstructor",className], _class);
-
-		_prototype = [prototype V8Value]->ToObject();
-		_constructor = [constructor V8Value]->ToObject();
-
-		putNonEnumerable(prototype, @"constructor", constructor);
-		putNonEnumerable(constructor, @"prototype", prototype);
-
-		Protocol *exportProtocol = @protocol(L8Export);
-		forEachProtocolImplementingProtocol(_class, exportProtocol, ^(Protocol *protocol) {
-			copyPrototypeProperties(_runtime, _class, protocol, prototype);
-			copyMethodsToObject(_runtime, _class, protocol, NO, constructor);
-		});
-
-		_prototype->SetPrototype(superClass->_prototype->ToObject());
-	}
-}
-
-- (void)reallocateConstructorAndOrPrototype
-{
-	L8ClassInfo *info = [_runtime.wrapperMap classInfoForClass:class_getSuperclass(_class)];
-	[self allocateConstructorAndOrPrototypeWithSuperClassInfo:info];
-}
-
-- (L8Value *)wrapperForObject:(id)object
-{
-	NSLog(@"%@",NSStringFromSelector(_cmd));
-	if(_block) {
-		v8::Handle<v8::Object> method;
-		method = ObjCCallbackFunctionForBlock(_runtime, object);
-		if(!method.IsEmpty())
-			return [L8Value valueWithV8Value:method];
+		instanceTemplate->SetNamedPropertyHandler(ObjCNamedPropertyGetter,
+												  readonly ? 0 : ObjCNamedPropertySetter,
+												  ObjCNamedPropertyQuery, 0, 0); // DATA
 	}
 
-	if(_prototype.IsEmpty())
-		[self reallocateConstructorAndOrPrototype];
-	assert(!_prototype.IsEmpty());
+	if(class_respondsToSelector(cls, @selector(objectAtIndexedSubscript:))) {
+		if(class_respondsToSelector(cls, @selector(setObject:atIndexedSubscript:)))
+			readonly = false;
 
-	v8::Handle<v8::Object> wrapper = makeWrapper([_runtime V8Context], _classRef, object);
-	wrapper->SetPrototype(_prototype);
+		instanceTemplate->SetIndexedPropertyHandler(ObjCIndexedPropertyGetter,
+													readonly ? 0 : ObjCIndexedPropertySetter,
+													ObjCIndexedPropertyQuery, 0, 0); // DATA
+	}
 
-	return [L8Value valueWithV8Value:wrapper];
+//	- (id)objectForKeyedSubscript:(id)key;
+//	- (id)objectAtIndexedSubscript:(NSUInteger)index;
+//	- (void)setObject:(id)object forKeyedSubscript:(NSObject <NSCopying> *)key;
+//	- (void)setObject:(id)object atIndexedSubscript:(NSUInteger)index;
 }
-
-- (L8Value *)constructor
-{
-	if(_constructor.IsEmpty())
-		[self reallocateConstructorAndOrPrototype];
-	assert(!_constructor.IsEmpty());
-
-	return [L8Value valueWithV8Value:_constructor];
-}
-
-@end
 
 @implementation L8WrapperMap {
 	L8Runtime * _runtime;
-	NSMutableDictionary *_classMap;
-	std::map<id, v8::Handle<v8::Object>> _cachedJSWrappers; // Should be weak
-	NSMapTable *_cachedObjCWrappers;
+//	NSMutableDictionary *_classMap;
+//	NSMapTable *_cachedObjCWrappers;
 }
 
 - (id)initWithRuntime:(L8Runtime *)runtime
 {
 	self = [super init];
 	if(self) {
-		_cachedObjCWrappers = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsOpaqueMemory | NSPointerFunctionsOpaqueMemory
-														valueOptions:NSPointerFunctionsWeakMemory | NSPointerFunctionsObjectPointerPersonality
-															capacity:0];
+//		_cachedObjCWrappers = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsOpaqueMemory | NSPointerFunctionsOpaqueMemory
+//														valueOptions:NSPointerFunctionsWeakMemory | NSPointerFunctionsObjectPointerPersonality
+//															capacity:0];
 		_runtime = runtime;
-		_classMap = [[NSMutableDictionary alloc] init];
+//		_classMap = [[NSMutableDictionary alloc] init];
 	}
 	return self;
 }
 
 - (L8Value *)JSWrapperForObject:(id)object
 {
-	NSLog(@"%@%@",NSStringFromSelector(_cmd),object);
+//	v8::Handle<v8::Object> jsWrapper = _cachedJSWrappers[object];
+//	if(!jsWrapper.IsEmpty())
+//		return [L8Value valueWithV8Value:jsWrapper];
 
-	v8::Handle<v8::Object> jsWrapper = _cachedJSWrappers[object];
-	if(!jsWrapper.IsEmpty())
-		return [L8Value valueWithV8Value:jsWrapper];
+	L8Value *wrapper = nil;
+	BOOL isMeta = NO;
 
-	L8Value *wrapper;
 	if(class_isMetaClass(object_getClass(object)))
-		wrapper = [[self classInfoForClass:(Class)object] constructor];
+		isMeta = YES;
+
+	Class cls = object_getClass(object);
+	NSString *className = @(class_getName(cls));
+
+	v8::HandleScope localScope;
+
+	v8::Handle<v8::FunctionTemplate> classTemplate = v8::FunctionTemplate::New();
+	classTemplate->SetCallHandler(ObjCConstructor,v8::String::New(class_getName(cls)));
+	classTemplate->SetClassName([className V8String]);
+
+	v8::Handle<v8::ObjectTemplate> prototypeTemplate = classTemplate->PrototypeTemplate();
+	v8::Handle<v8::ObjectTemplate> instanceTemplate = classTemplate->InstanceTemplate();
+	instanceTemplate->SetInternalFieldCount(1);
+
+	installSubscriptionMethods(self, instanceTemplate, cls);
+
+	forEachProtocolImplementingProtocol(cls, objc_getProtocol("L8Export"), ^(Protocol *protocol) {
+		copyPrototypeProperties(self, prototypeTemplate, instanceTemplate, protocol);
+
+		// Copy class methods
+		copyMethodsToObject(self, protocol, NO, prototypeTemplate);
+	});
+
+	// The class (constructor)
+	v8::Handle<v8::Function> function = classTemplate->GetFunction();
+
+	v8::Handle<v8::Array> prop = function->GetPropertyNames();
+	for(int i = 0; i < prop->Length(); i++) {
+		NSLog(@"%d: %@",i,[NSString stringWithV8Value:prop->Get(i)]);
+	}
+
+	if(class_isMetaClass(object_getClass(object)))
+		wrapper = [L8Value valueWithV8Value:localScope.Close(function)];
 	else {
-		L8ClassInfo *classInfo = [self classInfoForClass:[object class]];
-		NSLog(@"Class Info %@",classInfo);
-		wrapper = [classInfo wrapperForObject:object];
-		NSLog(@"wrapper %@",wrapper);
+		v8::Handle<v8::Object> instance = function->NewInstance(); // can haz argc+argv
+		instance->SetInternalField(0, makeWrapper([_runtime V8Context], object));
+
+		wrapper = [L8Value valueWithV8Value:localScope.Close(instance)];
 	}
 
 	// Todo: Cache
@@ -428,25 +371,6 @@ static void copyPrototypeProperties(L8Runtime *runtime, Class objectClass, Proto
 //		NSMapInsert(_cachedObjCWrappers, value, wrapper);
 //	}
 	return wrapper;
-}
-
-- (L8ClassInfo *)classInfoForClass:(Class)cls
-{
-	L8ClassInfo *classInfo;
-
-	if(!cls)
-		return nil;
-
-	if((classInfo = _classMap[cls]))
-		return classInfo;
-
-	classInfo = [self classInfoForClass:class_getSuperclass(cls)];
-	if(*class_getName(cls) == '_')
-		return _classMap[cls] = classInfo;
-
-	return _classMap[cls] = [[L8ClassInfo alloc] initWithRuntime:_runtime
-														forClass:cls
-												  superClassInfo:classInfo];
 }
 
 @end

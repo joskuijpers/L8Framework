@@ -27,7 +27,16 @@ BOOL protocolImplementsProtocol(Protocol *candidate, Protocol *target)
 
 void forEachProtocolImplementingProtocol(Class cls, Protocol *target, void (^callback)(Protocol *))
 {
+	Protocol * __unsafe_unretained *protocols;
+	unsigned int count;
 
+	protocols = class_copyProtocolList(cls, &count);
+	for(int i = 0; i < count; i++) {
+		Protocol *candidate = protocols[i];
+
+		if(protocolImplementsProtocol(candidate, target))
+			callback(candidate);
+	}
 }
 
 void forEachMethodInProtocol(Protocol *protocol, BOOL isRequiredMethod, BOOL isInstanceMethod, void (^callback)(SEL name, const char *types))

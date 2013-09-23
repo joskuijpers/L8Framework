@@ -10,6 +10,8 @@
 
 @protocol L8RuntimeDelegate <NSObject>
 
+@optional
+
 - (void)runtimeDidFinishCreatingContext:(L8Runtime *)runtime;
 - (void)runtimeDidRunMain:(L8Runtime *)runtime;
 - (void)runtimeWillRunMain:(L8Runtime *)runtime;
