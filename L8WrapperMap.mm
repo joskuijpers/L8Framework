@@ -305,13 +305,8 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
 	return self;
 }
 
-- (L8Value *)JSWrapperForObject:(id)object
+- (L8Value *)JSWrapperForObjCObject:(id)object
 {
-//	v8::Handle<v8::Object> jsWrapper = _cachedJSWrappers[object];
-//	if(!jsWrapper.IsEmpty())
-//		return [L8Value valueWithV8Value:jsWrapper];
-
-	L8Value *wrapper = nil;
 	BOOL isMeta = NO;
 
 	if(class_isMetaClass(object_getClass(object)))
@@ -348,13 +343,38 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
 	}
 
 	if(class_isMetaClass(object_getClass(object)))
-		wrapper = [L8Value valueWithV8Value:localScope.Close(function)];
+		return [L8Value valueWithV8Value:localScope.Close(function)];
 	else {
 		v8::Handle<v8::Object> instance = function->NewInstance(); // can haz argc+argv
 		instance->SetInternalField(0, makeWrapper([_runtime V8Context], object));
 
-		wrapper = [L8Value valueWithV8Value:localScope.Close(instance)];
+		return [L8Value valueWithV8Value:localScope.Close(instance)];
 	}
+
+	return nil;
+}
+
+- (L8Value *)JSWrapperForBlock:(id)object
+{
+	v8::Handle<v8::FunctionTemplate> functionTemplate = wrapBlock(object);
+	v8::Handle<v8::Function> function = functionTemplate->GetFunction();
+
+	return [L8Value valueWithV8Value:function];
+}
+
+- (L8Value *)JSWrapperForObject:(id)object
+{
+//	v8::Handle<v8::Object> jsWrapper = _cachedJSWrappers[object];
+//	if(!jsWrapper.IsEmpty())
+//		return [L8Value valueWithV8Value:jsWrapper];
+
+	L8Value *wrapper = nil;
+
+	if([object isKindOfClass:BlockClass()]) {
+		NSLog(@"Is Block %@",object);
+		wrapper = [self JSWrapperForBlock:object];
+	} else
+		wrapper = [self JSWrapperForObjCObject:object];
 
 	// Todo: Cache
 
@@ -393,8 +413,36 @@ id unwrapObjcObject(v8::Handle<v8::Context> context, v8::Handle<v8::Value> value
 	return nil;
 }
 
+v8::Handle<v8::FunctionTemplate> wrapBlock(id object)
+{
+	NSLog(@"Wrap Block %@",object);
+
+	v8::HandleScope localScope;
+
+	v8::Handle<v8::FunctionTemplate> functionTemplate = v8::FunctionTemplate::New();
+	functionTemplate->SetCallHandler(ObjCBlockCall);
+	functionTemplate->PrototypeTemplate()->SetInternalFieldCount(1);
+
+//	v8::Handle<v8::ObjectTemplate> instanceTemplate = functionTemplate->InstanceTemplate();
+//	instanceTemplate->SetCallAsFunctionHandler(ObjCBlockCall);
+
+//	function->SetInternalField(0, makeWrapper([_runtime V8Context], object));
+
+	return functionTemplate;
+}
+
 id unwrapBlock(v8::Handle<v8::Object> object)
 {
-	NSLog(@"Unwrap block");
-	return nil;
+	assert(object->IsExternal());
+
+	id blockObject = (__bridge id)v8::External::Cast(*object)->Value();
+	assert([blockObject isKindOfClass:BlockClass()]);
+
+	return blockObject;
+}
+
+Class BlockClass()
+{
+	static Class cls = objc_getClass("NSBlock");
+	return cls;
 }

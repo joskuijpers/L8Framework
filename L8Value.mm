@@ -163,28 +163,6 @@
 	return object->Has([property V8String]);
 }
 
-- (void)defineProperty:(NSString *)property
-				 value:(id)value
-			  writable:(BOOL)writable
-			enumerable:(BOOL)enumerable
-		  configurable:(BOOL)configurable
-				getter:(id)getter
-				setter:(id)setter
-{
-	v8::Local<v8::Object> object = _v8value->ToObject();
-	int attributes = 0;
-
-	attributes |= (!configurable) ? v8::PropertyAttribute::DontDelete : 0;
-	attributes |= (!enumerable) ? v8::PropertyAttribute::DontEnum : 0;
-	attributes |= (!writable) ? v8::PropertyAttribute::ReadOnly : 0;
-
-	// need to set the getter and setter too...
-
-	object->Set([property V8String],objectToValue(_runtime,value),(v8::PropertyAttribute)attributes);
-
-	//[[_runtime globalObject][@"Object"] invokeMethod:@"defineProperty" withArguments:@[self, property, descriptor]];
-}
-
 - (L8Value *)valueAtIndex:(NSUInteger)index
 {
 	if(index != (uint32_t)index)
@@ -679,6 +657,12 @@ static ObjCContainerConverter::Job objectToValueWithoutCopy(L8Runtime *runtime, 
 
 		if([object isKindOfClass:[NSDate class]])
 			return (ObjCContainerConverter::Job){ object, v8::Date::New([object timeIntervalSince1970]), COLLECTION_NONE };
+
+		if([object isKindOfClass:BlockClass()]) {
+			return (ObjCContainerConverter::Job){ object, makeWrapper([runtime V8Context], [object copy]), COLLECTION_NONE };
+		}
+
+		assert(0 && "Code must not be reached, or implementation is missing");
 
 		// managed value
 		// https://github.com/WebKit/webkit/blob/master/Source/JavaScriptCore/API/JSValue.mm#L901

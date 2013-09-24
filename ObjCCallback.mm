@@ -270,29 +270,29 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 			assert(retLength == sizeof(id));
 
 			[invocation getReturnValue:&object];
-			NSLog(@"ret is object");
+
 			if(object == nil)
 				result = [L8Value valueWithNull];
 
+			// has needed return type, which must not be a block
 			if(neededReturnType && strlen(neededReturnType) > 1) {
+				if(*(returnType+1) == '?' && [object isKindOfClass:BlockClass()]) {
+//					v8::Handle<v8::FunctionTemplate> functionTemplate = wrapBlock(object);
+//					return functionTemplate->GetFunction();
+				} else {
+					size_t length = strlen(neededReturnType);
+					char *className = (char *)malloc(length-3+1); // minus @"", plus \0
+					memcpy(className, neededReturnType+2, length-3);
+					className[length-3] = 0;
 
-				size_t length = strlen(neededReturnType);
-				char *className = (char *)malloc(length-3+1); // minus @"", plus \0
-				memcpy(className, neededReturnType+2, length-3);
-				className[length-3] = 0;
+//					Class cls = objc_getClass(className);
+//					free(className);
 
-				Class cls = objc_getClass(className);
-				free(className);
-
-//				NSLog(@"%@ %@",NSStringFromClass(cls),NSStringFromClass([NSString class]));
-//				if(cls == [NSString class] && ![object isKindOfClass:[NSString class]])
-//					object = [object description];
-
-				result = [L8Value valueWithObject:object];
-//				NSLog(@"class %@, %@",object,[[result toObject] className]);
-				result = [L8Value valueWithObject:[result toObjectOfClass:cls]];
+					result = [L8Value valueWithObject:object];
+				}
 			} else
 				result = [L8Value valueWithObject:object];
+
 			break;
 		}
 		case '#': // Class
@@ -364,6 +364,11 @@ void ObjCMethodCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 	retVal = objCInvocation(invocation);
 	info.GetReturnValue().Set(retVal);
+}
+
+void ObjCBlockCall(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+	NSLog(@"Block call");
 }
 
 void ObjCNamedPropertySetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
@@ -477,7 +482,8 @@ void ObjCAccessorGetter(v8::Local<v8::String> property, const v8::PropertyCallba
 
 	retVal = objCInvocation(invocation,returnType);
 
-	NSLog(@"get data, %@",[L8Value valueWithV8Value:retVal]);
+	NSLog(@"IS FUNCTIOMN FOR PROP %@: %d",NSStringFromSelector(selector),retVal->IsFunction());
+	//NSLog(@"value is %d, %@",retVal->IsExternal(),v8::External::Cast(*retVal)->Value());
 
 	info.GetReturnValue().Set(retVal);
 }

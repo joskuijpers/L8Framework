@@ -10,6 +10,7 @@
 
 void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info);
 void ObjCMethodCall(const v8::FunctionCallbackInfo<v8::Value>& info);
+void ObjCBlockCall(const v8::FunctionCallbackInfo<v8::Value>& info);
 
 void ObjCNamedPropertySetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info);
 void ObjCNamedPropertyGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info);

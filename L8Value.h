@@ -47,13 +47,6 @@
 - (void)setValue:(id)value forProperty:(NSString *)property;
 - (BOOL)deleteProperty:(NSString *)property;
 - (BOOL)hasProperty:(NSString *)property;
-- (void)defineProperty:(NSString *)property
-				 value:(id)value
-			  writable:(BOOL)writable
-			enumerable:(BOOL)enumerable
-		  configurable:(BOOL)configurable
-				getter:(id)getter
-				setter:(id)setter;
 
 // Indexed properties
 - (L8Value *)valueAtIndex:(NSUInteger)index;
