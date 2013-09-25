@@ -22,12 +22,19 @@
 
 #include "v8.h"
 
-@class L8ClassInfo;
-
 /*Opt*/ static v8::Handle<v8::String> V8StringWithCString(const char *cstr) {
 	return [@(cstr) V8String];
 }
 
+/*!
+ * Extract a propertyname from a selectorname.
+ *
+ * Removes ':' and makes every letter following such colon uppercase. For example,
+ * 'initWithName:surname:' becomes 'initWithNameSurname'. Return value is stored in
+ * an NSString due to the locally allocated buffer.
+ *
+ * @return An NSString containing the property name
+ */
 static NSString *selectorToPropertyName(const char *start)
 {
 	// Find the first semicolon
@@ -67,13 +74,34 @@ done:
 	return result;
 }
 
+/*!
+ * Creates a v8 handle containing the given ObjC object, with memory management
+ * taken care of.
+ *
+ * @return v8 Handle containing the wrapped object
+ */
 v8::Handle<v8::External> makeWrapper(v8::Handle<v8::Context> context, id wrappedObject)
 {
-	v8::Handle<v8::External> ext = v8::External::New((__bridge_retained void *)wrappedObject);
+	void *voidObject = (void *)CFBridgingRetain(wrappedObject);
+	v8::Handle<v8::External> ext = v8::External::New(voidObject);
 	v8::Persistent<v8::External> persist(context->GetIsolate(),ext);
 	persist.MakeWeak((__bridge void *)wrappedObject, ObjCWeakReferenceCallback);
 
 	return ext;
+}
+
+/*!
+ * Obtains the ObjC object withing the wrapper
+ *
+ * @return Objective-C object withing wrapper, or nil on failure
+ */
+id objectFromWrapper(v8::Handle<v8::Value> wrapper)
+{
+	if(!wrapper->IsExternal())
+		return nil;
+
+	id object = (__bridge id)v8::External::Cast(*wrapper)->Value();
+	return object;
 }
 
 /*??*/static NSMutableDictionary *createRenameMap(Protocol *protocol, BOOL isInstanceMethod)
@@ -97,6 +125,10 @@ v8::Handle<v8::External> makeWrapper(v8::Handle<v8::Context> context, id wrapped
 	return renameMap;
 }
 
+/*
+ * Create the default setter name using only the property name.
+ * A setter name is built with: 'set'<name with first letter capital>':'
+ */
 static char *makeSetterName(const char *name)
 {
 	size_t length = strlen(name);
@@ -115,6 +147,13 @@ static char *makeSetterName(const char *name)
 	return setterName;
 }
 
+/*
+ * Install the ObjC methods from the protocol in the JS prototype.
+ * If isInstanceMethod is YES, only instance methods will be installed.
+ * If non-YES, it will install class-methods. (TODO)
+ * This method also stores type-information of accessor methods in the given
+ * dictionary, if given.
+ */
 void copyMethodsToObject(L8WrapperMap *wrapperMap, Protocol *protocol,
 						 BOOL isInstanceMethod,
 						 v8::Handle<v8::ObjectTemplate> prototypeTemplate,
@@ -145,6 +184,9 @@ void copyMethodsToObject(L8WrapperMap *wrapperMap, Protocol *protocol,
 	});
 }
 
+/*
+ * Find useful attributes in the ObjC runtime about given property.
+ */
 void parsePropertyAttributes(objc_property_t property, char *&getterName, char *&setterName, bool &readonly, char *&type)
 {
 	unsigned int count;
@@ -258,6 +300,10 @@ void copyPrototypeProperties(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectTemp
 	}
 }
 
+/*
+ * Sets keyed and indexed subscription handles depending on whether they are implemented
+ * in the ObjC class.
+ */
 void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectTemplate> instanceTemplate, Class cls)
 {
 	bool readonly = true;
@@ -305,6 +351,11 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
 	return self;
 }
 
+/*!
+ * Create a wrapper-to-JavaScript for an Objective-C object
+ *
+ * @return an L8Value containing the V8 handle wrapping the object
+ */
 - (L8Value *)JSWrapperForObjCObject:(id)object
 {
 	BOOL isMeta = NO;
@@ -354,14 +405,23 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
 	return nil;
 }
 
+/*!
+ * Create a wrapper-to-JavaScript for a block object
+ *
+ * @return an L8Value containing the V8 handle wrapping the block object
+ */
 - (L8Value *)JSWrapperForBlock:(id)object
 {
-	v8::Handle<v8::FunctionTemplate> functionTemplate = wrapBlock(object);
-	v8::Handle<v8::Function> function = functionTemplate->GetFunction();
+	v8::Handle<v8::Function> function = wrapBlock(object);
 
 	return [L8Value valueWithV8Value:function];
 }
 
+/*!
+ * Create a wrapper for any type of objective object
+ *
+ * @return an L8Value containing the V8 handle wrapping the object
+ */
 - (L8Value *)JSWrapperForObject:(id)object
 {
 //	v8::Handle<v8::Object> jsWrapper = _cachedJSWrappers[object];
@@ -381,6 +441,12 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
 	return wrapper;
 }
 
+/*!
+ * Create a wrapper-to-ObjectiveC for the given JavaScript value
+ *
+ * @return an L8Value wrapping the value. Use the appropriate value-converter to retrieve the
+ * wanted object.
+ */
 - (L8Value *)ObjCWrapperForValue:(v8::Handle<v8::Value>)value
 {
 //	NSLog(@"%@%@",NSStringFromSelector(_cmd),[NSString stringWithV8Value:value]);
@@ -413,22 +479,21 @@ id unwrapObjcObject(v8::Handle<v8::Context> context, v8::Handle<v8::Value> value
 	return nil;
 }
 
-v8::Handle<v8::FunctionTemplate> wrapBlock(id object)
+v8::Handle<v8::Function> wrapBlock(id object)
 {
 	NSLog(@"Wrap Block %@",object);
 
 	v8::HandleScope localScope;
 
 	v8::Handle<v8::FunctionTemplate> functionTemplate = v8::FunctionTemplate::New();
-	functionTemplate->SetCallHandler(ObjCBlockCall);
+	functionTemplate->SetCallHandler(ObjCBlockCall, makeWrapper([[L8Runtime currentRuntime] V8Context], object));
 	functionTemplate->PrototypeTemplate()->SetInternalFieldCount(1);
+	functionTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
-//	v8::Handle<v8::ObjectTemplate> instanceTemplate = functionTemplate->InstanceTemplate();
-//	instanceTemplate->SetCallAsFunctionHandler(ObjCBlockCall);
+	v8::Handle<v8::Function> function = functionTemplate->GetFunction();
+//	function->SetInternalField(0, );
 
-//	function->SetInternalField(0, makeWrapper([_runtime V8Context], object));
-
-	return functionTemplate;
+	return localScope.Close(function);
 }
 
 id unwrapBlock(v8::Handle<v8::Object> object)

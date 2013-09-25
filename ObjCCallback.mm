@@ -46,6 +46,11 @@ SEL selectorFromV8Value(v8::Handle<v8::Value> value)
 
 void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val)
 {
+	// Discard too many arguments
+	// TODO: what to do with vararg!
+	if(index >= invocation.methodSignature.numberOfArguments)
+		return;
+
 	const char *type = [invocation.methodSignature getArgumentTypeAtIndex:index];
 
 	switch(*type) {
@@ -277,8 +282,8 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 			// has needed return type, which must not be a block
 			if(neededReturnType && strlen(neededReturnType) > 1) {
 				if(*(returnType+1) == '?' && [object isKindOfClass:BlockClass()]) {
-//					v8::Handle<v8::FunctionTemplate> functionTemplate = wrapBlock(object);
-//					return functionTemplate->GetFunction();
+					v8::Handle<v8::Function> function = wrapBlock(object);
+					return function;
 				} else {
 					size_t length = strlen(neededReturnType);
 					char *className = (char *)malloc(length-3+1); // minus @"", plus \0
@@ -311,18 +316,50 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 
 void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-	id object = (__bridge id)v8::External::Cast(*(info.This()->GetInternalField(0)))->Value();
+	const char *className;
+	Class cls;
+	SEL selector;
+	id object;
+
+	NSMethodSignature *methodSignature;
+	NSInvocation *invocation;
+
+	object = objectFromWrapper(info.This()->GetInternalField(0));
 	if(object != nil)
 		return;
 
-	const char *className = createStringFromV8Value(info.Data().As<v8::String>());
-	Class cls = objc_getClass(className);
+	className = createStringFromV8Value(info.Data().As<v8::String>());
+	cls = objc_getClass(className);
+
+	selector = @selector(init);
+	Method m = class_getInstanceMethod(cls, selector);
+	const char *enc = method_getTypeEncoding(m);
+	NSLog(@"encoding %s",enc);
+
+	methodSignature = [NSMethodSignature methodSignatureForSelector:selector];
+	invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
+	invocation.selector = selector;
 
 	// TODO handle multiple init methods and arguments
-	for(int i = 0; i < info.Length(); i++)
-		NSLog(@"Argument %d: %@",i,[NSString stringWithV8Value:info[i]]);
+	for(int i = 0; i < info.Length(); i++) {
+		L8Value *argument = [L8Value valueWithV8Value:info[i]];
 
-	object = [[cls alloc] init];
+		id obj = [argument toObject];
+		NSLog(@"Argument %d: %@, %@",i,argument,obj);
+
+		objCSetInvocationArgument(invocation, i+2, argument);
+	}
+
+	// Allocate...
+	object = [cls alloc];
+	invocation.target = object;
+
+	// and initialize
+	[invocation invoke];
+	[invocation getReturnValue:&object];
+
+	NSLog(@"result object %@",object);
+
 	info.This()->SetInternalField(0, makeWrapper([[L8Runtime currentRuntime] V8Context], object));
 }
 
@@ -336,7 +373,7 @@ void ObjCMethodCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 	v8::Handle<v8::Array> extraData;
 	v8::Handle<v8::Value> retVal;
 
-	object = (__bridge id)v8::External::Cast(*(info.This()->GetInternalField(0)))->Value();
+	object = objectFromWrapper(info.This()->GetInternalField(0));
 
 	extraData = info.Data().As<v8::Array>();
 	selector = selectorFromV8Value(extraData->Get(0));
@@ -368,18 +405,35 @@ void ObjCMethodCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 void ObjCBlockCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-	NSLog(@"Block call");
+	id target = objectFromWrapper(info.This()->GetInternalField(0));
+	id block = (__bridge id)info.Data().As<v8::External>()->Value();
+
+	NSLog(@"Block call, target %@, block %@",target,block);
+
+	// use invocation!
+
+	NSMethodSignature *methodSignature;
+	NSInvocation *invocation;
+
+	methodSignature = [NSMethodSignature signatureWithObjCTypes:_Block_signature((__bridge void *)block)];
+	invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
+	invocation.target = block;
+
+	// Set arguments (+1)
+	objCSetInvocationArgument(invocation, 1, [L8Value valueWithObject:@"Hello"]);
+
+	[invocation invoke];
 }
 
 void ObjCNamedPropertySetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-	id object = (__bridge id)v8::External::Cast(*(info.This()->GetInternalField(0)))->Value();
+	id object = objectFromWrapper(info.This()->GetInternalField(0));
 	[object setObject:[L8Value valueWithV8Value:value] forKeyedSubscript:[NSString stringWithV8String:property]];
 }
 
 void ObjCNamedPropertyGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-	id object = (__bridge id)v8::External::Cast(*(info.This()->GetInternalField(0)))->Value();
+	id object = objectFromWrapper(info.This()->GetInternalField(0));
 	id value = [object objectForKeyedSubscript:[NSString stringWithV8String:property]];
 
 	if(value)
@@ -393,13 +447,13 @@ void ObjCNamedPropertyQuery(v8::Local<v8::String> property, const v8::PropertyCa
 
 void ObjCIndexedPropertySetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-	id object = (__bridge id)v8::External::Cast(*(info.This()->GetInternalField(0)))->Value();
+	id object = objectFromWrapper(info.This()->GetInternalField(0));
 	[object setObject:[L8Value valueWithV8Value:value] atIndexedSubscript:index];
 }
 
 void ObjCIndexedPropertyGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
-	id object = (__bridge id)v8::External::Cast(*(info.This()->GetInternalField(0)))->Value();
+	id object = objectFromWrapper(info.This()->GetInternalField(0));
 	id value = [object objectAtIndexedSubscript:index];
 
 	if(value)
@@ -421,7 +475,7 @@ void ObjCAccessorSetter(v8::Local<v8::String> property, v8::Local<v8::Value> val
 	v8::Handle<v8::Array> extraData;
 	v8::Handle<v8::Value> retVal;
 
-	object = (__bridge id)v8::External::Cast(*(info.This()->GetInternalField(0)))->Value();
+	object = objectFromWrapper(info.This()->GetInternalField(0));
 	extraData = info.Data().As<v8::Array>();
 
 	// 0 = name, 1 = value type, 2 = getter SEL, 3 = getter types, 4 = setter SEL, 5 = setter types
@@ -460,7 +514,7 @@ void ObjCAccessorGetter(v8::Local<v8::String> property, const v8::PropertyCallba
 	v8::Handle<v8::Array> extraData;
 	v8::Handle<v8::Value> retVal;
 
-	object = (__bridge id)v8::External::Cast(*(info.This()->GetInternalField(0)))->Value();
+	object = objectFromWrapper(info.This()->GetInternalField(0));
 	extraData = info.Data().As<v8::Array>();
 
 	// 0 = name, 1 = value type, 2 = getter SEL, 3 = getter types, 4 = setter SEL, 5 = setter types
@@ -482,16 +536,21 @@ void ObjCAccessorGetter(v8::Local<v8::String> property, const v8::PropertyCallba
 
 	retVal = objCInvocation(invocation,returnType);
 
-	NSLog(@"IS FUNCTIOMN FOR PROP %@: %d",NSStringFromSelector(selector),retVal->IsFunction());
-	//NSLog(@"value is %d, %@",retVal->IsExternal(),v8::External::Cast(*retVal)->Value());
-
 	info.GetReturnValue().Set(retVal);
 }
 
+/*!
+ * Called when an ObjC object stored in v8 will be released by v8.
+ * This function causes an ObjC release on the object.
+ */
 void ObjCWeakReferenceCallback(v8::Isolate *isolate, v8::Persistent<v8::External> *persistent, void *parameter)
 {
 	v8::Local<v8::External> ext = v8::Local<v8::External>::New(isolate, *persistent);
 
-	id wrappedObject = (__bridge_transfer id)ext->Value();
+#if 1 // Debug
+	id wrappedObject = 	CFBridgingRelease(ext->Value());
 	NSLog(@"Weakreferencecallback for object %@",wrappedObject);
+#else
+	CFRelease(ext->Value());
+#endif
 }
