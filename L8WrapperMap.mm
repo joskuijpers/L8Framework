@@ -470,10 +470,8 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
 @end
 
 id unwrapObjcObject(v8::Handle<v8::Context> context, v8::Handle<v8::Value> value) {
-	if(!value->IsObject()) {
-		NSLog(@"Not an object, external: %d",value->IsExternal());
+	if(!value->IsObject())
 		return nil;
-	}
 
 	v8::Handle<v8::Object> object = value->ToObject();
 

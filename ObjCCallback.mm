@@ -342,7 +342,7 @@ void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 		L8Value *argument = [L8Value valueWithV8Value:info[i]];
 
 		id obj = [argument toObject];
-		NSLog(@"Argument %d: %@, %@",i,argument,obj);
+		NSLog(@"Argument %d: %@",i,argument);
 
 		objCSetInvocationArgument(invocation, i+2, argument);
 	}
