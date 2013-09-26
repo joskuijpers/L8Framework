@@ -92,6 +92,21 @@
 	return [result isKindOfClass:expectedClass]?result:nil;
 }
 
+- (id)toFunction
+{
+	@throw [NSException exceptionWithName:@"NotImplemented" reason:@"Not Implemented" userInfo:nil];
+
+	v8::Handle<v8::Function> function = _v8value.As<v8::Function>();
+	v8::Handle<v8::Value> isBlock = function->GetHiddenValue(v8::String::New("isBlock"));
+	if(!isBlock.IsEmpty() && isBlock->IsTrue()) {
+		NSLog(@"BLOCK %@",[self toString]);
+	} else {
+		NSLog(@"New Function %@",[self toString]);
+	}
+
+	return nil;
+}
+
 - (BOOL)toBool
 {
 	return (BOOL)_v8value->IsTrue();
@@ -209,7 +224,12 @@
 
 - (BOOL)isObject
 {
-	return _v8value->IsObject();
+	return _v8value->IsObject() && !_v8value->IsFunction();
+}
+
+- (BOOL)isFunction
+{
+	return _v8value->IsFunction();
 }
 
 - (BOOL)isEqualToObject:(id)value

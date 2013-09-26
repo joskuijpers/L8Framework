@@ -30,6 +30,7 @@
 
 - (id)toObject;
 - (id)toObjectOfClass:(Class)expectedClass;
+- (id)toFunction;
 
 - (BOOL)toBool;
 - (double)toDouble;
@@ -58,6 +59,7 @@
 - (BOOL)isNumber;
 - (BOOL)isString;
 - (BOOL)isObject;
+- (BOOL)isFunction;
 
 - (BOOL)isEqualToObject:(id)value;
 - (BOOL)isEqualWithTypeCoercionToObject:(id)value;

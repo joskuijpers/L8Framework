@@ -504,6 +504,7 @@ v8::Handle<v8::Function> wrapBlock(id object)
 	functionTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
 	v8::Handle<v8::Function> function = functionTemplate->GetFunction();
+	function->SetHiddenValue(v8::String::New("isBlock"), v8::Boolean::New(true));
 //	function->SetInternalField(0, v8::String::New("TEST"));
 
 	return localScope.Close(function);
