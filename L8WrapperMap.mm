@@ -86,6 +86,7 @@ done:
 v8::Handle<v8::External> makeWrapper(v8::Handle<v8::Context> context, id wrappedObject)
 {
 	void *voidObject = (void *)CFBridgingRetain(wrappedObject);
+
 	v8::Handle<v8::External> ext = v8::External::New(voidObject);
 	v8::Persistent<v8::External> persist(context->GetIsolate(),ext);
 	persist.MakeWeak((__bridge void *)wrappedObject, ObjCWeakReferenceCallback);
@@ -250,10 +251,16 @@ void copyPrototypeProperties(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectTemp
 	NSMutableDictionary *accessorMethods = [NSMutableDictionary dictionary];
 	L8Value *undefinedValue = [L8Value valueWithUndefined];
 
+	// This is not neccesary, just move them inside the block
+	// but it is to avoid analyzer errors
+	__block char *getterName = NULL;
+	__block char *setterName = NULL;
+	__block char *type = NULL;
+
 	forEachPropertyInProtocol(protocol, ^(objc_property_t property) {
-		char *getterName = NULL;
-		char *setterName = NULL;
-		char *type = NULL;
+		getterName = NULL;
+		setterName = NULL;
+		type = NULL;
 		bool readonly = false;
 		const char *propertyName = property_getName(property);
 
@@ -362,18 +369,17 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
  */
 - (L8Value *)JSWrapperForObjCObject:(id)object
 {
-	BOOL isMeta = NO;
-
-	if(class_isMetaClass(object_getClass(object)))
-		isMeta = YES;
-
 	Class cls = object_getClass(object);
 	NSString *className = @(class_getName(cls));
 
 	v8::HandleScope localScope;
 
 	v8::Handle<v8::FunctionTemplate> classTemplate = v8::FunctionTemplate::New();
-	classTemplate->SetCallHandler(ObjCConstructor,v8::String::New(class_getName(cls)));
+
+	// TODO set prototype of the prototype to prototype of the superclass
+//	v8::Handle<v8::FunctionTemplate> parentTemplate; // need to store the function templates for each class and have function that returns those
+//	classTemplate->Inherit(parentTemplate);
+
 	classTemplate->SetClassName([className V8String]);
 
 	v8::Handle<v8::ObjectTemplate> prototypeTemplate = classTemplate->PrototypeTemplate();
@@ -392,10 +398,15 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
 	// The class (constructor)
 	v8::Handle<v8::Function> function = classTemplate->GetFunction();
 
-	if(class_isMetaClass(object_getClass(object)))
+	if(class_isMetaClass(object_getClass(object))) {
+		classTemplate->SetCallHandler(ObjCConstructor,v8::String::New(class_getName(cls)));
 		return [L8Value valueWithV8Value:localScope.Close(function)];
-	else {
-		v8::Handle<v8::Object> instance = function->NewInstance(); // can haz argc+argv
+	} else {
+		// The objcConstructor should not be called when the object already exists
+		// so we set the constructor after use
+		v8::Handle<v8::Object> instance = function->NewInstance();
+
+		classTemplate->SetCallHandler(ObjCConstructor,v8::String::New(class_getName(cls)));
 		instance->SetInternalField(0, makeWrapper([_runtime V8Context], object));
 
 		return [L8Value valueWithV8Value:localScope.Close(instance)];
@@ -423,9 +434,9 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
  */
 - (L8Value *)JSWrapperForObject:(id)object
 {
-	L8Value *wrapper = _cachedJSWrappers[[object className]];
-	if(wrapper)
-		return wrapper;
+	L8Value *wrapper;// = _cachedJSWrappers[[object className]];
+//	if(wrapper)
+//		return wrapper;
 
 	if([object isKindOfClass:BlockClass()]) {
 		NSLog(@"Is Block %@",object);
@@ -433,7 +444,7 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
 	} else
 		wrapper = [self JSWrapperForObjCObject:object];
 
-	_cachedJSWrappers[[object className]] = wrapper;
+//	_cachedJSWrappers[[object className]] = wrapper;
 
 	return wrapper;
 }
@@ -459,18 +470,25 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
 @end
 
 id unwrapObjcObject(v8::Handle<v8::Context> context, v8::Handle<v8::Value> value) {
-	if(!value->IsObject())
+	if(!value->IsObject()) {
+		NSLog(@"Not an object, external: %d",value->IsExternal());
 		return nil;
+	}
 
 	v8::Handle<v8::Object> object = value->ToObject();
 
-	if(object->InternalFieldCount() > 0) {
+	if(object->InternalFieldCount() > 0) { // Instance
 		v8::Handle<v8::Value> field = object->GetInternalField(0);
 		if(!field.IsEmpty() && field->IsExternal())
 			return (__bridge id)v8::External::Cast(*field)->Value();
 	}
 
-	if(id target = unwrapBlock(object))
+	if(object->IsFunction()) { // Class
+		NSString *name = [NSString stringWithV8Value:object.As<v8::Function>()->GetName()];
+		return objc_getClass([name UTF8String]);
+	}
+
+	if(id target = unwrapBlock(object)) // Block
 		return target;
 
 	return nil;
@@ -486,6 +504,7 @@ v8::Handle<v8::Function> wrapBlock(id object)
 	functionTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
 	v8::Handle<v8::Function> function = functionTemplate->GetFunction();
+//	function->SetInternalField(0, v8::String::New("TEST"));
 
 	return localScope.Close(function);
 }

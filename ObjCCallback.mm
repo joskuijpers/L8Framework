@@ -273,13 +273,10 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 			break;
 		}
 		case '@': { // object
-			id object;
+			id __unsafe_unretained object;
 			assert(retLength == sizeof(id));
 
 			[invocation getReturnValue:&object];
-
-			if(object == nil)
-				result = [L8Value valueWithNull];
 
 			// has needed return type, which must not be a block
 			if(neededReturnType && strlen(neededReturnType) > 1) {
@@ -293,7 +290,7 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 					className[length-3] = 0;
 
 //					Class cls = objc_getClass(className);
-//					free(className);
+					free(className);
 
 					result = [L8Value valueWithObject:object];
 				}
@@ -322,13 +319,11 @@ void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 	Class cls;
 	SEL selector;
 	id object;
+	id __unsafe_unretained resultObject;
+	v8::HandleScope localScope(info.GetIsolate());
 
 	NSMethodSignature *methodSignature;
 	NSInvocation *invocation;
-
-	object = objectFromWrapper(info.This()->GetInternalField(0));
-	if(object != nil)
-		return;
 
 	className = createStringFromV8Value(info.Data().As<v8::String>());
 	cls = objc_getClass(className);
@@ -359,10 +354,11 @@ void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 	// and initialize
 	@autoreleasepool {
 		[invocation invoke];
-		[invocation getReturnValue:&object];
+		[invocation getReturnValue:&resultObject];
+		info.This()->SetInternalField(0, makeWrapper([[L8Runtime currentRuntime] V8Context], resultObject));
 	}
 
-	info.This()->SetInternalField(0, makeWrapper([[L8Runtime currentRuntime] V8Context], object));
+	info.GetReturnValue().Set(info.This());
 }
 
 void ObjCMethodCall(const v8::FunctionCallbackInfo<v8::Value>& info)
@@ -485,7 +481,10 @@ void ObjCAccessorSetter(v8::Local<v8::String> property, v8::Local<v8::Value> val
 	extraData = info.Data().As<v8::Array>();
 
 	// 0 = name, 1 = value type, 2 = getter SEL, 3 = getter types, 4 = setter SEL, 5 = setter types
+	// TODO use valuetype to verify argument
 	valueType = createStringFromV8Value(extraData->Get(1));
+	free((void *)valueType);
+
 	selector = selectorFromV8Value(extraData->Get(4));
 	types = createStringFromV8Value(extraData->Get(5));
 

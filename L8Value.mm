@@ -139,10 +139,10 @@
 
 - (L8Value *)valueForProperty:(NSString *)property
 {
-	v8::HandleScope scope(v8::Isolate::GetCurrent());
+	v8::HandleScope localScope(v8::Isolate::GetCurrent());
 
 	v8::Local<v8::Object> object = _v8value->ToObject();
-	return [L8Value valueWithV8Value:object->Get([property V8String])];
+	return [L8Value valueWithV8Value:localScope.Close(object->Get([property V8String]))];
 }
 
 - (void)setValue:(id)value forProperty:(NSString *)property
@@ -240,7 +240,7 @@
 	v8::Isolate *isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope localScope(isolate);
 
-	v8::Handle<v8::Value> *argv = (v8::Handle<v8::Value> *)calloc(arguments.count,sizeof(v8::Handle<v8::Array>));
+	v8::Handle<v8::Value> *argv = (v8::Handle<v8::Value> *)calloc(arguments.count,sizeof(v8::Handle<v8::Value>));
 	[arguments enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
 		argv[idx] = objectToValue(_runtime, obj);
 	}];
@@ -260,7 +260,7 @@
 		}
 	}
 
-	return [L8Value valueWithV8Value:result];
+	return [L8Value valueWithV8Value:localScope.Close(result)];
 }
 
 - (L8Value *)constructWithArguments:(NSArray *)arguments
@@ -268,12 +268,12 @@
 	v8::Isolate *isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope localScope(isolate);
 
-	v8::Handle<v8::Value> *argv = (v8::Handle<v8::Value> *)calloc(arguments.count,sizeof(v8::Handle<v8::Array>));
+	v8::Handle<v8::Function> function = _v8value.As<v8::Function>();
+
+	v8::Handle<v8::Value> *argv = (v8::Handle<v8::Value> *)calloc(arguments.count,sizeof(v8::Handle<v8::Value>));
 	[arguments enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
 		argv[idx] = objectToValue(_runtime, obj);
 	}];
-
-	v8::Handle<v8::Object> function = _v8value->ToObject();
 
 	v8::Handle<v8::Value> result;
 	{
@@ -287,7 +287,7 @@
 		}
 	}
 
-	return [L8Value valueWithV8Value:result];
+	return [L8Value valueWithV8Value:localScope.Close(result)];
 }
 
 - (L8Value *)invokeMethod:(NSString *)method withArguments:(NSArray *)arguments
@@ -295,12 +295,13 @@
 	v8::Isolate *isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope localScope(isolate);
 
+	v8::Handle<v8::Value> v8value = self[method]->_v8value;
+	v8::Handle<v8::Function> function = v8value.As<v8::Function>();
+
 	v8::Handle<v8::Value> *argv = (v8::Handle<v8::Value> *)calloc(arguments.count,sizeof(v8::Handle<v8::Value>));
 	[arguments enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
 		argv[idx] = objectToValue(_runtime, obj);
 	}];
-
-	v8::Handle<v8::Object> function = self[method]->_v8value->ToObject();
 
 	v8::Handle<v8::Value> result;
 	{
