@@ -35,7 +35,7 @@
  *
  * @return An NSString containing the property name
  */
-static NSString *selectorToPropertyName(const char *start)
+static NSString *selectorToPropertyName(const char *start, bool instanceMethod = true)
 {
 	// Find the first semicolon
 	const char *firstColon = index(start, ':');
@@ -45,6 +45,9 @@ static NSString *selectorToPropertyName(const char *start)
 	size_t header = firstColon - start;
 	char *buffer = (char *)malloc(header + strlen(firstColon + 1) + 1);
 	memcpy(buffer, start, header);
+
+	if(!instanceMethod)
+		buffer[0] = toupper(buffer[0]);
 
 	char *output = buffer + header;
 	const char *input = start + header + 1;
@@ -156,7 +159,7 @@ static char *makeSetterName(const char *name)
  */
 void copyMethodsToObject(L8WrapperMap *wrapperMap, Protocol *protocol,
 						 BOOL isInstanceMethod,
-						 v8::Handle<v8::ObjectTemplate> prototypeTemplate,
+						 v8::Handle<v8::Template> theTemplate,
 						 NSMutableDictionary *accessorMethods = nil)
 {
 	forEachMethodInProtocol(protocol, YES, isInstanceMethod, ^(SEL sel, const char *types) {
@@ -167,7 +170,7 @@ void copyMethodsToObject(L8WrapperMap *wrapperMap, Protocol *protocol,
 		if(accessorMethods[rawName]) {
 			accessorMethods[rawName] = [L8Value valueWithV8Value:v8::String::New(types)];
 		} else {
-			NSString *propertyName = selectorToPropertyName(selName);
+			NSString *propertyName = selectorToPropertyName(selName,isInstanceMethod);
 			v8::Handle<v8::String> v8Name = [propertyName V8String];
 
 			v8::Handle<v8::FunctionTemplate> function = v8::FunctionTemplate::New();
@@ -176,10 +179,11 @@ void copyMethodsToObject(L8WrapperMap *wrapperMap, Protocol *protocol,
 			v8::Handle<v8::Array> extraData = v8::Array::New();
 			extraData->Set(0, v8::String::New(selName));
 			extraData->Set(1, v8::String::New(types));
+			extraData->Set(2, v8::Boolean::New(!isInstanceMethod));
 
 			function->SetCallHandler(ObjCMethodCall,extraData);
 
-			prototypeTemplate->Set(v8Name, function);
+			theTemplate->Set(v8Name, function);
 		}
 	});
 }
@@ -334,7 +338,7 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
 
 @implementation L8WrapperMap {
 	L8Runtime * _runtime;
-//	NSMutableDictionary *_classMap;
+	NSMutableDictionary *_cachedJSWrappers;
 //	NSMapTable *_cachedObjCWrappers;
 }
 
@@ -346,7 +350,7 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
 //														valueOptions:NSPointerFunctionsWeakMemory | NSPointerFunctionsObjectPointerPersonality
 //															capacity:0];
 		_runtime = runtime;
-//		_classMap = [[NSMutableDictionary alloc] init];
+		_cachedJSWrappers = [[NSMutableDictionary alloc] init];
 	}
 	return self;
 }
@@ -382,16 +386,11 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
 		copyPrototypeProperties(self, prototypeTemplate, instanceTemplate, protocol);
 
 		// Copy class methods
-		copyMethodsToObject(self, protocol, NO, prototypeTemplate);
+		copyMethodsToObject(self, protocol, NO, classTemplate);
 	});
 
 	// The class (constructor)
 	v8::Handle<v8::Function> function = classTemplate->GetFunction();
-
-	v8::Handle<v8::Array> prop = function->GetPropertyNames();
-	for(int i = 0; i < prop->Length(); i++) {
-		NSLog(@"%d: %@",i,[NSString stringWithV8Value:prop->Get(i)]);
-	}
 
 	if(class_isMetaClass(object_getClass(object)))
 		return [L8Value valueWithV8Value:localScope.Close(function)];
@@ -424,11 +423,9 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
  */
 - (L8Value *)JSWrapperForObject:(id)object
 {
-//	v8::Handle<v8::Object> jsWrapper = _cachedJSWrappers[object];
-//	if(!jsWrapper.IsEmpty())
-//		return [L8Value valueWithV8Value:jsWrapper];
-
-	L8Value *wrapper = nil;
+	L8Value *wrapper = _cachedJSWrappers[[object className]];
+	if(wrapper)
+		return wrapper;
 
 	if([object isKindOfClass:BlockClass()]) {
 		NSLog(@"Is Block %@",object);
@@ -436,7 +433,7 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
 	} else
 		wrapper = [self JSWrapperForObjCObject:object];
 
-	// Todo: Cache
+	_cachedJSWrappers[[object className]] = wrapper;
 
 	return wrapper;
 }
@@ -454,7 +451,7 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
 	L8Value *wrapper;// = static_cast<L8Value *>(NSMapGet(_cachedObjCWrappers, value));
 //	if(!wrapper) {
 		wrapper = [[L8Value alloc] initWithV8Value:value];
-//		NSMapInsert(_cachedObjCWrappers, value, wrapper);
+//		NSMapInsert(_cachedObjCWrappers, (void *)*value, wrapper);
 //	}
 	return wrapper;
 }
@@ -481,8 +478,6 @@ id unwrapObjcObject(v8::Handle<v8::Context> context, v8::Handle<v8::Value> value
 
 v8::Handle<v8::Function> wrapBlock(id object)
 {
-	NSLog(@"Wrap Block %@",object);
-
 	v8::HandleScope localScope;
 
 	v8::Handle<v8::FunctionTemplate> functionTemplate = v8::FunctionTemplate::New();
@@ -491,7 +486,6 @@ v8::Handle<v8::Function> wrapBlock(id object)
 	functionTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
 	v8::Handle<v8::Function> function = functionTemplate->GetFunction();
-//	function->SetInternalField(0, );
 
 	return localScope.Close(function);
 }

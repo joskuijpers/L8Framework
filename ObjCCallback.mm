@@ -201,7 +201,9 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 
 v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neededReturnType = NULL)
 {
-	[invocation invoke];
+	@autoreleasepool {
+		[invocation invoke];
+	}
 
 	unsigned long retLength = invocation.methodSignature.methodReturnLength;
 	const char *returnType = invocation.methodSignature.methodReturnType;
@@ -355,10 +357,10 @@ void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 	invocation.target = object;
 
 	// and initialize
-	[invocation invoke];
-	[invocation getReturnValue:&object];
-
-	NSLog(@"result object %@",object);
+	@autoreleasepool {
+		[invocation invoke];
+		[invocation getReturnValue:&object];
+	}
 
 	info.This()->SetInternalField(0, makeWrapper([[L8Runtime currentRuntime] V8Context], object));
 }
@@ -368,29 +370,31 @@ void ObjCMethodCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 	SEL selector;
 	id object;
 	const char *types;
+	bool isClassMethod = false;
 	NSMethodSignature *methodSignature;
 	NSInvocation *invocation;
 	v8::Handle<v8::Array> extraData;
 	v8::Handle<v8::Value> retVal;
 
-	object = objectFromWrapper(info.This()->GetInternalField(0));
-
 	extraData = info.Data().As<v8::Array>();
 	selector = selectorFromV8Value(extraData->Get(0));
 	types = createStringFromV8Value(extraData->Get(1));
+	isClassMethod = extraData->Get(2)->ToBoolean()->Value();
 
 	methodSignature = [NSMethodSignature signatureWithObjCTypes:types];
-	free((void *)types);
 	invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
+	free((void *)types);
+
+	// Class methods must use the function (This) name to find the class meta object
+	if(isClassMethod) {
+		v8::Handle<v8::Function> function = info.This().As<v8::Function>();
+		object = objc_getClass(createStringFromV8Value(function->GetName()));
+	} else
+		object = objectFromWrapper(info.This()->GetInternalField(0));
 
 	invocation.selector = selector;
 	if(!info.IsConstructCall())
 		invocation.target = object;
-
-	if(invocation.methodSignature.numberOfArguments-2 < info.Length()) {
-		// make JS exception
-		assert(0 && "More parameters than arguments");
-	}
 
 	for(int i = 0; i < info.Length(); i++) {
 		L8Value *val = [L8Value valueWithV8Value:info[i]];
@@ -405,12 +409,7 @@ void ObjCMethodCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 void ObjCBlockCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-	id target = objectFromWrapper(info.This()->GetInternalField(0));
 	id block = (__bridge id)info.Data().As<v8::External>()->Value();
-
-	NSLog(@"Block call, target %@, block %@",target,block);
-
-	// use invocation!
 
 	NSMethodSignature *methodSignature;
 	NSInvocation *invocation;
@@ -420,9 +419,16 @@ void ObjCBlockCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 	invocation.target = block;
 
 	// Set arguments (+1)
-	objCSetInvocationArgument(invocation, 1, [L8Value valueWithObject:@"Hello"]);
+	for(int i = 0; i < info.Length(); i++) {
+		L8Value *val = [L8Value valueWithV8Value:info[i]];
+		objCSetInvocationArgument(invocation, i+1, val);
+	}
 
-	[invocation invoke];
+	@autoreleasepool {
+		[invocation invoke];
+	}
+
+	// TODO blocks can also have return values
 }
 
 void ObjCNamedPropertySetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
