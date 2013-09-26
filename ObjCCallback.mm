@@ -53,10 +53,11 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 
 	const char *type = [invocation.methodSignature getArgumentTypeAtIndex:index];
 
+	// TODO add range checks
 	switch(*type) {
 		case 'c': { // char (8)
 			if(![val isNumber])
-				assert(0 && "Invalid argument."); // Todo: make JS exception
+				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
 			int8_t value = [[val toNumber] charValue];
 			[invocation setArgument:&value
@@ -65,7 +66,7 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 		}
 		case 'i': { // int
 			if(![val isNumber])
-				assert(0 && "Invalid argument."); // Todo: make JS exception
+				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
 			int32_t value = [[val toNumber] intValue];
 			[invocation setArgument:&value
@@ -74,7 +75,7 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 		}
 		case 's': { // short (16)
 			if(![val isNumber])
-				assert(0 && "Invalid argument."); // Todo: make JS exception
+				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
 			int16_t value = [[val toNumber] shortValue];
 			[invocation setArgument:&value
@@ -83,7 +84,7 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 		}
 		case 'l': { // long (32)
 			if(![val isNumber])
-				assert(0 && "Invalid argument."); // Todo: make JS exception
+				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
 			long value = [[val toNumber] longValue];
 			[invocation setArgument:&value
@@ -92,7 +93,7 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 		}
 		case 'q': { // long long (64)
 			if(![val isNumber])
-				assert(0 && "Invalid argument."); // Todo: make JS exception
+				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
 			int64_t value = [[val toNumber] longLongValue];
 			[invocation setArgument:&value
@@ -101,7 +102,7 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 		}
 		case 'C': { // unsigned char (8)
 			if(![val isNumber])
-				assert(0 && "Invalid argument."); // Todo: make JS exception
+				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
 			uint8_t value = [[val toNumber] unsignedCharValue];
 			[invocation setArgument:&value
@@ -110,7 +111,7 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 		}
 		case 'I': { // unsigned int
 			if(![val isNumber])
-				assert(0 && "Invalid argument."); // Todo: make JS exception
+				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
 			uint32_t value = [[val toNumber] unsignedIntValue];
 			[invocation setArgument:&value
@@ -119,7 +120,7 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 		}
 		case 'S': { // unsigned short (16)
 			if(![val isNumber])
-				assert(0 && "Invalid argument."); // Todo: make JS exception
+				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
 			uint16_t value = [[val toNumber] unsignedShortValue];
 			[invocation setArgument:&value
@@ -128,7 +129,7 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 		}
 		case 'L': { // unsigned long (32)
 			if(![val isNumber])
-				assert(0 && "Invalid argument."); // Todo: make JS exception
+				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
 			unsigned long value = [[val toNumber] unsignedLongValue];
 			[invocation setArgument:&value
@@ -137,7 +138,7 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 		}
 		case 'Q': { // unsigned long long (64)
 			if(![val isNumber])
-				assert(0 && "Invalid argument."); // Todo: make JS exception
+				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
 			uint64_t value = [[val toNumber] unsignedLongLongValue];
 			[invocation setArgument:&value
@@ -147,7 +148,7 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 
 		case 'f': { // float
 			if(![val isNumber])
-				assert(0 && "Invalid argument."); // Todo: make JS exception
+				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
 			float value = [[val toNumber] floatValue];
 			[invocation setArgument:&value
@@ -156,7 +157,7 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 		}
 		case 'd': { // double
 			if(![val isNumber])
-				assert(0 && "Invalid argument."); // Todo: make JS exception
+				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
 			double value = [[val toNumber] doubleValue];
 			[invocation setArgument:&value
@@ -166,7 +167,7 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 
 		case 'B': { // bool or _Bool
 			if(![val isBoolean])
-				assert(0 && "Invalid argument."); // Todo: make JS exception
+				v8::Exception::TypeError(v8::String::New("The implementation requests a boolean"));
 
 			bool value = [[val toNumber] boolValue];
 			[invocation setArgument:&value
@@ -177,7 +178,7 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 			break;
 		case '*': { // char *
 			if(![val isString])
-				assert(0 && "Invalid argument."); // Todo: make JS exception
+				v8::Exception::TypeError(v8::String::New("The implementation requests a string"));
 
 			const char *value = [[val toString] UTF8String];
 			[invocation setArgument:&value
@@ -229,7 +230,7 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 			break;
 		}
 		case 'q': // long long (64)
-			assert(0 && "64-bit integers not supported");
+			@throw [NSException exceptionWithName:NSRangeException reason:@"JavaScript does not support long long" userInfo:nil];
 
 		case 'C': // unsigned char (8)
 		case 'I': // unsigned int
@@ -243,7 +244,7 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 			break;
 		}
 		case 'Q': // unsigned long long (64)
-			assert(0 && "64-bit integers not supported");
+			@throw [NSException exceptionWithName:NSRangeException reason:@"JavaScript does not support long long" userInfo:nil];
 
 		case 'f': { // float
 			float value;
@@ -497,7 +498,7 @@ void ObjCAccessorSetter(v8::Local<v8::String> property, v8::Local<v8::Value> val
 
 	if(invocation.methodSignature.numberOfArguments != 3) {
 		// make JS exception
-		assert(0 && "More parameters than arguments: not a getter called?");
+		assert(0 && "More parameters than arguments: not a setter called?");
 	}
 
 	L8Value *val = [L8Value valueWithV8Value:value];

@@ -154,7 +154,7 @@ static char *makeSetterName(const char *name)
 /*
  * Install the ObjC methods from the protocol in the JS prototype.
  * If isInstanceMethod is YES, only instance methods will be installed.
- * If non-YES, it will install class-methods. (TODO)
+ * If non-YES, it will install class-methods.
  * This method also stores type-information of accessor methods in the given
  * dictionary, if given.
  */

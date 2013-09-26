@@ -17,7 +17,7 @@
 	NSString *ret;
 
 	if(v8string.IsEmpty())
-		return nil; // TODO or return empty object?
+		return nil;
 
 	buffer = (char *)malloc(v8string->Length()+1);
 	if(buffer == NULL)
