@@ -342,7 +342,7 @@ void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 	for(int i = 0; i < info.Length(); i++) {
 		L8Value *argument = [L8Value valueWithV8Value:info[i]];
 
-		id obj = [argument toObject];
+//		id obj = [argument toObject];
 		NSLog(@"Argument %d: %@",i,argument);
 
 		objCSetInvocationArgument(invocation, i+2, argument);
@@ -431,7 +431,10 @@ void ObjCBlockCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 void ObjCNamedPropertySetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
 	id object = objectFromWrapper(info.This()->GetInternalField(0));
-	[object setObject:[L8Value valueWithV8Value:value] forKeyedSubscript:[NSString stringWithV8String:property]];
+	L8Value *setValue = [L8Value valueWithV8Value:value];
+	[object setObject:setValue forKeyedSubscript:[NSString stringWithV8String:property]];
+
+	info.GetReturnValue().Set([setValue V8Value]);
 }
 
 void ObjCNamedPropertyGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info)
@@ -445,13 +448,16 @@ void ObjCNamedPropertyGetter(v8::Local<v8::String> property, const v8::PropertyC
 
 void ObjCNamedPropertyQuery(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Integer>& info)
 {
-	NSLog(@"property query");
+//	TODO NSLog(@"property query");
 }
 
 void ObjCIndexedPropertySetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
 	id object = objectFromWrapper(info.This()->GetInternalField(0));
-	[object setObject:[L8Value valueWithV8Value:value] atIndexedSubscript:index];
+	L8Value *setValue = [L8Value valueWithV8Value:value];
+	[object setObject:setValue atIndexedSubscript:index];
+
+	info.GetReturnValue().Set([setValue V8Value]);
 }
 
 void ObjCIndexedPropertyGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& info)
@@ -465,7 +471,7 @@ void ObjCIndexedPropertyGetter(uint32_t index, const v8::PropertyCallbackInfo<v8
 
 void ObjCIndexedPropertyQuery(uint32_t index, const v8::PropertyCallbackInfo<v8::Integer>& info)
 {
-	NSLog(@"index %d query",index);
+//	TODO NSLog(@"index %d query",index);
 }
 
 void ObjCAccessorSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &info)

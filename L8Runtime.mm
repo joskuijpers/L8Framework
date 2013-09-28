@@ -31,9 +31,8 @@
 	if(v8context.IsEmpty())
 		return nil;
 
-	v8::Local<v8::Value> data = v8context->GetEmbedderData(0);
-	v8::External *ext = v8::External::Cast(*data);
-	L8Runtime *context = (__bridge L8Runtime *)ext->Value();
+	v8::Handle<v8::External> data = v8context->GetEmbedderData(0).As<v8::External>();
+	L8Runtime *context = (__bridge L8Runtime *)data->Value();
 
 	return context;
 }
@@ -41,33 +40,52 @@
 - (id)init
 {
 	self = [super init];
-	if(!self)
-		return nil;
+	if(self) {
+		v8::Isolate *isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope mainScope(isolate);
 
+		// Create the context
+		v8::Local<v8::Context> context = v8::Context::New(isolate);
+		context->SetEmbedderData(0, v8::External::New((void *)CFBridgingRetain(self)));
+		_v8context.Reset(isolate, context);
+
+		// Start the context scope
+		v8::Context::Scope contextScope(isolate,_v8context);
+
+		// Create the wrappermap for the context
+		_wrapperMap = [[L8WrapperMap alloc] initWithRuntime:self];
+	}
+	return self;
+}
+
+- (void)dealloc
+{
 	v8::Isolate *isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope mainScope(isolate);
-
-	// Create the context
-	v8::Local<v8::Context> context = v8::Context::New(isolate);
-	context->SetEmbedderData(0, v8::External::New((void *)CFBridgingRetain(self)));
-	_v8context.Reset(isolate, context);
-
-	// Start the context scope
 	v8::Context::Scope contextScope(isolate,_v8context);
+	v8::Handle<v8::Context> context = v8::Handle<v8::Context>::New(isolate, _v8context);
 
-	// Create the wrappermap for the context
-	_wrapperMap = [[L8WrapperMap alloc] initWithRuntime:self];
+	v8::Handle<v8::External> selfStored = context->GetEmbedderData(0).As<v8::External>();
+	if(!selfStored.IsEmpty()) {
+		CFRelease(selfStored->Value());
+	}
 
-	return self;
+	_v8context.Clear();
 }
 
 - (void)executeBlockInRuntime:(void(^)(L8Runtime *runtime))block
 {
 	v8::Isolate *isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope mainScope(isolate);
+	v8::HandleScope localScope(isolate);
 	v8::Context::Scope contextScope(isolate,_v8context);
 
+	v8::TryCatch tryCatch;
+
 	block(self);
+
+	if(tryCatch.HasCaught()) {
+		[[L8Reporter sharedReporter] reportTryCatch:&tryCatch inIsolate:isolate];
+	}
 }
 
 - (BOOL)loadScriptAtPath:(NSString *)filePath
@@ -158,10 +176,8 @@
 
 + (L8Runtime *)currentRuntime
 {
-	v8::Isolate *isolate = v8::Isolate::GetCurrent();
-	v8::Local<v8::Context> localContext = isolate->GetCurrentContext();
-
-	return [self contextWithV8Context:localContext];
+	v8::Local<v8::Context> context = v8::Isolate::GetCurrent()->GetCurrentContext();
+	return [self contextWithV8Context:context];
 }
 
 + (L8Value *)currentThis
@@ -179,7 +195,6 @@
 - (v8::Local<v8::Context>)V8Context
 {
 	return v8::Handle<v8::Context>::New(v8::Isolate::GetCurrent(), _v8context);
-//	return v8::Isolate::GetCurrent()->GetCurrentContext();
 }
 
 - (L8Value *)wrapperForObjCObject:(id)object

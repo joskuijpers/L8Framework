@@ -108,7 +108,7 @@ id objectFromWrapper(v8::Handle<v8::Value> wrapper)
 	return object;
 }
 
-/*??*/static NSMutableDictionary *createRenameMap(Protocol *protocol, BOOL isInstanceMethod)
+static NSMutableDictionary *createRenameMap(Protocol *protocol, BOOL isInstanceMethod)
 {
 	NSMutableDictionary *renameMap = [NSMutableDictionary dictionary];
 
@@ -163,6 +163,8 @@ void copyMethodsToObject(L8WrapperMap *wrapperMap, Protocol *protocol,
 						 v8::Handle<v8::Template> theTemplate,
 						 NSMutableDictionary *accessorMethods = nil)
 {
+	NSMutableDictionary *renameMap = createRenameMap(protocol, isInstanceMethod);
+
 	forEachMethodInProtocol(protocol, YES, isInstanceMethod, ^(SEL sel, const char *types) {
 
 		const char *selName = sel_getName(sel);
@@ -171,7 +173,11 @@ void copyMethodsToObject(L8WrapperMap *wrapperMap, Protocol *protocol,
 		if(accessorMethods[rawName]) {
 			accessorMethods[rawName] = [L8Value valueWithV8Value:v8::String::New(types)];
 		} else {
-			NSString *propertyName = selectorToPropertyName(selName,isInstanceMethod);
+			NSString *propertyName = renameMap[rawName];
+
+			if(propertyName == nil)
+				propertyName = selectorToPropertyName(selName,isInstanceMethod);
+
 			v8::Handle<v8::String> v8Name = [propertyName V8String];
 
 			v8::Handle<v8::FunctionTemplate> function = v8::FunctionTemplate::New();
@@ -336,11 +342,6 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
 													readonly ? 0 : ObjCIndexedPropertySetter,
 													ObjCIndexedPropertyQuery, 0, 0); // DATA
 	}
-
-//	- (id)objectForKeyedSubscript:(id)key;
-//	- (id)objectAtIndexedSubscript:(NSUInteger)index;
-//	- (void)setObject:(id)object forKeyedSubscript:(NSObject <NSCopying> *)key;
-//	- (void)setObject:(id)object atIndexedSubscript:(NSUInteger)index;
 }
 
 @implementation L8WrapperMap {
@@ -386,7 +387,7 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
 	v8::Handle<v8::ObjectTemplate> instanceTemplate = classTemplate->InstanceTemplate();
 	instanceTemplate->SetInternalFieldCount(1);
 
-	installSubscriptionMethods(self, instanceTemplate, cls);
+	installSubscriptionMethods(self, instanceTemplate, (class_isMetaClass(cls)) ? object : cls);
 
 	forEachProtocolImplementingProtocol(cls, objc_getProtocol("L8Export"), ^(Protocol *protocol) {
 		copyPrototypeProperties(self, prototypeTemplate, instanceTemplate, protocol);
