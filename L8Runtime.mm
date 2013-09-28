@@ -9,6 +9,7 @@
 #import <objc/runtime.h>
 
 #import "L8Runtime_Private.h"
+#import "L8Runtime_Debugging.h"
 #import "L8Value_Private.h"
 #import "L8Reporter_Private.h"
 #import "L8WrapperMap.h"
@@ -16,6 +17,7 @@
 #import "NSString+L8.h"
 
 #include "v8.h"
+#include "v8-debug.h"
 
 @implementation L8Runtime {
 	v8::Persistent<v8::Context> _v8context;
@@ -209,6 +211,40 @@
 	@synchronized(_wrapperMap) {
 		return [_wrapperMap ObjCWrapperForValue:value];
 	}
+}
+
+void L8RuntimeDebugMessageDispatchHandler()
+{
+	dispatch_async(dispatch_get_main_queue(), ^{
+		v8::Isolate *isolate = v8::Isolate::GetCurrent();
+		v8::HandleScope localScope(isolate);
+
+		v8::Handle<v8::Context> debugContext = v8::Debug::GetDebugContext();
+		L8Runtime *runtime = (__bridge L8Runtime *)debugContext->GetEmbedderData(1).As<v8::External>()->Value();
+
+		v8::Handle<v8::Context> context = v8::Handle<v8::Context>::New(isolate, [runtime V8Context]);
+		v8::Context::Scope contextScope(context);
+
+		v8::Debug::ProcessDebugMessages();
+	});
+}
+
+- (void)enableDebugging
+{
+	if(_debuggerPort == 0) {
+		_debuggerPort = 12228; // L=12 V=22 8, LFV8
+	}
+
+	v8::Debug::EnableAgent("sphere_runtime", _debuggerPort, _waitForDebugger);
+	v8::Debug::SetDebugMessageDispatchHandler(L8RuntimeDebugMessageDispatchHandler);
+
+	v8::HandleScope localScope(v8::Isolate::GetCurrent());
+	v8::Debug::GetDebugContext()->SetEmbedderData(1, v8::External::New((__bridge void *)self));
+}
+
+- (void)disableDebugging
+{
+	v8::Debug::DisableAgent();
 }
 
 @end

@@ -373,7 +373,7 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
 	Class cls = object_getClass(object);
 	NSString *className = @(class_getName(cls));
 
-	v8::HandleScope localScope;
+	v8::HandleScope localScope(v8::Isolate::GetCurrent());
 
 	v8::Handle<v8::FunctionTemplate> classTemplate = v8::FunctionTemplate::New();
 
@@ -495,7 +495,7 @@ id unwrapObjcObject(v8::Handle<v8::Context> context, v8::Handle<v8::Value> value
 
 v8::Handle<v8::Function> wrapBlock(id object)
 {
-	v8::HandleScope localScope;
+	v8::HandleScope localScope(v8::Isolate::GetCurrent());
 
 	v8::Handle<v8::FunctionTemplate> functionTemplate = v8::FunctionTemplate::New();
 	functionTemplate->SetCallHandler(ObjCBlockCall, makeWrapper([[L8Runtime currentRuntime] V8Context], object));

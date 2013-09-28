@@ -12,7 +12,6 @@
 
 @interface L8Runtime : NSObject
 
-
 - (void)executeBlockInRuntime:(void(^)(L8Runtime *runtime))block;
 
 - (BOOL)loadScriptAtPath:(NSString *)filePath;

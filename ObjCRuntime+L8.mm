@@ -37,6 +37,8 @@ void forEachProtocolImplementingProtocol(Class cls, Protocol *target, void (^cal
 		if(protocolImplementsProtocol(candidate, target))
 			callback(candidate);
 	}
+
+	free(protocols);
 }
 
 void forEachMethodInProtocol(Protocol *protocol, BOOL isRequiredMethod, BOOL isInstanceMethod, void (^callback)(SEL name, const char *types))

@@ -350,9 +350,11 @@
 		v8::TryCatch tryCatch;
 
 		result = function->CallAsFunction(_v8value->ToObject(), (int)[arguments count], argv);
+		free((void *)argv);
 
 		if(tryCatch.HasCaught()) {
 			[[L8Reporter sharedReporter] reportTryCatch:&tryCatch inIsolate:isolate];
+
 			return nil;
 		}
 	}
