@@ -9,7 +9,7 @@
 // of V8. Needs a redesign to run multiple Contexts.
 
 #import "L8Runtime.h"
-#import "L8RuntimeDelegate.h"
 #import "L8Export.h"
 #import "L8Value.h"
 #import "L8Reporter.h"
+#import "L8StackTrace.h"

@@ -9,7 +9,6 @@
 #import <objc/runtime.h>
 
 #import "L8Runtime_Private.h"
-#import "L8RuntimeDelegate.h"
 #import "L8Value_Private.h"
 #import "L8Reporter_Private.h"
 #import "L8WrapperMap.h"
@@ -39,19 +38,18 @@
 	return context;
 }
 
-- (void)start
+- (id)init
 {
-	if(!_delegate)
-		@throw [NSException exceptionWithName:@"InvalidArgumentException"
-									   reason:@"delegate is not set"
-									 userInfo:nil];
+	self = [super init];
+	if(!self)
+		return nil;
 
 	v8::Isolate *isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope mainHandleScope(isolate);
+	v8::HandleScope mainScope(isolate);
 
 	// Create the context
 	v8::Local<v8::Context> context = v8::Context::New(isolate);
-	context->SetEmbedderData(0, v8::External::New((__bridge void *)self));
+	context->SetEmbedderData(0, v8::External::New((void *)CFBridgingRetain(self)));
 	_v8context.Reset(isolate, context);
 
 	// Start the context scope
@@ -60,11 +58,16 @@
 	// Create the wrappermap for the context
 	_wrapperMap = [[L8WrapperMap alloc] initWithRuntime:self];
 
-	// Begin communicating with the delegate
-	@autoreleasepool {
-		if([_delegate respondsToSelector:@selector(runtimeDidFinishCreatingContext:)])
-			[_delegate runtimeDidFinishCreatingContext:self];
-	}
+	return self;
+}
+
+- (void)executeBlockInRuntime:(void(^)(L8Runtime *runtime))block
+{
+	v8::Isolate *isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope mainScope(isolate);
+	v8::Context::Scope contextScope(isolate,_v8context);
+
+	block(self);
 }
 
 - (BOOL)loadScriptAtPath:(NSString *)filePath
@@ -85,7 +88,7 @@
 		return NO;
 
 	v8::Isolate *isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope handleScope(isolate);
+	v8::HandleScope localScope(isolate);
 	v8::ScriptOrigin scriptOrigin = v8::ScriptOrigin([name V8String]);
 
 	v8::Handle<v8::Script> script;
@@ -118,7 +121,7 @@
 		return nil;
 
 	v8::Isolate *isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope handleScope(isolate);
+	v8::HandleScope localScope(isolate);
 	v8::ScriptOrigin scriptOrigin = v8::ScriptOrigin([name V8String]);
 
 	v8::Handle<v8::Script> script;
@@ -141,7 +144,7 @@
 			return nil;
 		}
 
-		return [L8Value valueWithV8Value:retVal];
+		return [L8Value valueWithV8Value:localScope.Close(retVal)];
 	}
 
 	return nil;

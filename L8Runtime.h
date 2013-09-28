@@ -9,13 +9,10 @@
 #import <Foundation/Foundation.h>
 
 @class L8Value;
-@protocol L8RuntimeDelegate;
 
 @interface L8Runtime : NSObject
 
-@property (strong) id<L8RuntimeDelegate> delegate;
-
-- (void)start;
+- (void)executeBlockInRuntime:(void(^)(L8Runtime *runtime))block;
 
 - (BOOL)loadScriptAtPath:(NSString *)filePath;
 - (BOOL)loadScript:(NSString *)scriptData withName:(NSString *)name;
