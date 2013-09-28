@@ -60,9 +60,16 @@
 
 + (L8Value *)valueWithNewRegularExpressionFromPattern:(NSString *)pattern flags:(NSString *)flags
 {
-	//	v8::RegExp::Flags
-	@throw [NSException exceptionWithName:@"NotImplemented" reason:@"Not Implemented" userInfo:nil];
-	return [self valueWithV8Value:v8::RegExp::New([pattern V8String], v8::RegExp::Flags::kNone)];
+	int iFlags = v8::RegExp::Flags::kNone;
+
+	if([flags rangeOfString:@"g"].location != NSNotFound)
+		iFlags |= v8::RegExp::Flags::kGlobal;
+	if([flags rangeOfString:@"i"].location != NSNotFound)
+		iFlags |= v8::RegExp::Flags::kIgnoreCase;
+	if([flags rangeOfString:@"m"].location != NSNotFound)
+		iFlags |= v8::RegExp::Flags::kMultiline;
+
+	return [self valueWithV8Value:v8::RegExp::New([pattern V8String], (v8::RegExp::Flags)iFlags)];
 }
 
 + (L8Value *)valueWithNewErrorFromMessage:(NSString *)message
@@ -230,6 +237,11 @@
 - (BOOL)isFunction
 {
 	return _v8value->IsFunction();
+}
+
+- (BOOL)isRegularExpression
+{
+	return _v8value->IsRegExp();
 }
 
 - (BOOL)isNativeError

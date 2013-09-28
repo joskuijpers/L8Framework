@@ -60,6 +60,7 @@
 - (BOOL)isString;
 - (BOOL)isObject;
 - (BOOL)isFunction;
+- (BOOL)isRegularExpression;
 - (BOOL)isNativeError;
 
 - (BOOL)isEqualToObject:(id)value;
