@@ -8,6 +8,7 @@
 
 #import "L8Reporter_Private.h"
 #import "NSString+L8.h"
+#import "L8StackTrace_Private.h"
 
 #include "v8.h"
 
@@ -31,7 +32,7 @@ static L8Reporter *g_sharedReporter = nil;
 	v8::Local<v8::Message> message = tryCatch->Message();
 
 	int line = tryCatch->Message()->GetLineNumber();
-	NSLog(@"%@:%d:%d-%d: %@",
+	NSLog(@"INTERNAL %@:%d:%d-%d: %@",
 		  [NSString stringWithV8Value:message->GetScriptResourceName()],
 		  line,
 		  message->GetStartColumn(),
@@ -46,14 +47,10 @@ static L8Reporter *g_sharedReporter = nil;
 		printf("~");
 	printf("\n");
 
-	v8::Handle<v8::StackTrace> trace = message->GetStackTrace();
-	if(!trace.IsEmpty()) {
-		for(int i = 0; i < trace->GetFrameCount(); i++) {
-			v8::Local<v8::StackFrame> frame = trace->GetFrame(i);
-			NSLog(@"%@ at %@:%d:%d",
-				  [NSString stringWithV8String:frame->GetFunctionName()],
-				  [NSString stringWithV8String:frame->GetScriptName()],frame->GetLineNumber(),frame->GetColumn());
-		}
+	L8StackTrace *stackTrace = [[L8StackTrace alloc] initWithV8StackTrace:message->GetStackTrace()];
+	for(unsigned int i = 0; i < stackTrace.numberOfFrames; i++) {
+		L8StackFrame *frame = stackTrace[i];
+		NSLog(@"%@ at %@:%@:%@",frame.functionName,frame.scriptName,frame.lineNumber,frame.column);
 	}
 }
 
