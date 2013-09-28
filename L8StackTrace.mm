@@ -10,6 +10,8 @@
 #import "NSString+L8.h"
 #include "v8.h"
 
+#define L8_STACKTRACE_FRAMELIMIT 20
+
 @implementation L8StackTrace {
 	NSMutableArray *_frameCache;
 	v8::Handle<v8::StackTrace> _v8stackTrace;
@@ -53,8 +55,10 @@
 
 + (L8StackTrace *)currentStackTrace
 {
-	// ?? limit
-	return nil;
+	v8::Handle<v8::StackTrace> trace;
+	trace = v8::StackTrace::CurrentStackTrace(L8_STACKTRACE_FRAMELIMIT);
+
+	return [[self alloc] initWithV8StackTrace:trace];
 }
 
 @end

@@ -64,16 +64,6 @@
 	@autoreleasepool {
 		if([_delegate respondsToSelector:@selector(runtimeDidFinishCreatingContext:)])
 			[_delegate runtimeDidFinishCreatingContext:self];
-
-		if([_delegate respondsToSelector:@selector(runtimeWillRunMain:)])
-			[_delegate runtimeWillRunMain:self];
-
-	// Call javascript main()
-	//[[self globalObject] invokeMethod:@"main"
-	//					withArguments:@[]];
-
-		if([_delegate respondsToSelector:@selector(runtimeDidRunMain:)])
-			[_delegate runtimeDidRunMain:self];
 	}
 }
 
