@@ -295,6 +295,7 @@
 
 		// TODO: the receiving object should be zero (is that Global?)
 		result = function->CallAsFunction(_v8value->ToObject(), (int)[arguments count], argv);
+		free((void *)argv);
 
 		if(tryCatch.HasCaught()) {
 			[[L8Reporter sharedReporter] reportTryCatch:&tryCatch inIsolate:isolate];
@@ -322,6 +323,7 @@
 		v8::TryCatch tryCatch;
 
 		result = function->CallAsConstructor((int)[arguments count], argv);
+		free((void *)argv);
 
 		if(tryCatch.HasCaught()) {
 			[[L8Reporter sharedReporter] reportTryCatch:&tryCatch inIsolate:isolate];
