@@ -1,6 +1,6 @@
 //
 //  L8Runtime.h
-//  V8Test
+//  L8Framework
 //
 //  Created by Jos Kuijpers on 9/13/13.
 //  Copyright (c) 2013 Jarvix. All rights reserved.
@@ -11,6 +11,7 @@
 @class L8Value;
 
 @interface L8Runtime : NSObject
+
 
 - (void)executeBlockInRuntime:(void(^)(L8Runtime *runtime))block;
 
@@ -23,6 +24,10 @@
 + (L8Runtime *)currentRuntime;
 + (L8Value *)currentThis;
 + (NSArray *)currentArguments; // L8Value
+
+@end
+
+@interface L8Runtime (Subscripting)
 
 - (L8Value *)objectForKeyedSubscript:(id)key;
 - (void)setObject:(id)object forKeyedSubscript:(NSObject <NSCopying> *)key;

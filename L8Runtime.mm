@@ -1,6 +1,6 @@
 //
 //  V8Context.m
-//  V8Test
+//  L8Framework
 //
 //  Created by Jos Kuijpers on 9/13/13.
 //  Copyright (c) 2013 Jarvix. All rights reserved.
@@ -176,16 +176,6 @@
 	return nil;
 }
 
-- (L8Value *)objectForKeyedSubscript:(id)key
-{
-	return [self globalObject][key];
-}
-
-- (void)setObject:(id)object forKeyedSubscript:(NSObject <NSCopying> *)key
-{
-	[self globalObject][key] = object;
-}
-
 - (v8::Local<v8::Context>)V8Context
 {
 	return v8::Handle<v8::Context>::New(v8::Isolate::GetCurrent(), _v8context);
@@ -204,6 +194,20 @@
 	@synchronized(_wrapperMap) {
 		return [_wrapperMap ObjCWrapperForValue:value];
 	}
+}
+
+@end
+
+@implementation L8Runtime (Subscripting)
+
+- (L8Value *)objectForKeyedSubscript:(id)key
+{
+	return [self globalObject][key];
+}
+
+- (void)setObject:(id)object forKeyedSubscript:(NSObject <NSCopying> *)key
+{
+	[self globalObject][key] = object;
 }
 
 @end

@@ -1,6 +1,6 @@
 //
 //  NSString+V8.m
-//  V8Test
+//  L8Framework
 //
 //  Created by Jos Kuijpers on 9/10/13.
 //  Copyright (c) 2013 Jarvix. All rights reserved.

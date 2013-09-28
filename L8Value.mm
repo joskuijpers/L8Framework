@@ -1,6 +1,6 @@
 //
 //  V8Value.m
-//  V8Test
+//  L8Framework
 //
 //  Created by Jos Kuijpers on 9/13/13.
 //  Copyright (c) 2013 Jarvix. All rights reserved.
@@ -732,7 +732,7 @@ v8::Local<v8::Value> objectToValue(L8Runtime *runtime, id object)
 
 @end
 
-@implementation L8Value (Subscription)
+@implementation L8Value (Subscripting)
 
 - (L8Value *)objectForKeyedSubscript:(id)key
 {
