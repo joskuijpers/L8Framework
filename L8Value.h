@@ -60,10 +60,13 @@
 - (BOOL)isString;
 - (BOOL)isObject;
 - (BOOL)isFunction;
+- (BOOL)isNativeError;
 
 - (BOOL)isEqualToObject:(id)value;
 - (BOOL)isEqualWithTypeCoercionToObject:(id)value;
 - (BOOL)isInstanceOf:(id)value;
+
+- (void)throwValue;
 
 - (L8Value *)callWithArguments:(NSArray *)arguments;
 - (L8Value *)constructWithArguments:(NSArray *)arguments;

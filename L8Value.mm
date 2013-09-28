@@ -67,8 +67,8 @@
 
 + (L8Value *)valueWithNewErrorFromMessage:(NSString *)message
 {
-	@throw [NSException exceptionWithName:@"NotImplemented" reason:@"Not Implemented" userInfo:nil];
-	return nil;
+	v8::Handle<v8::Value> error = v8::Exception::Error([message V8String]);
+	return [self valueWithV8Value:error];
 }
 
 + (L8Value *)valueWithNull
@@ -232,6 +232,11 @@
 	return _v8value->IsFunction();
 }
 
+- (BOOL)isNativeError
+{
+	return _v8value->IsNativeError();
+}
+
 - (BOOL)isEqualToObject:(id)value
 {
 	return 	_v8value->StrictEquals(objectToValue(_runtime,value));
@@ -253,6 +258,11 @@
 
 	@throw [NSException exceptionWithName:@"NotImplemented" reason:@"Not Implemented" userInfo:nil];
 	return result;
+}
+
+- (void)throwValue
+{
+	v8::ThrowException(_v8value);
 }
 
 - (L8Value *)callWithArguments:(NSArray *)arguments
