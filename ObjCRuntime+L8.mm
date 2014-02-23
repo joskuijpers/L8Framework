@@ -65,13 +65,14 @@ void forEachPropertyInProtocol(Protocol *protocol, void (^callback)(objc_propert
 	free(properties);
 }
 
-void forEachMethodInClass(Class cls, void (^callback)(Method method))
+void forEachMethodInClass(Class cls, void (^callback)(Method method, BOOL *stop))
 {
 	unsigned int count;
 	Method *methods = class_copyMethodList(cls, &count);
+	BOOL stop = NO;
 
-	for(unsigned int i = 0; i < count; i++)
-		callback(methods[i]);
+	for(unsigned int i = 0; i < count && !stop; i++)
+		callback(methods[i],&stop);
 
 	free(methods);
 }

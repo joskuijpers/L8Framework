@@ -13,4 +13,6 @@
 #import "L8Export.h"
 #import "L8Value.h"
 #import "L8Reporter.h"
+#import "L8Exception.h"
+#import "L8NativeException.h"
 #import "L8StackTrace.h"

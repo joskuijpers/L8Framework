@@ -164,7 +164,8 @@
 	v8::HandleScope localScope(v8::Isolate::GetCurrent());
 
 	v8::Local<v8::Object> object = _v8value->ToObject();
-	return [L8Value valueWithV8Value:localScope.Close(object->Get([property V8String]))];
+	v8::Local<v8::Value> v = object->Get([property V8String]);
+	return [L8Value valueWithV8Value:localScope.Close(v)];
 }
 
 - (void)setValue:(id)value forProperty:(NSString *)property
@@ -298,7 +299,7 @@
 		free((void *)argv);
 
 		if(tryCatch.HasCaught()) {
-			[[L8Reporter sharedReporter] reportTryCatch:&tryCatch inIsolate:isolate];
+			[L8Reporter reportTryCatch:&tryCatch inIsolate:isolate];
 			return nil;
 		}
 	}
@@ -326,7 +327,7 @@
 		free((void *)argv);
 
 		if(tryCatch.HasCaught()) {
-			[[L8Reporter sharedReporter] reportTryCatch:&tryCatch inIsolate:isolate];
+			[L8Reporter reportTryCatch:&tryCatch inIsolate:isolate];
 			return nil;
 		}
 	}
@@ -355,9 +356,8 @@
 		free((void *)argv);
 
 		if(tryCatch.HasCaught()) {
-			[[L8Reporter sharedReporter] reportTryCatch:&tryCatch inIsolate:isolate];
-
-			return nil;
+			[L8Reporter reportTryCatch:&tryCatch
+							 inIsolate:isolate];
 		}
 	}
 
@@ -706,7 +706,8 @@ static ObjCContainerConverter::Job objectToValueWithoutCopy(L8Runtime *runtime, 
 			return (ObjCContainerConverter::Job){ object, v8::Date::New([object timeIntervalSince1970]), COLLECTION_NONE };
 
 		if([object isKindOfClass:BlockClass()]) {
-			return (ObjCContainerConverter::Job){ object, makeWrapper([runtime V8Context], [object copy]), COLLECTION_NONE };
+			//return (ObjCContainerConverter::Job){ object, makeWrapper([runtime V8Context], [object copy]), COLLECTION_NONE };
+			return (ObjCContainerConverter::Job){ object, [runtime wrapperForObjCObject:object]->_v8value, COLLECTION_NONE };
 		}
 
 		assert(0 && "Code must not be reached, or implementation is missing");

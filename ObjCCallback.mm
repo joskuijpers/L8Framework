@@ -8,13 +8,16 @@
 
 #import "ObjCCallback.h"
 
+#include <string.h>
+#include <objc/runtime.h>
+
 #import "L8Runtime_Private.h"
 #import "L8Value_Private.h"
 #import "NSString+L8.h"
 #import "ObjCRuntime+L8.h"
 #import "L8WrapperMap.h"
+#import "L8Exception_Private.h"
 
-#include <objc/runtime.h>
 #include "v8.h"
 
 const char *createStringFromV8Value(v8::Handle<v8::Value> value)
@@ -314,11 +317,20 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 	return [result V8Value];
 }
 
+long strnpos(const char *haystack, const char *needle, long count)
+{
+	const char *p = strnstr(haystack, needle, count);
+	if(p)
+		return p - haystack;
+	return -1;
+}
+
+
 void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
 	const char *className;
 	Class cls;
-	SEL selector;
+	__block SEL selector = nil;
 	id object;
 	id __unsafe_unretained resultObject;
 	v8::HandleScope localScope(info.GetIsolate());
@@ -329,34 +341,110 @@ void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 	className = createStringFromV8Value(info.Data().As<v8::String>());
 	cls = objc_getClass(className);
 
-	selector = @selector(init);
-	Method m = class_getInstanceMethod(cls, selector);
-	const char *enc = method_getTypeEncoding(m);
-	NSLog(@"encoding %s",enc);
+	// TODO find correct selector!
+	// Implementation below sucks ballz. Make some algorithm to find
+	// the best selector for given arguments for init
 
-	methodSignature = [NSMethodSignature methodSignatureForSelector:selector];
-	invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
-	invocation.selector = selector;
+	// Look at all selectors, finding the correct init*
+	forEachMethodInClass(cls, ^(Method method, BOOL *stop) {
+		const char *selName, *enc;
+		char *simpleEnc;
 
-	// TODO handle multiple init methods and arguments
-	for(int i = 0; i < info.Length(); i++) {
-		L8Value *argument = [L8Value valueWithV8Value:info[i]];
+		// Find only selectors starting with 'init'
+		selName = sel_getName(method_getName(method));
+		if(strnpos(selName,"init",MAX(4, strlen(selName))) != 0)
+		   return;
 
-//		id obj = [argument toObject];
-		NSLog(@"Argument %d: %@",i,argument);
+		// Get encoding
+		enc = method_getTypeEncoding(method);
 
-		objCSetInvocationArgument(invocation, i+2, argument);
-	}
+		// Remove all numbers
+		simpleEnc = (char *)calloc(strlen(enc)+1,sizeof(char));
+		int j = 0, k = 0;
+		for(const char *p = enc; *p != '\0'; p++) {
+			if(*p < '0' || *p > '9') {
+				if(k < 3) // skip first three: @@: (return, self, _cmd)
+					k++;
+				else
+					simpleEnc[j++] = *p;
+			}
+		}
+
+		// Check number of arguments
+		if(j/*strlen of simpleEnc*/ != info.Length()) {
+			free(simpleEnc);
+			return;
+		}
+
+
+		// Now we have the argument types for the method
+		// Go over all input arguments and see if they fit
+		// If they do, stop searching (so first hit counts)
+		for(int i = 0; i < info.Length() && i < j; i++) {
+			L8Value *argument = [L8Value valueWithV8Value:info[i]];
+			BOOL valid = NO;
+
+			switch(simpleEnc[i]) {
+				case '@': // We can always convert to an object
+					valid = YES;
+					break;
+				case 'i':
+					valid = [argument isNumber];
+					break;
+				default:
+					NSLog(@"NO HANDLE OF %c",simpleEnc[i]);
+					break;
+			}
+
+			// Not valid? Next method!
+			if(!valid)
+				return;
+
+//			NSLog(@"Argument %d: %@, %c",i,argument,simpleEnc[i]);
+		}
+
+		selector = method_getName(method);
+		free(simpleEnc);
+		*stop = YES;
+
+		// TODO cache this: Class + Req Argument Types + SEL
+	});
+
+	if(selector == nil)
+		selector = @selector(init);
 
 	// Allocate...
 	object = [cls alloc];
+
+	methodSignature = [object methodSignatureForSelector:selector];
+	invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
+	invocation.selector = selector;
+
+//	NSLog(@"SEL %@",NSStringFromSelector(selector));
+
+	for(int i = 0; i < info.Length(); i++) {
+		L8Value *argument = [L8Value valueWithV8Value:info[i]];
+		objCSetInvocationArgument(invocation, i+2, argument);
+	}
+
+	// Set target
 	invocation.target = object;
 
 	// and initialize
 	@autoreleasepool {
-		[invocation invoke];
-		[invocation getReturnValue:&resultObject];
-		info.This()->SetInternalField(0, makeWrapper([[L8Runtime currentRuntime] V8Context], resultObject));
+		@try {
+			[invocation invoke];
+			[invocation getReturnValue:&resultObject];
+			info.This()->SetInternalField(0, makeWrapper([[L8Runtime currentRuntime] V8Context], resultObject));
+		} @catch(L8Exception *l8e) {
+			info.GetReturnValue().Set(v8::ThrowException([l8e v8exception]));
+			return;
+		} @catch (NSException *nse) {
+			NSLog(@"Caught NSException");
+		} @catch (id e) {
+			info.GetReturnValue().Set(v8::ThrowException([[L8Value valueWithObject:e] V8Value]));
+			return;
+		}
 	}
 
 	info.GetReturnValue().Set(info.This());
@@ -422,7 +510,17 @@ void ObjCBlockCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 	}
 
 	@autoreleasepool {
-		[invocation invoke];
+		@try {
+			[invocation invoke];
+		} @catch(L8Exception *l8e) {
+			info.GetReturnValue().Set(v8::ThrowException([l8e v8exception]));
+			return;
+		} @catch (NSException *nse) {
+			NSLog(@"Caught NSException");
+		} @catch (id e) {
+			info.GetReturnValue().Set(v8::ThrowException([[L8Value valueWithObject:e] V8Value]));
+			return;
+		}
 	}
 
 	// TODO blocks can also have return values

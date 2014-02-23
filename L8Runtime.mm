@@ -90,7 +90,7 @@
 	block(self);
 
 	if(tryCatch.HasCaught()) {
-		[[L8Reporter sharedReporter] reportTryCatch:&tryCatch inIsolate:isolate];
+		[L8Reporter reportTryCatch:&tryCatch inIsolate:isolate];
 	}
 }
 
@@ -121,7 +121,7 @@
 
 		script = v8::Script::Compile([scriptData V8String], &scriptOrigin);
 		if(script.IsEmpty()) {
-			[[L8Reporter sharedReporter] reportTryCatch:&tryCatch inIsolate:isolate];
+			[L8Reporter reportTryCatch:&tryCatch inIsolate:isolate];
 			return NO;
 		}
 	}
@@ -131,7 +131,7 @@
 		script->Run();
 
 		if(tryCatch.HasCaught()) {
-			[[L8Reporter sharedReporter] reportTryCatch:&tryCatch inIsolate:isolate];
+			[L8Reporter reportTryCatch:&tryCatch inIsolate:isolate];
 			return NO;
 		}
 	}
@@ -154,7 +154,7 @@
 
 		script = v8::Script::Compile([scriptData V8String], &scriptOrigin);
 		if(script.IsEmpty()) {
-			[[L8Reporter sharedReporter] reportTryCatch:&tryCatch inIsolate:isolate];
+			[L8Reporter reportTryCatch:&tryCatch inIsolate:isolate];
 			return nil;
 		}
 	}
@@ -164,7 +164,7 @@
 		v8::Handle<v8::Value> retVal = script->Run();
 
 		if(tryCatch.HasCaught()) {
-			[[L8Reporter sharedReporter] reportTryCatch:&tryCatch inIsolate:isolate];
+			[L8Reporter reportTryCatch:&tryCatch inIsolate:isolate];
 			return nil;
 		}
 

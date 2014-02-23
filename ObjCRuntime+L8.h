@@ -11,7 +11,7 @@
 BOOL protocolImplementsProtocol(Protocol *candidate, Protocol *target);
 void forEachProtocolImplementingProtocol(Class cls, Protocol *target, void (^callback)(Protocol *));
 void forEachMethodInProtocol(Protocol *protocol, BOOL isRequiredMethod, BOOL isInstanceMethod, void (^callback)(SEL sel, const char *));
-void forEachMethodInClass(Class cls, void (^callback)(Method method));
+void forEachMethodInClass(Class cls, void (^callback)(Method method, BOOL *stop));
 void forEachPropertyInProtocol(Protocol *protocol, void (^callback)(objc_property_t property));
 
 extern "C" {

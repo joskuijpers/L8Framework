@@ -10,8 +10,13 @@
 
 #include "v8.h"
 
+@class L8Exception;
+
 @interface L8Reporter ()
 
-- (void)reportTryCatch:(v8::TryCatch *)tryCatch inIsolate:(v8::Isolate *)isolate;
++ (void)reportTryCatch:(v8::TryCatch *)tryCatch
+			 inIsolate:(v8::Isolate *)isolate;
+//+ (L8Exception *)objcExceptionForTryCatch:(v8::TryCatch *)tryCatch
+//					   inIsolate:(v8::Isolate *)isolate;
 
 @end

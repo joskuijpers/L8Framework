@@ -440,7 +440,6 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
 //		return wrapper;
 
 	if([object isKindOfClass:BlockClass()]) {
-		NSLog(@"Is Block %@",object);
 		wrapper = [self JSWrapperForBlock:object];
 	} else
 		wrapper = [self JSWrapperForObjCObject:object];
@@ -482,13 +481,23 @@ id unwrapObjcObject(v8::Handle<v8::Context> context, v8::Handle<v8::Value> value
 			return (__bridge id)v8::External::Cast(*field)->Value();
 	}
 
-	if(object->IsFunction()) { // Class
+	if(object->IsFunction()) { // Class, or block :/
+		bool isBlock = object->GetHiddenValue(v8::String::New("isBlock"))->IsTrue();
+
 		NSString *name = [NSString stringWithV8Value:object.As<v8::Function>()->GetName()];
+
+		NSLog(@"Class?: %@, %d",name,object->GetHiddenValue(v8::String::New("isBlock"))->IsTrue());
+
+		if(isBlock) {
+			if(id target = unwrapBlock(object)) // Block
+				return target;
+			return nil;
+		}
 		return objc_getClass([name UTF8String]);
 	}
 
-	if(id target = unwrapBlock(object)) // Block
-		return target;
+//	if(id target = unwrapBlock(object)) // Block
+//		return target;
 
 	return nil;
 }
@@ -504,16 +513,21 @@ v8::Handle<v8::Function> wrapBlock(id object)
 
 	v8::Handle<v8::Function> function = functionTemplate->GetFunction();
 	function->SetHiddenValue(v8::String::New("isBlock"), v8::Boolean::New(true));
-//	function->SetInternalField(0, v8::String::New("TEST"));
+	function->SetHiddenValue(v8::String::New("cBlock"), makeWrapper([[L8Runtime currentRuntime] V8Context], object));
 
 	return localScope.Close(function);
 }
 
 id unwrapBlock(v8::Handle<v8::Object> object)
 {
-	assert(object->IsExternal());
+	assert(object->IsFunction());
+	if(object->GetHiddenValue(v8::String::New("isBlock"))->IsTrue() == false)
+		return nil;
 
-	id blockObject = (__bridge id)v8::External::Cast(*object)->Value();
+	v8::Local<v8::Value> cblock = object->GetHiddenValue(v8::String::New("cBlock"));
+	assert(cblock->IsExternal());
+
+	id blockObject = (__bridge id)v8::External::Cast(*cblock)->Value();
 	assert([blockObject isKindOfClass:BlockClass()]);
 
 	return blockObject;

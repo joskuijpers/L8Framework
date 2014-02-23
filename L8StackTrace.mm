@@ -61,6 +61,22 @@
 	return [[self alloc] initWithV8StackTrace:trace];
 }
 
+- (NSString *)description
+{
+	NSMutableString *desc  = [[NSMutableString alloc] init];
+
+	for(unsigned int i = 0; i < self.numberOfFrames; i++) {
+		L8StackFrame *frame = self[i];
+
+		if(i == 0)
+			[desc appendFormat:@"%@",frame];
+		else
+			[desc appendFormat:@"\n%@",frame];
+	}
+
+	return desc;
+}
+
 @end
 
 @implementation L8StackTrace (Subscription)
@@ -131,6 +147,11 @@
 - (BOOL)isEval
 {
 	return _v8stackFrame->IsEval();
+}
+
+- (NSString *)description
+{
+	return [NSString stringWithFormat:@"%@ at %@:%@:%@",self.functionName,self.scriptName,self.lineNumber,self.column];
 }
 
 @end
