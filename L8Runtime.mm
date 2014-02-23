@@ -19,6 +19,10 @@
 #include "v8.h"
 #include "v8-debug.h"
 
+@interface L8Runtime ()
+- (id)init;
+@end
+
 @implementation L8Runtime {
 	v8::Persistent<v8::Context> _v8context;
 }
