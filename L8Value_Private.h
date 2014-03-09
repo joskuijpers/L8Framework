@@ -20,3 +20,10 @@
 @end
 
 v8::Local<v8::Value> objectToValue(L8Runtime *runtime, id object);
+
+id valueToObject(L8Runtime *runtime, v8::Handle<v8::Value> value);
+NSNumber *valueToNumber(L8Runtime *runtime, v8::Handle<v8::Value> value);
+NSString *valueToString(L8Runtime *runtime, v8::Handle<v8::Value> value);
+NSDate *valueToDate(L8Runtime *runtime, v8::Handle<v8::Value> value);
+NSArray *valueToArray(L8Runtime *runtime, v8::Handle<v8::Value> value);
+NSDictionary *valueToDictionary(L8Runtime *runtime, v8::Handle<v8::Value> value);

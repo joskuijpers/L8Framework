@@ -20,6 +20,12 @@
 
 #include "v8.h"
 
+/**
+ * Creates a C string from given v8 value
+ *
+ * @param value The V8 value
+ * @return A string. Must be freed!
+ */
 const char *createStringFromV8Value(v8::Handle<v8::Value> value)
 {
 	char *buffer;
@@ -45,6 +51,22 @@ SEL selectorFromV8Value(v8::Handle<v8::Value> value)
 	free((void *)selName);
 
 	return selector;
+}
+
+/**
+ * Finds first position of given needle in haystack
+ *
+ * @param haystack String to search in
+ * @param needle String to find
+ * @param count Maximum length string to search in haystack
+ * @return position or -1 if not found
+ */
+long strnpos(const char *haystack, const char *needle, long count)
+{
+	const char *p = strnstr(haystack, needle, count);
+	if(p)
+		return p - haystack;
+	return -1;
 }
 
 void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val)
@@ -169,10 +191,7 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 		}
 
 		case 'B': { // bool or _Bool
-			if(![val isBoolean])
-				v8::Exception::TypeError(v8::String::New("The implementation requests a boolean"));
-
-			bool value = [[val toNumber] boolValue];
+			bool value = [val toBool];
 			[invocation setArgument:&value
 							atIndex:index];
 			break;
@@ -188,7 +207,38 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 							atIndex:index];
 		}
 		case '@': { // object
-			id value = [val toObject];
+			id value;
+			Class objectClass = Nil;
+
+			// Try to find the classname of the object
+			if(*(type+1) == '"') {
+				long length;
+				char *className;
+
+				// Retrieve a Class object from the information
+				length = strnpos(type+2, "\"", strlen(type));
+				className = strndup(type+2, length);
+				objectClass = objc_getClass(className);
+				free((void *)className);
+			}
+
+			NSLog(@"Found for class %@",NSStringFromClass(objectClass));
+
+			if(objectClass == [L8Value class])
+				value = val;
+			else if(objectClass == [NSString class])
+				value = valueToString([L8Runtime currentRuntime], [val V8Value]);
+			else if(objectClass == [NSNumber class])
+				value = valueToNumber([L8Runtime currentRuntime], [val V8Value]);
+			else if(objectClass == [NSDate class])
+				value = valueToDate([L8Runtime currentRuntime], [val V8Value]);
+			else if(objectClass == [NSArray class])
+				value = valueToArray([L8Runtime currentRuntime], [val V8Value]);
+			else if(objectClass == [NSDictionary class])
+				value = valueToObject([L8Runtime currentRuntime], [val V8Value]);
+			else
+				value = [val toObject];
+
 			[invocation setArgument:&value
 							atIndex:index];
 			break;
@@ -238,7 +288,8 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 		case 'C': // unsigned char (8)
 		case 'I': // unsigned int
 		case 'S': // unsigned short (16)
-		case 'L': { // unsigned long (32)
+		case 'L': // unsigned long (32)
+		case 'Q': { // unsigned long long (64)
 			uint32_t value;
 			assert(retLength <= 4);
 
@@ -246,9 +297,6 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 			result = [L8Value valueWithUInt32:value];
 			break;
 		}
-		case 'Q': // unsigned long long (64)
-			@throw [NSException exceptionWithName:NSRangeException reason:@"JavaScript does not support long long" userInfo:nil];
-
 		case 'f': { // float
 			float value;
 			[invocation getReturnValue:&value];
@@ -281,6 +329,8 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 			assert(retLength == sizeof(id));
 
 			[invocation getReturnValue:&object];
+
+			NSLog(@"Needed return type is '%s'",neededReturnType);
 
 			// has needed return type, which must not be a block
 			if(neededReturnType && strlen(neededReturnType) > 1) {
@@ -317,15 +367,6 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 	return [result V8Value];
 }
 
-long strnpos(const char *haystack, const char *needle, long count)
-{
-	const char *p = strnstr(haystack, needle, count);
-	if(p)
-		return p - haystack;
-	return -1;
-}
-
-
 void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
 	const char *className;
@@ -340,6 +381,7 @@ void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 	className = createStringFromV8Value(info.Data().As<v8::String>());
 	cls = objc_getClass(className);
+	free((void *)className); className = NULL;
 
 	// TODO find correct selector!
 	// Implementation below sucks ballz. Make some algorithm to find
@@ -430,12 +472,20 @@ void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 	// Set target
 	invocation.target = object;
 
+	v8::Local<v8::Context> context = [[L8Runtime currentRuntime] V8Context];
+	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_THIS, info.This());
+	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_CALLEE, info.Callee());
+	v8::Local<v8::Array> argList = v8::Array::New(info.Length());
+	for(int i = 0; i < info.Length(); ++i)
+		argList->Set(i, info[i]);
+	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_ARGS, argList);
+
 	// and initialize
 	@autoreleasepool {
 		@try {
 			[invocation invoke];
 			[invocation getReturnValue:&resultObject];
-			info.This()->SetInternalField(0, makeWrapper([[L8Runtime currentRuntime] V8Context], resultObject));
+			info.This()->SetInternalField(0, makeWrapper(context, resultObject));
 		} @catch(L8Exception *l8e) {
 			info.GetReturnValue().Set(v8::ThrowException([l8e v8exception]));
 			return;
@@ -444,6 +494,10 @@ void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 		} @catch (id e) {
 			info.GetReturnValue().Set(v8::ThrowException([[L8Value valueWithObject:e] V8Value]));
 			return;
+		} @finally {
+			context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_THIS, v8::Null());
+			context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_CALLEE, v8::Null());
+			context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_ARGS, v8::Null());
 		}
 	}
 
@@ -473,7 +527,9 @@ void ObjCMethodCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 	// Class methods must use the function (This) name to find the class meta object
 	if(isClassMethod) {
 		v8::Handle<v8::Function> function = info.This().As<v8::Function>();
-		object = objc_getClass(createStringFromV8Value(function->GetName()));
+		const char *classStr = createStringFromV8Value(function->GetName());
+		object = objc_getClass(classStr);
+		free((void *)classStr);
 	} else
 		object = objectFromWrapper(info.This()->GetInternalField(0));
 
@@ -487,6 +543,14 @@ void ObjCMethodCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 	}
 
 	[invocation retainArguments];
+
+	v8::Local<v8::Context> context = [[L8Runtime currentRuntime] V8Context];
+	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_THIS, info.This());
+	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_CALLEE, info.Callee());
+	v8::Local<v8::Array> argList = v8::Array::New(info.Length());
+	for(int i = 0; i < info.Length(); ++i)
+		argList->Set(i, info[i]);
+	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_ARGS, argList);
 
 	retVal = objCInvocation(invocation);
 	info.GetReturnValue().Set(retVal);
@@ -587,8 +651,8 @@ void ObjCAccessorSetter(v8::Local<v8::String> property, v8::Local<v8::Value> val
 
 	// 0 = name, 1 = value type, 2 = getter SEL, 3 = getter types, 4 = setter SEL, 5 = setter types
 	// TODO use valuetype to verify argument
-	valueType = createStringFromV8Value(extraData->Get(1));
-	free((void *)valueType);
+//	valueType = createStringFromV8Value(extraData->Get(1));
+//	free((void *)valueType);
 
 	selector = selectorFromV8Value(extraData->Get(4));
 	types = createStringFromV8Value(extraData->Get(5));
@@ -645,6 +709,7 @@ void ObjCAccessorGetter(v8::Local<v8::String> property, const v8::PropertyCallba
 	}
 
 	retVal = objCInvocation(invocation,returnType);
+	free((void *)returnType);
 
 	info.GetReturnValue().Set(retVal);
 }

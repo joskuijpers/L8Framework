@@ -169,9 +169,12 @@ void copyMethodsToObject(L8WrapperMap *wrapperMap, Protocol *protocol,
 
 		const char *selName = sel_getName(sel);
 		NSString *rawName = @(selName);
+		const char *extraTypes;
+
+		extraTypes = _protocol_getMethodTypeEncoding(protocol, sel, YES, isInstanceMethod);
 
 		if(accessorMethods[rawName]) {
-			accessorMethods[rawName] = [L8Value valueWithV8Value:v8::String::New(types)];
+			accessorMethods[rawName] = [L8Value valueWithV8Value:v8::String::New(extraTypes)];
 		} else {
 			NSString *propertyName = renameMap[rawName];
 
@@ -185,9 +188,8 @@ void copyMethodsToObject(L8WrapperMap *wrapperMap, Protocol *protocol,
 			// only if want to suply data
 			v8::Handle<v8::Array> extraData = v8::Array::New();
 			extraData->Set(0, v8::String::New(selName));
-			extraData->Set(1, v8::String::New(types));
+			extraData->Set(1, v8::String::New(extraTypes));
 			extraData->Set(2, v8::Boolean::New(!isInstanceMethod));
-
 			function->SetCallHandler(ObjCMethodCall,extraData);
 
 			theTemplate->Set(v8Name, function);
@@ -324,7 +326,9 @@ void copyPrototypeProperties(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectTemp
  * Sets keyed and indexed subscription handles depending on whether they are implemented
  * in the ObjC class.
  */
-void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectTemplate> instanceTemplate, Class cls)
+void installSubscriptionMethods(L8WrapperMap *wrapperMap,
+								v8::Handle<v8::ObjectTemplate> instanceTemplate,
+								Class cls)
 {
 	bool readonly = true;
 
@@ -380,7 +384,7 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectT
 
 	v8::Handle<v8::FunctionTemplate> classTemplate = v8::FunctionTemplate::New();
 
-	// TODO set prototype of the prototype to prototype of the superclass
+	// TODO set prototype of the prototype, to prototype of the superclass
 //	v8::Handle<v8::FunctionTemplate> parentTemplate; // need to store the function templates for each class and have function that returns those
 //	classTemplate->Inherit(parentTemplate);
 

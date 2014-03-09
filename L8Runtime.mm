@@ -52,7 +52,7 @@
 
 		// Create the context
 		v8::Local<v8::Context> context = v8::Context::New(isolate);
-		context->SetEmbedderData(0, v8::External::New((void *)CFBridgingRetain(self)));
+		context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SELF, v8::External::New((void *)CFBridgingRetain(self)));
 		_v8context.Reset(isolate, context);
 
 		// Start the context scope
@@ -71,7 +71,7 @@
 	v8::Context::Scope contextScope(isolate,_v8context);
 	v8::Handle<v8::Context> context = v8::Handle<v8::Context>::New(isolate, _v8context);
 
-	v8::Handle<v8::External> selfStored = context->GetEmbedderData(0).As<v8::External>();
+	v8::Handle<v8::External> selfStored = context->GetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SELF).As<v8::External>();
 	if(!selfStored.IsEmpty()) {
 		CFRelease(selfStored->Value());
 	}
@@ -187,21 +187,75 @@
 
 + (L8Runtime *)currentRuntime
 {
-	// TODO wrong implementation!
 	v8::Local<v8::Context> context = v8::Isolate::GetCurrent()->GetCurrentContext();
 	return [self contextWithV8Context:context];
 }
 
 + (L8Value *)currentThis
 {
-	@throw [NSException exceptionWithName:@"NotImplemented" reason:@"Not Implemented" userInfo:nil];
-	return nil;
+	v8::Local<v8::Value> thisObject;
+	v8::Local<v8::Context> context;
+
+	context = v8::Isolate::GetCurrent()->GetCurrentContext();
+	if(context.IsEmpty())
+		return nil;
+
+	// Retrieve the object from the store
+	thisObject = context->GetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_THIS);
+	if(thisObject.IsEmpty() || thisObject->IsNull())
+		return nil;
+
+	assert(thisObject->IsObject());
+
+	return [L8Value valueWithV8Value:thisObject];
+}
+
++ (L8Value *)currentCallee
+{
+	v8::Local<v8::Value> thisObject;
+	v8::Local<v8::Context> context;
+
+	context = v8::Isolate::GetCurrent()->GetCurrentContext();
+	if(context.IsEmpty())
+		return nil;
+
+	// Retrieve the function from the store
+	thisObject = context->GetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_CALLEE);
+	if(thisObject.IsEmpty() || thisObject->IsNull())
+		return nil;
+
+	// Callee should be a function
+	assert(thisObject->IsFunction());
+
+	return [L8Value valueWithV8Value:thisObject];
 }
 
 + (NSArray *)currentArguments
 {
-	@throw [NSException exceptionWithName:@"NotImplemented" reason:@"Not Implemented" userInfo:nil];
-	return nil;
+	v8::Local<v8::Value> thisObject;
+	v8::Local<v8::Context> context;
+	v8::Local<v8::Array> argArray;
+	NSMutableArray *arguments;
+
+	context = v8::Isolate::GetCurrent()->GetCurrentContext();
+	if(context.IsEmpty())
+		return nil;
+
+	// Retrieve the function from the store
+	thisObject = context->GetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_ARGS);
+	if(thisObject.IsEmpty() || thisObject->IsNull())
+		return nil;
+
+	// Callee should be an array
+	assert(thisObject->IsArray());
+
+	argArray = v8::Handle<v8::Array>::Cast(thisObject);
+	arguments = [[NSMutableArray alloc] init];
+
+	for(int i = 0; i < argArray->Length(); ++i)
+		arguments[i] = [L8Value valueWithV8Value:argArray->Get(i)];
+
+	return arguments;
 }
 
 - (v8::Local<v8::Context>)V8Context

@@ -11,6 +11,12 @@
 
 @class L8WrapperMap;
 
+#define L8_RUNTIME_EMBEDDER_DATA_SELF 0
+//#define L8_RUNTIME_EMBEDDER_DATA_SELF_2 1 // TODO: This seems wrong
+#define L8_RUNTIME_EMBEDDER_DATA_CB_THIS 2
+#define L8_RUNTIME_EMBEDDER_DATA_CB_CALLEE 3
+#define L8_RUNTIME_EMBEDDER_DATA_CB_ARGS 4
+
 @interface L8Runtime ()
 
 @property (strong,readonly) L8WrapperMap *wrapperMap;
