@@ -320,7 +320,7 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 		case 's': // short (16)
 		case 'l': { // long (32)
 			int32_t value;
-			assert(retLength <= 4);
+			assert(retLength <= sizeof(int32_t));
 
 			[invocation getReturnValue:&value];
 			result = [L8Value valueWithInt32:value];
@@ -328,6 +328,7 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 		}
 		case 'q': { // long long (64)
 			int64_t value;
+			assert(retLength == sizeof(int64_t));
 
 			[invocation getReturnValue:&value];
 			if(value <= INT32_MAX)
@@ -342,7 +343,7 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 		case 'S': // unsigned short (16)
 		case 'L': { // unsigned long (32)
 			uint32_t value;
-			assert(retLength <= 4);
+			assert(retLength <= sizeof(uint32_t));
 
 			[invocation getReturnValue:&value];
 
@@ -351,6 +352,7 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 		}
 		case 'Q': { // unsigned long long (64)
 			uint64_t value;
+			assert(retLength == sizeof(uint64_t));
 
 			[invocation getReturnValue:&value];
 			if(value <= UINT32_MAX)
@@ -362,12 +364,14 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 		}
 		case 'f': { // float
 			float value;
+			assert(retLength == sizeof(float));
 			[invocation getReturnValue:&value];
 			result = [L8Value valueWithDouble:value];
 			break;
 		}
 		case 'd': { // double
 			double value;
+			assert(retLength == sizeof(double));
 			[invocation getReturnValue:&value];
 			result = [L8Value valueWithDouble:value];
 			break;
@@ -375,6 +379,8 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 
 		case 'B': { // bool or _Bool
 			bool value;
+			assert(retLength <= sizeof(bool));
+
 			[invocation getReturnValue:&value];
 			result = [L8Value valueWithBool:value];
 			break;
@@ -383,16 +389,19 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 			return v8::Undefined();
 		case '*': { // char *
 			char *string;
+			assert(retLength == sizeof(char *));
+
 			[invocation getReturnValue:&string];
-			result = [L8Value valueWithObject:@(string)];
-			break;
+			return objectToValue([L8Runtime currentRuntime],@(string));
 		}
 		case '@': { // object
 			id __unsafe_unretained object;
 			assert(retLength == sizeof(id));
 
 			[invocation getReturnValue:&object];
-
+#if 1
+			return objectToValue([L8Runtime currentRuntime], object);
+#else
 			// Has needed return type. It is either a block or a class
 			if(neededReturnType && strlen(neededReturnType) > 1) {
 				if(*(returnType+1) == '?' && [object isKindOfClass:BlockClass()]) {
@@ -420,6 +429,7 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 				result = [L8Value valueWithObject:object];
 
 			break;
+#endif
 		}
 		case '#': { // Class
 			Class __unsafe_unretained classObject;
@@ -437,6 +447,44 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 	}
 
 	return [result V8Value];
+}
+
+inline void objCSetInvocationArguments(NSInvocation *invocation,
+									   const v8::FunctionCallbackInfo<v8::Value>& info, int offset)
+{
+	for(int i = 0; i < invocation.methodSignature.numberOfArguments; i++) {
+		L8Value *argument;
+
+		// Arguments that are requested but not supplied: give Undefined
+		if(i < info.Length())
+			argument = [L8Value valueWithV8Value:info[i]];
+		else
+			argument = [L8Value valueWithUndefined];
+
+		objCSetInvocationArgument(invocation, i+offset, argument);
+	}
+}
+
+inline void objCSetContextEmbedderData(const v8::FunctionCallbackInfo<v8::Value>& info)
+{
+	v8::Local<v8::Context> context = [[L8Runtime currentRuntime] V8Context];
+
+	// Set embedder data
+	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_THIS, info.This());
+	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_CALLEE, info.Callee());
+	v8::Local<v8::Array> argList = v8::Array::New(info.Length());
+	for(int i = 0; i < info.Length(); ++i)
+		argList->Set(i, info[i]);
+	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_ARGS, argList);
+}
+
+inline void objCClearContextEmbedderData() {
+	v8::Local<v8::Context> context = [[L8Runtime currentRuntime] V8Context];
+
+	// Clear embedder data
+	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_THIS, v8::Null());
+	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_CALLEE, v8::Null());
+	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_ARGS, v8::Null());
 }
 
 void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
@@ -534,30 +582,27 @@ void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 	invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
 	invocation.selector = selector;
 
-//	NSLog(@"SEL %@",NSStringFromSelector(selector));
-
-	for(int i = 0; i < info.Length(); i++) {
-		L8Value *argument = [L8Value valueWithV8Value:info[i]];
-		objCSetInvocationArgument(invocation, i+2, argument);
-	}
-
 	// Set target
 	invocation.target = object;
 
-	v8::Local<v8::Context> context = [[L8Runtime currentRuntime] V8Context];
-	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_THIS, info.This());
-	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_CALLEE, info.Callee());
-	v8::Local<v8::Array> argList = v8::Array::New(info.Length());
-	for(int i = 0; i < info.Length(); ++i)
-		argList->Set(i, info[i]);
-	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_ARGS, argList);
+	objCSetInvocationArguments(invocation, info, 2);
+	objCSetContextEmbedderData(info);
 
 	// and initialize
 	@autoreleasepool {
 		@try {
 			[invocation invoke];
 			[invocation getReturnValue:&resultObject];
-			info.This()->SetInternalField(0, makeWrapper(context, resultObject));
+
+			// Failure to initialize
+			if(resultObject == nil) {
+				info.GetReturnValue().SetNull();
+				return;
+			}
+
+			// Set our self to, ourself
+			info.This()->SetInternalField(0, makeWrapper([[L8Runtime currentRuntime] V8Context], resultObject));
+
 		} @catch(L8Exception *l8e) {
 			info.GetReturnValue().Set(v8::ThrowException([l8e v8exception]));
 			return;
@@ -567,9 +612,7 @@ void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 			info.GetReturnValue().Set(v8::ThrowException([[L8Value valueWithObject:e] V8Value]));
 			return;
 		} @finally {
-			context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_THIS, v8::Null());
-			context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_CALLEE, v8::Null());
-			context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_ARGS, v8::Null());
+			objCClearContextEmbedderData();
 		}
 	}
 
@@ -609,22 +652,17 @@ void ObjCMethodCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 	if(!info.IsConstructCall())
 		invocation.target = object;
 
-	for(int i = 0; i < info.Length(); i++) {
-		L8Value *val = [L8Value valueWithV8Value:info[i]];
-		objCSetInvocationArgument(invocation,i+2,val);
-	}
+	// Set the arguments
+	objCSetInvocationArguments(invocation, info, 2);
+	objCSetContextEmbedderData(info);
 
+	// Retain those
 	[invocation retainArguments];
 
-	v8::Local<v8::Context> context = [[L8Runtime currentRuntime] V8Context];
-	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_THIS, info.This());
-	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_CALLEE, info.Callee());
-	v8::Local<v8::Array> argList = v8::Array::New(info.Length());
-	for(int i = 0; i < info.Length(); ++i)
-		argList->Set(i, info[i]);
-	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_ARGS, argList);
-
 	retVal = objCInvocation(invocation);
+
+	objCClearContextEmbedderData();
+
 	info.GetReturnValue().Set(retVal);
 }
 
@@ -634,20 +672,25 @@ void ObjCBlockCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 	NSMethodSignature *methodSignature;
 	NSInvocation *invocation;
+	const char *signature;
 
-	methodSignature = [NSMethodSignature signatureWithObjCTypes:_Block_signature((__bridge void *)block)];
+	signature = _Block_signature((__bridge void *)block);
+	methodSignature = [NSMethodSignature signatureWithObjCTypes:signature];
 	invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
 	invocation.target = block;
 
 	// Set arguments (+1)
-	for(int i = 0; i < info.Length(); i++) {
-		L8Value *val = [L8Value valueWithV8Value:info[i]];
-		objCSetInvocationArgument(invocation, i+1, val);
-	}
+	objCSetInvocationArguments(invocation, info, 1);
+
+	[invocation retainArguments];
 
 	@autoreleasepool {
 		@try {
-			[invocation invoke];
+			v8::Handle<v8::Value> retVal;
+
+			retVal = objCInvocation(invocation);
+			info.GetReturnValue().Set(retVal);
+
 		} @catch(L8Exception *l8e) {
 			info.GetReturnValue().Set(v8::ThrowException([l8e v8exception]));
 			return;
@@ -658,8 +701,6 @@ void ObjCBlockCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 			return;
 		}
 	}
-
-	// TODO blocks can also have return values
 }
 
 void ObjCNamedPropertySetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
@@ -716,7 +757,7 @@ void ObjCAccessorSetter(v8::Local<v8::String> property, v8::Local<v8::Value> val
 	id object;
 	NSMethodSignature *methodSignature;
 	NSInvocation *invocation;
-	const char *types, *valueType;
+	const char *types;//, *valueType;
 	v8::Handle<v8::Array> extraData;
 	v8::Handle<v8::Value> retVal;
 

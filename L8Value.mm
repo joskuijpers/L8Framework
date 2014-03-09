@@ -724,6 +724,9 @@ v8::Local<v8::Value> objectToValue(L8Runtime *runtime, id object)
 	v8::Handle<v8::Context> context = [runtime V8Context];
 	v8::HandleScope handleScope(context->GetIsolate());
 
+	if(object == nil)
+		handleScope.Close(v8::Null());
+
 	ObjCContainerConverter::Job job = objectToValueWithoutCopy(runtime, object);
 	if(job.type == COLLECTION_NONE)
 		return handleScope.Close(job.value);
