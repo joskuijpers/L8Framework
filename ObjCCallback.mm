@@ -222,8 +222,6 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 				free((void *)className);
 			}
 
-			NSLog(@"Found for class %@",NSStringFromClass(objectClass));
-
 			if(objectClass == [L8Value class])
 				value = val;
 			else if(objectClass == [NSString class])
@@ -246,7 +244,7 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 		case '#': // Class
 		case ':': // SEL
 		case '^': // pointer
-		case '?': // Unknown (also function pointers)
+		case '?': // Unknown (also function pointers, eg blocks)
 		default:
 			assert(0 && "Type not implemented");
 			break;
@@ -282,19 +280,38 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 			result = [L8Value valueWithInt32:value];
 			break;
 		}
-		case 'q': // long long (64)
-			@throw [NSException exceptionWithName:NSRangeException reason:@"JavaScript does not support long long" userInfo:nil];
+		case 'q': { // long long (64)
+			int64_t value;
 
+			[invocation getReturnValue:&value];
+			if(value <= INT32_MAX)
+				result = [L8Value valueWithInt32:(int32_t)value];
+			else
+				result = [L8Value valueWithDouble:value];
+
+			break;
+		}
 		case 'C': // unsigned char (8)
 		case 'I': // unsigned int
 		case 'S': // unsigned short (16)
-		case 'L': // unsigned long (32)
-		case 'Q': { // unsigned long long (64)
+		case 'L': { // unsigned long (32)
 			uint32_t value;
 			assert(retLength <= 4);
 
 			[invocation getReturnValue:&value];
+
 			result = [L8Value valueWithUInt32:value];
+			break;
+		}
+		case 'Q': { // unsigned long long (64)
+			uint64_t value;
+
+			[invocation getReturnValue:&value];
+			if(value <= UINT32_MAX)
+				result = [L8Value valueWithUInt32:(uint32_t)value];
+			else
+				result = [L8Value valueWithDouble:value];
+
 			break;
 		}
 		case 'f': { // float
