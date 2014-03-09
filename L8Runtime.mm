@@ -139,6 +139,11 @@
 	return YES;
 }
 
+- (L8Value *)evaluateScript:(NSString *)scriptData
+{
+	return [self evaluateScript:scriptData withName:@""];
+}
+
 - (L8Value *)evaluateScript:(NSString *)scriptData withName:(NSString *)name
 {
 	if(scriptData == nil)
@@ -182,6 +187,7 @@
 
 + (L8Runtime *)currentRuntime
 {
+	// TODO wrong implementation!
 	v8::Local<v8::Context> context = v8::Isolate::GetCurrent()->GetCurrentContext();
 	return [self contextWithV8Context:context];
 }

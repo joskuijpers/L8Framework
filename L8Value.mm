@@ -713,7 +713,7 @@ static ObjCContainerConverter::Job objectToValueWithoutCopy(L8Runtime *runtime, 
 		assert(0 && "Code must not be reached, or implementation is missing");
 
 		// managed value
-		// https://github.com/WebKit/webkit/blob/master/Source/JavaScriptCore/API/JSValue.mm#L901
+		// https://github.com/WebKit/webkit/blob/master/Source/JavaScriptCore/API/L8Value.mm#L901
 	}
 
 	return (ObjCContainerConverter::Job){ object, [runtime wrapperForObjCObject:object]->_v8value, COLLECTION_NONE };

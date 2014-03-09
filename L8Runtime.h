@@ -16,6 +16,8 @@
 
 - (BOOL)loadScriptAtPath:(NSString *)filePath;
 - (BOOL)loadScript:(NSString *)scriptData withName:(NSString *)name;
+
+- (L8Value *)evaluateScript:(NSString *)scriptData;
 - (L8Value *)evaluateScript:(NSString *)scriptData withName:(NSString *)name;
 
 - (L8Value *)globalObject;

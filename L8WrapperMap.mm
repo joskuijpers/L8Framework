@@ -303,8 +303,11 @@ void copyPrototypeProperties(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectTemp
 		extraData->Set(1, v8::String::New(property.type)); // value type
 		extraData->Set(2, v8::String::New(property.getterName)); // getter SEL
 		extraData->Set(3, [accessorMethods[@(property.getterName)] V8Value]); // getter Types
-		extraData->Set(4, v8::String::New(property.setterName)); // setter SEL
-		extraData->Set(5, [accessorMethods[@(property.setterName)] V8Value]); // setter Types
+
+		if(!property.readonly) {
+			extraData->Set(4, v8::String::New(property.setterName)); // setter SEL
+			extraData->Set(5, [accessorMethods[@(property.setterName)] V8Value]); // setter Types
+		}
 
 		free(property.type);
 		free(property.getterName);
