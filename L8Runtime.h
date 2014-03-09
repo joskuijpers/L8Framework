@@ -24,6 +24,7 @@
 
 + (L8Runtime *)currentRuntime;
 + (L8Value *)currentThis;
++ (L8Value *)currentCallee;
 + (NSArray *)currentArguments; // L8Value
 
 @end

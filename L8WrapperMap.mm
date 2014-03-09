@@ -488,12 +488,16 @@ id unwrapObjcObject(v8::Handle<v8::Context> context, v8::Handle<v8::Value> value
 			return (__bridge id)v8::External::Cast(*field)->Value();
 	}
 
-	if(object->IsFunction()) { // Class, or block :/
-		bool isBlock = object->GetHiddenValue(v8::String::New("isBlock"))->IsTrue();
+	if(object->IsFunction()) { // Class (arguments.callee), or block
+		v8::Local<v8::Value> isBlockInfo;
+		bool isBlock;
+		NSString *name;
 
-		NSString *name = [NSString stringWithV8Value:object.As<v8::Function>()->GetName()];
+		// Info whether it is a block
+		isBlockInfo = object->GetHiddenValue(v8::String::New("isBlock"));
+		isBlock = !isBlockInfo.IsEmpty() && isBlockInfo->IsTrue();
 
-		NSLog(@"Class?: %@, %d",name,object->GetHiddenValue(v8::String::New("isBlock"))->IsTrue());
+		name = [NSString stringWithV8Value:object.As<v8::Function>()->GetName()];
 
 		if(isBlock) {
 			if(id target = unwrapBlock(object)) // Block
