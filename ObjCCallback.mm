@@ -71,101 +71,149 @@ long strnpos(const char *haystack, const char *needle, long count)
 
 void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val)
 {
-	// Discard too many arguments
-	// TODO: what to do with vararg!
+	// Discard too many arguments. These can be accessed through +[L8Runtime currentArguments]
 	if(index >= invocation.methodSignature.numberOfArguments)
 		return;
 
 	const char *type = [invocation.methodSignature getArgumentTypeAtIndex:index];
 
-	// TODO add range checks
 	switch(*type) {
 		case 'c': { // char (8)
+			long long value;
+
 			if(![val isNumber])
 				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
-			int8_t value = [[val toNumber] charValue];
+			value = [[val toNumber] longLongValue];
+			if(value > INT8_MAX)
+				v8::Exception::RangeError(v8::String::New("Value exceeds native argument size (int8)"));
+
 			[invocation setArgument:&value
 							atIndex:index];
 			break;
 		}
 		case 'i': { // int
+			long long value;
+
 			if(![val isNumber])
 				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
-			int32_t value = [[val toNumber] intValue];
+			value = [[val toNumber] longLongValue];
+			if(value > INT_MAX)
+				v8::Exception::RangeError(v8::String::New("Value exceeds native argument size (int)"));
+
 			[invocation setArgument:&value
 							atIndex:index];
 			break;
 		}
 		case 's': { // short (16)
+			long long value;
+
 			if(![val isNumber])
 				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
-			int16_t value = [[val toNumber] shortValue];
+			value = [[val toNumber] longLongValue];
+			if(value > INT16_MAX)
+				v8::Exception::RangeError(v8::String::New("Value exceeds native argument size (int16)"));
+
 			[invocation setArgument:&value
 							atIndex:index];
 			break;
 		}
 		case 'l': { // long (32)
+			long long value;
+
 			if(![val isNumber])
 				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
-			long value = [[val toNumber] longValue];
+			value = [[val toNumber] longLongValue];
+			if(value > INT32_MAX)
+				v8::Exception::RangeError(v8::String::New("Value exceeds native argument size (int32)"));
+
 			[invocation setArgument:&value
 							atIndex:index];
 			break;
 		}
 		case 'q': { // long long (64)
+			long long value;
+
 			if(![val isNumber])
 				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
-			int64_t value = [[val toNumber] longLongValue];
+			value = [[val toNumber] longLongValue];
+			if(value > INT64_MAX)
+				v8::Exception::RangeError(v8::String::New("Value exceeds native argument size (int64)"));
+
 			[invocation setArgument:&value
 							atIndex:index];
 			break;
 		}
 		case 'C': { // unsigned char (8)
+			unsigned long long value;
+
 			if(![val isNumber])
 				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
-			uint8_t value = [[val toNumber] unsignedCharValue];
+			value = [[val toNumber] longLongValue];
+			if(value > UINT8_MAX)
+				v8::Exception::RangeError(v8::String::New("Value exceeds native argument size (uint8)"));
+
 			[invocation setArgument:&value
 							atIndex:index];
 			break;
 		}
 		case 'I': { // unsigned int
+			unsigned long long value;
+
 			if(![val isNumber])
 				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
-			uint32_t value = [[val toNumber] unsignedIntValue];
+			value = [[val toNumber] longLongValue];
+			if(value > UINT_MAX)
+				v8::Exception::RangeError(v8::String::New("Value exceeds native argument size (uint)"));
+
 			[invocation setArgument:&value
 							atIndex:index];
 			break;
 		}
 		case 'S': { // unsigned short (16)
+			unsigned long long value;
+
 			if(![val isNumber])
 				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
-			uint16_t value = [[val toNumber] unsignedShortValue];
+			value = [[val toNumber] longLongValue];
+			if(value > UINT16_MAX)
+				v8::Exception::RangeError(v8::String::New("Value exceeds native argument size (uint16)"));
+
 			[invocation setArgument:&value
 							atIndex:index];
 			break;
 		}
 		case 'L': { // unsigned long (32)
+			unsigned long long value;
+
 			if(![val isNumber])
 				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
-			unsigned long value = [[val toNumber] unsignedLongValue];
+			value = [[val toNumber] longLongValue];
+			if(value > UINT32_MAX)
+				v8::Exception::RangeError(v8::String::New("Value exceeds native argument size (uint32)"));
+
 			[invocation setArgument:&value
 							atIndex:index];
 			break;
 		}
 		case 'Q': { // unsigned long long (64)
+			unsigned long long value;
+
 			if(![val isNumber])
 				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
 
-			uint64_t value = [[val toNumber] unsignedLongLongValue];
+			value = [[val toNumber] longLongValue];
+			if(value > UINT64_MAX)
+				v8::Exception::RangeError(v8::String::New("Value exceeds native argument size (uint64)"));
+
 			[invocation setArgument:&value
 							atIndex:index];
 			break;
@@ -263,8 +311,6 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 
 	if(neededReturnType) {
 		assert(*returnType == *neededReturnType);
-
-		// TODO: are there any other types with more info?
 		assert(strlen(neededReturnType) == 1 || *neededReturnType == '@');
 	}
 
