@@ -393,21 +393,26 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 
 			[invocation getReturnValue:&object];
 
-			NSLog(@"Needed return type is '%s'",neededReturnType);
-
-			// has needed return type, which must not be a block
+			// Has needed return type. It is either a block or a class
 			if(neededReturnType && strlen(neededReturnType) > 1) {
 				if(*(returnType+1) == '?' && [object isKindOfClass:BlockClass()]) {
 					v8::Handle<v8::Function> function = wrapBlock(object);
 					return function;
 				} else {
-					size_t length = strlen(neededReturnType);
-					char *className = (char *)malloc(length-3+1); // minus @"", plus \0
-					memcpy(className, neededReturnType+2, length-3);
-					className[length-3] = 0;
+					size_t length;
+					const char *className;
+					Class neededClass;
 
-//					Class cls = objc_getClass(className);
-					free(className);
+					// Get the name of the class
+					length = strlen(neededReturnType);
+					className = strndup(neededReturnType+2,length-3);
+
+					neededClass = objc_getClass(className);
+					free((void *)className);
+
+//					NSLog(@"Needed class is %@",NSStringFromClass(neededClass));
+					// TODO: Find a situation where this assert fails
+					assert(strcmp(returnType, neededReturnType) == 0);
 
 					result = [L8Value valueWithObject:object];
 				}
@@ -416,9 +421,13 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 
 			break;
 		}
-		case '#': // Class
+		case '#': { // Class
+			Class __unsafe_unretained classObject;
+			[invocation getReturnValue:&classObject];
+			result = [L8Value valueWithObject:classObject];
+			break;
+		}
 		case ':': // SEL
-			NSLog(@"Class and SEL not implemented");
 			return v8::Undefined();
 		case '^': // pointer
 			NSLog(@"Pointer to %s",returnType+1);
@@ -674,6 +683,7 @@ void ObjCNamedPropertyGetter(v8::Local<v8::String> property, const v8::PropertyC
 void ObjCNamedPropertyQuery(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Integer>& info)
 {
 //	TODO NSLog(@"property query");
+	NSLog(@"Not yet implemented: ObjCNamedPropertyQuery");
 }
 
 void ObjCIndexedPropertySetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
@@ -697,6 +707,7 @@ void ObjCIndexedPropertyGetter(uint32_t index, const v8::PropertyCallbackInfo<v8
 void ObjCIndexedPropertyQuery(uint32_t index, const v8::PropertyCallbackInfo<v8::Integer>& info)
 {
 //	TODO NSLog(@"index %d query",index);
+	NSLog(@"Not yet implemented: ObjCIndexedPropertyQuery");
 }
 
 void ObjCAccessorSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &info)
