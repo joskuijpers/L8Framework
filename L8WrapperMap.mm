@@ -55,16 +55,12 @@ static NSString *selectorToPropertyName(const char *start, bool instanceMethod =
 	while(true) {
 		char c;
 
-		// Skip over semicolons, as they shall not be included
 		while((c = *(input++)) == ':');
 
-		// The first character after a semicolon should be uppercase
-		// copy it, unless it is zero
 		if(!(*(output++) = toupper(c)))
 			goto done;
 
 		while((c = *(input++)) != ':') {
-			// Copy the character until the character equals zero
 			if(!(*(output++) = c))
 				goto done;
 		}
@@ -185,7 +181,6 @@ void copyMethodsToObject(L8WrapperMap *wrapperMap, Protocol *protocol,
 
 			v8::Handle<v8::FunctionTemplate> function = v8::FunctionTemplate::New();
 
-			// only if want to suply data
 			v8::Handle<v8::Array> extraData = v8::Array::New();
 			extraData->Set(0, v8::String::New(selName));
 			extraData->Set(1, v8::String::New(extraTypes));
@@ -244,7 +239,6 @@ void parsePropertyAttributes(objc_property_t property, char *&getterName, char *
 void copyPrototypeProperties(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectTemplate> prototypeTemplate,
 							 v8::Handle<v8::ObjectTemplate> instanceTemplate, Protocol *protocol)
 {
-	// Find all properties in the protocol
 	struct property_t {
 		const char *name;
 		char *getterName;
@@ -260,7 +254,8 @@ void copyPrototypeProperties(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectTemp
 	L8Value *undefinedValue = [L8Value valueWithUndefined];
 
 	// This is not neccesary, just move them inside the block
-	// but it is to avoid analyzer errors
+	// but it is to avoid analyzer errors: the allocation is in another loop
+	// than the freeing
 	__block char *getterName = NULL;
 	__block char *setterName = NULL;
 	__block char *type = NULL;
@@ -496,7 +491,6 @@ id unwrapObjcObject(v8::Handle<v8::Context> context, v8::Handle<v8::Value> value
 		bool isBlock;
 		NSString *name;
 
-		// Info whether it is a block
 		isBlockInfo = object->GetHiddenValue(v8::String::New("isBlock"));
 		isBlock = !isBlockInfo.IsEmpty() && isBlockInfo->IsTrue();
 
