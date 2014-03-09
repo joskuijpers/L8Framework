@@ -6,15 +6,28 @@
 //  Copyright (c) 2013 Jarvix. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
-
 @class L8Exception;
 
 @interface L8Reporter : NSObject
 
+/// Default exception handling block
 @property (copy) void (^exceptionHandler)(L8Exception *);
 
+/**
+ * Gets the default instance of the reporter
+ *
+ * @return default L8Reporter instance
+ */
 + (L8Reporter *)sharedReporter;
+
+/**
+ * Prints an exception with nice formatting.
+ *
+ * This includes a copy of the faulty line, and a line
+ * pointing to the faulty characters.
+ *
+ * @param exception the exception to print
+ */
 + (void)printException:(L8Exception *)exception;
 
 @end

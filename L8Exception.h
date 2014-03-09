@@ -6,8 +6,6 @@
 //  Copyright (c) 2014 Jarvix. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
-
 @class L8StackTrace;
 
 @interface L8Exception : NSObject

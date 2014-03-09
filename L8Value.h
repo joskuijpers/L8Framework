@@ -6,8 +6,6 @@
 //  Copyright (c) 2013 Jarvix. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
-
 @class L8Runtime;
 
 @interface L8Value : NSObject
