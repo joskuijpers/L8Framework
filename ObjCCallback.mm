@@ -683,7 +683,7 @@ void ObjCNamedPropertyGetter(v8::Local<v8::String> property, const v8::PropertyC
 void ObjCNamedPropertyQuery(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Integer>& info)
 {
 //	TODO NSLog(@"property query");
-	NSLog(@"Not yet implemented: ObjCNamedPropertyQuery");
+//	NSLog(@"Not yet implemented: ObjCNamedPropertyQuery");
 }
 
 void ObjCIndexedPropertySetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
@@ -707,7 +707,7 @@ void ObjCIndexedPropertyGetter(uint32_t index, const v8::PropertyCallbackInfo<v8
 void ObjCIndexedPropertyQuery(uint32_t index, const v8::PropertyCallbackInfo<v8::Integer>& info)
 {
 //	TODO NSLog(@"index %d query",index);
-	NSLog(@"Not yet implemented: ObjCIndexedPropertyQuery");
+//	NSLog(@"Not yet implemented: ObjCIndexedPropertyQuery");
 }
 
 void ObjCAccessorSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &info)

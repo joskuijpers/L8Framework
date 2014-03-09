@@ -394,7 +394,10 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap,
 	v8::Handle<v8::ObjectTemplate> instanceTemplate = classTemplate->InstanceTemplate();
 	instanceTemplate->SetInternalFieldCount(1);
 
+#if 0
+	// TODO: Find out if this makes any sense at all
 	installSubscriptionMethods(self, instanceTemplate, (class_isMetaClass(cls)) ? object : cls);
+#endif
 
 	forEachProtocolImplementingProtocol(cls, objc_getProtocol("L8Export"), ^(Protocol *protocol) {
 		copyPrototypeProperties(self, prototypeTemplate, instanceTemplate, protocol);
