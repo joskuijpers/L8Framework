@@ -6,7 +6,6 @@
 //  Copyright (c) 2013 Jarvix. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
 #include "v8.h"
 
 @class L8Runtime, L8Value;
