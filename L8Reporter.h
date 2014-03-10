@@ -8,6 +8,9 @@
 
 @class L8Exception;
 
+/**
+ * @brief Error and exception reporter
+ */
 @interface L8Reporter : NSObject
 
 /// Default exception handling block

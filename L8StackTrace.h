@@ -8,12 +8,15 @@
 
 @class L8StackFrame;
 
+/**
+ * @brief Stacktrace container
+ */
 @interface L8StackTrace : NSObject
 
 /**
  * Gets a stackframe at given index.
  *
- * @param index frame number. Maximum value is -[numberOfFrames]-1
+ * @param index frame number. Maximum value is <code>numberOfFrames-1</code>
  * @return a stackframe or nil if not available
  */
 - (L8StackFrame *)stackFrameAtIndex:(unsigned int)index;
@@ -25,21 +28,40 @@
  */
 - (unsigned int)numberOfFrames;
 
+/**
+ * Get a stack trace for current point of execution.
+ *
+ * @return An L8StackTrace
+ */
 + (L8StackTrace *)currentStackTrace;
 
 @end
 
+/**
+ * @brief Subscription methods
+ */
 @interface L8StackTrace (Subscription)
 
+/**
+ * Gets a stackframe at given index.
+ *
+ * This method is the same as stackFrameAtIndex:
+ *
+ * @param index frame number. Maximum value is <code>numberOfFrames-1</code>
+ * @return a stackframe or nil if not available
+ */
 - (L8StackFrame *)objectAtIndexedSubscript:(NSUInteger)index;
 
 @end
 
+/**
+ * @brief Enumeration methods
+ */
 @interface L8StackTrace (Enumeration) <NSFastEnumeration>
 @end
 
 /**
- * A single frame in the stack
+ * @brief A single frame in the stack
  */
 @interface L8StackFrame : NSObject
 

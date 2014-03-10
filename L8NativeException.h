@@ -8,7 +8,22 @@
 
 #import "L8Exception.h"
 
+/**
+ * @brief A syntax error exception
+ */
 @interface L8SyntaxErrorException : L8Exception @end
+
+/**
+ * @brief A type error exception
+ */
 @interface L8TypeErrorException : L8Exception @end
+
+/**
+ * @brief A reference error exception
+ */
 @interface L8ReferenceErrorException : L8Exception @end
+
+/**
+ * @brief A range error exception
+ */
 @interface L8RangeErrorException : L8Exception @end

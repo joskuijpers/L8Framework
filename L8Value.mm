@@ -205,6 +205,11 @@
 	object->Set((uint32_t)index, objectToValue(_runtime,value));
 }
 
+- (void)defineProperty:(NSString *)property descriptor:(id)descriptor
+{
+	@throw [NSException exceptionWithName:@"NotImplementedException" reason:@"" userInfo:nil];
+}
+
 - (BOOL)isUndefined
 {
 	return _v8value->IsUndefined();
@@ -252,22 +257,12 @@
 
 - (BOOL)isEqualToObject:(id)value
 {
-	return 	_v8value->Equals(objectToValue(_runtime,value));
+	return 	_v8value->StrictEquals(objectToValue(_runtime,value));
 }
 
-/*
- * This method is equal to -[isStringEqualToObject:] which is nicer
- * to write. However, to keep resemblance with JavaScriptCore we keep
- * this method.
- */
 - (BOOL)isEqualWithTypeCoercionToObject:(id)value
 {
-	return 	_v8value->StrictEquals(objectToValue(_runtime,value));
-}
-
-- (BOOL)isStrictEqualToObject:(id)value
-{
-	return 	_v8value->StrictEquals(objectToValue(_runtime,value));
+	return 	_v8value->Equals(objectToValue(_runtime,value));
 }
 
 - (BOOL)isInstanceOf:(id)value

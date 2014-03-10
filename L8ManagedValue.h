@@ -8,6 +8,9 @@
 
 @class L8Value;
 
+/**
+ * @brief Value store with garbage collection handling
+ */
 @interface L8ManagedValue : NSObject
 
 /**

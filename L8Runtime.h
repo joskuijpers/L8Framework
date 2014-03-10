@@ -8,6 +8,9 @@
 
 @class L8Value;
 
+/**
+ * @brief The JavaScript runtime
+ */
 @interface L8Runtime : NSObject
 
 /**
@@ -31,7 +34,7 @@
 /**
  * Loads given script with given name into the runtime.
  *
- * @param scriptdata the script
+ * @param scriptData the script
  * @param name name of the script. Used in stacktraces and errors.
  * @return YES on success, NO otherwise
  */
@@ -99,16 +102,51 @@
  */
 + (NSArray *)currentArguments; // L8Value
 
+/**
+ * Notify the JSVirtualMachine of an external object relationship.
+ *
+ * @param object Referenced object
+ * @param owner Owner of the reference
+ */
 - (void)addManagedReference:(id)object withOwner:(id)owner;
+
+/**
+ * Notify the JSVirtualMachine that a previous object relationship no longer exists.
+ *
+ * @param object Referenced object
+ * @param owner Owner of the reference
+ */
 - (void)removeManagedReference:(id)object withOwner:(id)owner;
 
+/**
+ * Attempt to run the garbage collector.
+ *
+ * This method is blocking.
+ */
 - (void)runGarbageCollector;
 
 @end
 
+/**
+ * @brief Subscripting support
+ */
 @interface L8Runtime (Subscripting)
 
+/**
+ * Access a property of the globalObject.
+ *
+ * @param key The name of the property.
+ * @return The L8Value for the requested property or the L8Value <code>undefined</code>
+ * if the property does not exist.
+ */
 - (L8Value *)objectForKeyedSubscript:(id)key;
+
+/**
+ * Set a property on the globalObject.
+ *
+ * @param object The value of the property.
+ * @param key The name of the property.
+ */
 - (void)setObject:(id)object forKeyedSubscript:(NSObject <NSCopying> *)key;
 
 @end

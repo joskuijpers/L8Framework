@@ -439,9 +439,15 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 		}
 		case ':': // SEL
 			return v8::Undefined();
+		case '?': { // Structs
+
+			if(*(returnType+1) == '=') {
+				NSLog(@"What TO DO?");
+
+				break;
+			}
+		}
 		case '^': // pointer
-			NSLog(@"Pointer to %s",returnType+1);
-		case '?': // Unknown (also function pointers)
 		default:
 			assert(0 && "A return type is not implemented");
 	}

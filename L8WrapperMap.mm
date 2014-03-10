@@ -550,9 +550,6 @@ id unwrapObjcObject(v8::Handle<v8::Context> context, v8::Handle<v8::Value> value
 		return objc_getClass([name UTF8String]);
 	}
 
-//	if(id target = unwrapBlock(object)) // Block
-//		return target;
-
 	return nil;
 }
 

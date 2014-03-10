@@ -7,7 +7,7 @@
 //
 
 /**
- * Export protocol for L8.
+ * @brief Export protocol for L8.
  */
 @protocol L8Export <NSObject>
 @end
@@ -20,3 +20,27 @@
  */
 #define L8ExportAs(PropertyName, Selector) \
 	@optional Selector __L8_EXPORT_AS__##PropertyName:(id)argument; @required Selector
+
+/**
+ * @page exportas L8ExportAs: renaming of exported selectors
+ *
+ * A selector that will be exported to JavaScript can be renamed
+ * using the L8ExportAs() macro.
+ *
+ *
+ * @code
+ * @protocol MyClass <JSExport>
+ * L8ExportAs(foo,
+ * - (void)doFoo:(id)foo withBar:(id)bar
+ * );
+ * @end
+ * @endcode
+ *
+ * Note that this can only be used for selectors with one or more arguments.
+ *
+ * @code
+ * #define L8ExportAs(PropertyName, Selector) \
+ *   @optional Selector __L8_EXPORT_AS__##PropertyName:(id)argument; @required Selector
+ * @endcode
+ *
+ */
