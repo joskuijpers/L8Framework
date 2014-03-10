@@ -272,14 +272,23 @@
 
 - (BOOL)isInstanceOf:(id)value
 {
+	Class cls = Nil;
+	L8WrapperMap *map;
 	v8::Isolate *isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope localScope(isolate);
+	v8::Local<v8::FunctionTemplate> funcTemplate;
 
-//	v8::Local<v8::Object> constructor = objectToValue(_runtime, value)->ToObject();
-	BOOL result = NO;
+	if(class_isMetaClass(cls))
+		cls = value;
+	else
+		cls = [value class];
 
-	@throw [NSException exceptionWithName:@"NotImplemented" reason:@"Not Implemented" userInfo:nil];
-	return result;
+	NSLog(@"Does %@ inherit from %@",self,NSStringFromClass(cls));
+
+	map = [[L8Runtime currentRuntime] wrapperMap];
+	funcTemplate = [map functionTemplateForClass:cls];
+
+	return funcTemplate->HasInstance(_v8value);
 }
 
 - (void)throwValue

@@ -17,6 +17,9 @@
 - (L8Value *)JSWrapperForObject:(id)object;
 - (L8Value *)ObjCWrapperForValue:(v8::Handle<v8::Value>)value;
 
+// Used by -isInstanceOf:
+- (v8::Handle<v8::FunctionTemplate>)functionTemplateForClass:(Class)cls;
+
 @end
 
 v8::Handle<v8::External> makeWrapper(v8::Handle<v8::Context> context, id wrappedObject);
@@ -26,4 +29,9 @@ id unwrapObjcObject(v8::Handle<v8::Context> context, v8::Handle<v8::Value> value
 v8::Handle<v8::Function> wrapBlock(id object);
 id unwrapBlock(v8::Handle<v8::Object> object);
 
+/**
+ * The class of a Block
+ *
+ * @return Class of a block
+ */
 Class BlockClass();
