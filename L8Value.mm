@@ -283,10 +283,10 @@
 	else
 		cls = [value class];
 
-	NSLog(@"Does %@ inherit from %@",self,NSStringFromClass(cls));
-
 	map = [[L8Runtime currentRuntime] wrapperMap];
-	funcTemplate = [map functionTemplateForClass:cls];
+	funcTemplate = [map getCachedFunctionTemplateForClass:cls];
+	if(funcTemplate.IsEmpty())
+		return NO;
 
 	return funcTemplate->HasInstance(_v8value);
 }

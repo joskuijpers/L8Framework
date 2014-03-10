@@ -18,7 +18,7 @@
 - (L8Value *)ObjCWrapperForValue:(v8::Handle<v8::Value>)value;
 
 // Used by -isInstanceOf:
-- (v8::Handle<v8::FunctionTemplate>)functionTemplateForClass:(Class)cls;
+- (v8::Local<v8::FunctionTemplate>)getCachedFunctionTemplateForClass:(Class)cls;
 
 @end
 

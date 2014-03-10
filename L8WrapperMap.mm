@@ -9,6 +9,9 @@
 #include <objc/runtime.h>
 #include <map>
 #include <vector>
+#include <string>
+#include <unordered_map>
+#include <iterator>
 
 #import "L8WrapperMap.h"
 
@@ -348,21 +351,49 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap,
 
 @implementation L8WrapperMap {
 	L8Runtime * _runtime;
-	NSMutableDictionary *_cachedJSWrappers;
-//	NSMapTable *_cachedObjCWrappers;
+	std::unordered_map<std::string,v8::Eternal<v8::FunctionTemplate>> _classCache;
 }
 
 - (id)initWithRuntime:(L8Runtime *)runtime
 {
 	self = [super init];
 	if(self) {
-//		_cachedObjCWrappers = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsOpaqueMemory | NSPointerFunctionsOpaqueMemory
-//														valueOptions:NSPointerFunctionsWeakMemory | NSPointerFunctionsObjectPointerPersonality
-//															capacity:0];
 		_runtime = runtime;
-		_cachedJSWrappers = [[NSMutableDictionary alloc] init];
 	}
 	return self;
+}
+
+- (void)cacheFunctionTemplate:(v8::Local<v8::FunctionTemplate>)funcTemplate
+					 forClass:(Class)cls
+{
+	std::string key(class_getName(cls));
+
+	assert(_classCache.find(key) == _classCache.end() && "Must only cache once");
+
+	v8::Eternal<v8::FunctionTemplate> myEternal;
+	{
+		v8::HandleScope localScope(v8::Isolate::GetCurrent());
+		myEternal.Set(v8::Isolate::GetCurrent(), funcTemplate);
+	}
+
+	_classCache[key] = myEternal;
+}
+
+- (v8::Local<v8::FunctionTemplate>)getCachedFunctionTemplateForClass:(Class)cls
+{
+	std::string key(class_getName(cls));
+	std::unordered_map<std::string,v8::Eternal<v8::FunctionTemplate>>::iterator it;
+
+	it = _classCache.find(key);
+	if(it != _classCache.end()) {
+		v8::Eternal<v8::FunctionTemplate> eternal;
+
+		eternal = it->second;
+		return eternal.Get(v8::Isolate::GetCurrent());
+	}
+
+	v8::HandleScope localScope(v8::Isolate::GetCurrent());
+	return localScope.Close(v8::Local<v8::FunctionTemplate>());
 }
 
 - (v8::Handle<v8::FunctionTemplate>)functionTemplateForClass:(Class)cls
@@ -380,23 +411,15 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap,
 	// TODO Get from cache
 
 	parentClass = class_getSuperclass(cls);
-	if(parentClass != Nil) { // Top-level class
+	if(parentClass != Nil && cls != parentClass && class_isMetaClass(parentClass)) { // Top-level class
 		v8::Handle<v8::FunctionTemplate> parentTemplate;
 
-		parentTemplate = [self functionTemplateForClass:parentClass];
+		parentTemplate = [self getCachedFunctionTemplateForClass:parentClass];
+		if(parentTemplate.IsEmpty())
+			parentTemplate = [self functionTemplateForClass:parentClass];
 		if(!parentTemplate.IsEmpty())
 			classTemplate->Inherit(parentTemplate);
 	}
-
-	//	v8::Local<v8::Object> cache = v8::Local<v8::Object>::New(v8::Isolate::GetCurrent(), _cachedClasses);
-	//	parentTemplate = cache->Get([className V8String]);
-	//	if(!parentTemplate.IsEmpty()) {
-	//		classTemplate->Inherit(parentTemplate);
-	//	} else {
-	//		// Get new template
-	//		NSLog(@"Make a new template for parent of %@",className);
-	//	}
-
 
 	classTemplate->SetClassName([className V8String]);
 
@@ -412,15 +435,14 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap,
 	forEachProtocolImplementingProtocol(cls, objc_getProtocol("L8Export"), ^(Protocol *protocol) {
 		copyPrototypeProperties(self, prototypeTemplate, instanceTemplate, protocol);
 
-		// Copy class methods
 		copyMethodsToObject(self, protocol, NO, classTemplate);
 	});
 
 	// Set constructor callback
 	classTemplate->SetCallHandler(ObjCConstructor,v8::String::New(class_getName(cls)));
 
-	// Cache the class
-	// TODO Do cache here
+	[self cacheFunctionTemplate:classTemplate
+					   forClass:cls];
 
 	return localScope.Close(classTemplate);
 }
@@ -438,7 +460,10 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap,
 	Class cls;
 
 	cls = object_getClass(object);
-	classTemplate = [self functionTemplateForClass:cls];
+
+	classTemplate = [self getCachedFunctionTemplateForClass:cls];
+	if(classTemplate.IsEmpty())
+		classTemplate = [self functionTemplateForClass:cls];
 
 	// The class (constructor)
 	function = classTemplate->GetFunction();
