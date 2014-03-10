@@ -252,13 +252,22 @@
 
 - (BOOL)isEqualToObject:(id)value
 {
+	return 	_v8value->Equals(objectToValue(_runtime,value));
+}
+
+/*
+ * This method is equal to -[isStringEqualToObject:] which is nicer
+ * to write. However, to keep resemblance with JavaScriptCore we keep
+ * this method.
+ */
+- (BOOL)isEqualWithTypeCoercionToObject:(id)value
+{
 	return 	_v8value->StrictEquals(objectToValue(_runtime,value));
 }
 
-- (BOOL)isEqualWithTypeCoercionToObject:(id)value
+- (BOOL)isStrictEqualToObject:(id)value
 {
-	@throw [NSException exceptionWithName:@"NotImplemented" reason:@"Not Implemented" userInfo:nil];
-	return NO;
+	return 	_v8value->StrictEquals(objectToValue(_runtime,value));
 }
 
 - (BOOL)isInstanceOf:(id)value

@@ -63,6 +63,7 @@
 
 - (BOOL)isEqualToObject:(id)value;
 - (BOOL)isEqualWithTypeCoercionToObject:(id)value;
+- (BOOL)isStrictEqualToObject:(id)value;
 - (BOOL)isInstanceOf:(id)value;
 
 - (void)throwValue;
