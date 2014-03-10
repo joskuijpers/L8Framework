@@ -99,6 +99,11 @@
  */
 + (NSArray *)currentArguments; // L8Value
 
+- (void)addManagedReference:(id)object withOwner:(id)owner;
+- (void)removeManagedReference:(id)object withOwner:(id)owner;
+
+- (void)runGarbageCollector;
+
 @end
 
 @interface L8Runtime (Subscripting)

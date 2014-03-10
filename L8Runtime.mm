@@ -13,6 +13,7 @@
 #import "L8Value_Private.h"
 #import "L8Reporter_Private.h"
 #import "L8WrapperMap.h"
+#import "L8ManagedValue_Private.h"
 
 #import "NSString+L8.h"
 
@@ -25,6 +26,7 @@
 
 @implementation L8Runtime {
 	v8::Persistent<v8::Context> _v8context;
+	NSMapTable *_managedObjectGraph;
 }
 
 + (void)initialize
@@ -60,6 +62,10 @@
 
 		// Create the wrappermap for the context
 		_wrapperMap = [[L8WrapperMap alloc] initWithRuntime:self];
+
+		_managedObjectGraph = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsWeakMemory | NSPointerFunctionsObjectPersonality
+														valueOptions:NSPointerFunctionsStrongMemory | NSPointerFunctionsObjectPersonality
+															capacity:0];
 	}
 	return self;
 }
@@ -309,6 +315,103 @@ void L8RuntimeDebugMessageDispatchHandler()
 - (void)disableDebugging
 {
 	v8::Debug::DisableAgent();
+}
+
+- (id)getInternalObjCObject:(id)object
+{
+	v8::Isolate *isolate = v8::Isolate::GetCurrent();
+	v8::HandleScope localScope(isolate);
+	v8::Local<v8::Context> localContext;
+
+	localContext = v8::Local<v8::Context>::New(isolate, _v8context);
+
+	if([object isKindOfClass:[L8ManagedValue class]]) {
+		id temp;
+		L8Value *value;
+
+		value = [(L8ManagedValue *)object value];
+		temp = unwrapObjcObject(localContext, [value V8Value]);
+
+		if(temp)
+			return temp;
+		return object;
+	}
+
+	if([object isKindOfClass:[L8Value class]]) {
+		L8Value *value;
+
+		value = (L8Value *)object;
+		object = unwrapObjcObject(localContext, [value V8Value]);
+	}
+
+	return object;
+}
+
+- (void)addManagedReference:(id)object withOwner:(id)owner
+{
+	NSMapTable *objectsOwned;
+	const void *key;
+	size_t count;
+
+	if([object isKindOfClass:[L8ManagedValue class]])
+		[object didAddOwner:owner];
+
+	object = [self getInternalObjCObject:object];
+	owner = [self getInternalObjCObject:owner];
+
+	if(object == nil || owner == nil)
+		return;
+
+	objectsOwned = [_managedObjectGraph objectForKey:object];
+	if(!objectsOwned) {
+		objectsOwned = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsWeakMemory | NSPointerFunctionsObjectPersonality
+												 valueOptions:NSPointerFunctionsOpaqueMemory | NSPointerFunctionsIntegerPersonality
+													 capacity:1];
+
+		[_managedObjectGraph setObject:objectsOwned forKey:owner];
+	}
+
+	key = (__bridge void *)object;
+	count = reinterpret_cast<size_t>(NSMapGet(objectsOwned, key));
+	NSMapInsert(objectsOwned, key, reinterpret_cast<void *>(count + 1));
+}
+
+- (void)removeManagedReference:(id)object withOwner:(id)owner
+{
+	NSMapTable *objectsOwned;
+	const void *key;
+	size_t count;
+
+	if([object isKindOfClass:[L8ManagedValue class]])
+		[object didRemoveOwner:owner];
+
+	object = [self getInternalObjCObject:object];
+	owner = [self getInternalObjCObject:owner];
+
+	if(object == nil || owner == nil)
+		return;
+
+	objectsOwned = [_managedObjectGraph objectForKey:object];
+	if(!objectsOwned)
+		return;
+
+	key = (__bridge void *)object;
+	count = reinterpret_cast<size_t>(NSMapGet(objectsOwned, key));
+	if(count > 1) {
+		NSMapInsert(objectsOwned, key, reinterpret_cast<void *>(count - 1));
+		return;
+	}
+
+	if(count == 1)
+		NSMapRemove(objectsOwned, key);
+
+	if(![objectsOwned count])
+		[_managedObjectGraph removeObjectForKey:owner];
+}
+
+- (void)runGarbageCollector
+{
+	while(!v8::V8::IdleNotification()) {};
 }
 
 @end
