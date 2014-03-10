@@ -7,7 +7,6 @@
 //
 
 #include <objc/runtime.h>
-#include <map>
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -24,10 +23,6 @@
 #import "ObjCCallback.h"
 
 #include "v8.h"
-
-/*Opt*/ static v8::Handle<v8::String> V8StringWithCString(const char *cstr) {
-	return [@(cstr) V8String];
-}
 
 /*!
  * Extract a propertyname from a selectorname.
@@ -296,7 +291,7 @@ void copyPrototypeProperties(L8WrapperMap *wrapperMap, v8::Handle<v8::ObjectTemp
 	for(int i = 0; i < propertyList.size(); i++) {
 		property_t& property = propertyList[i];
 
-		v8::Handle<v8::String> v8PropertyName = V8StringWithCString(property.name);
+		v8::Handle<v8::String> v8PropertyName = [@(property.name) V8String];
 		v8::Handle<v8::Array> extraData = v8::Array::New();
 
 		extraData->Set(0, v8PropertyName);
@@ -502,16 +497,12 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap,
  */
 - (L8Value *)JSWrapperForObject:(id)object
 {
-	L8Value *wrapper;// = _cachedJSWrappers[[object className]];
-//	if(wrapper)
-//		return wrapper;
+	L8Value *wrapper;
 
 	if([object isKindOfClass:BlockClass()]) {
 		wrapper = [self JSWrapperForBlock:object];
 	} else
 		wrapper = [self JSWrapperForObjCObject:object];
-
-//	_cachedJSWrappers[[object className]] = wrapper;
 
 	return wrapper;
 }
@@ -524,14 +515,7 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap,
  */
 - (L8Value *)ObjCWrapperForValue:(v8::Handle<v8::Value>)value
 {
-//	NSLog(@"%@%@",NSStringFromSelector(_cmd),[NSString stringWithV8Value:value]);
-
-	L8Value *wrapper;// = static_cast<L8Value *>(NSMapGet(_cachedObjCWrappers, value));
-//	if(!wrapper) {
-		wrapper = [[L8Value alloc] initWithV8Value:value];
-//		NSMapInsert(_cachedObjCWrappers, (void *)*value, wrapper);
-//	}
-	return wrapper;
+	return [[L8Value alloc] initWithV8Value:value];
 }
 
 @end
