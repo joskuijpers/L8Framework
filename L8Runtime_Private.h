@@ -19,7 +19,7 @@
 
 @interface L8Runtime ()
 
-@property (strong,readonly) L8WrapperMap *wrapperMap;
+@property (readonly) L8WrapperMap *wrapperMap;
 
 + (L8Runtime *)contextWithV8Context:(v8::Handle<v8::Context>)v8context;
 - (v8::Local<v8::Context>)V8Context;

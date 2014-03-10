@@ -44,24 +44,24 @@
 @interface L8StackFrame : NSObject
 
 /// Number of the line in the script
-@property (strong,readonly) NSNumber *lineNumber;
+@property (readonly) NSNumber *lineNumber;
 
 /// Column in the line where the frame resides
-@property (strong,readonly) NSNumber *column;
+@property (readonly) NSNumber *column;
 
 /// Name of the script the frame is in
-@property (strong,readonly) NSString *scriptName;
+@property (readonly) NSString *scriptName;
 
 /// URL of the origin of the script
-@property (strong,readonly) NSURL *sourceURL;
+@property (readonly) NSURL *sourceURL;
 
 /// Name of the function around the execution point
-@property (strong,readonly) NSString *functionName;
+@property (readonly) NSString *functionName;
 
 /// Whether the frame is inside a constructor
-@property (assign,readonly,getter=isConstructor) BOOL constructor;
+@property (readonly,getter=isConstructor) BOOL constructor;
 
 /// Whether the frame is inside an eval()
-@property (assign,readonly,getter=isEval) BOOL eval;
+@property (readonly,getter=isEval) BOOL eval;
 
 @end
