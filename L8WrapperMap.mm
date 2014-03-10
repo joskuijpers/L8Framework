@@ -6,7 +6,7 @@
 //  Copyright (c) 2013 Jarvix. All rights reserved.
 //
 
-#import <objc/runtime.h>
+#include <objc/runtime.h>
 #include <map>
 #include <vector>
 
@@ -365,28 +365,43 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap,
 	return self;
 }
 
-/*!
- * Create a wrapper-to-JavaScript for an Objective-C object
- *
- * @return an L8Value containing the V8 handle wrapping the object
- */
-- (L8Value *)JSWrapperForObjCObject:(id)object
+- (v8::Handle<v8::FunctionTemplate>)functionTemplateForClass:(Class)cls
 {
-	Class cls = object_getClass(object);
-	NSString *className = @(class_getName(cls));
-
 	v8::HandleScope localScope(v8::Isolate::GetCurrent());
+	v8::Handle<v8::FunctionTemplate> classTemplate;
+	v8::Handle<v8::ObjectTemplate> prototypeTemplate, instanceTemplate;
+	NSString *className;
+	Class parentClass;
 
-	v8::Handle<v8::FunctionTemplate> classTemplate = v8::FunctionTemplate::New();
+	className = @(class_getName(cls));
+	classTemplate = v8::FunctionTemplate::New();
 
 	// TODO set prototype of the prototype, to prototype of the superclass
-//	v8::Handle<v8::FunctionTemplate> parentTemplate; // need to store the function templates for each class and have function that returns those
-//	classTemplate->Inherit(parentTemplate);
+	// TODO Get from cache
+
+	parentClass = class_getSuperclass(cls);
+	if(parentClass != Nil) { // Top-level class
+		v8::Handle<v8::FunctionTemplate> parentTemplate;
+
+		parentTemplate = [self functionTemplateForClass:parentClass];
+		if(!parentTemplate.IsEmpty())
+			classTemplate->Inherit(parentTemplate);
+	}
+
+	//	v8::Local<v8::Object> cache = v8::Local<v8::Object>::New(v8::Isolate::GetCurrent(), _cachedClasses);
+	//	parentTemplate = cache->Get([className V8String]);
+	//	if(!parentTemplate.IsEmpty()) {
+	//		classTemplate->Inherit(parentTemplate);
+	//	} else {
+	//		// Get new template
+	//		NSLog(@"Make a new template for parent of %@",className);
+	//	}
+
 
 	classTemplate->SetClassName([className V8String]);
 
-	v8::Handle<v8::ObjectTemplate> prototypeTemplate = classTemplate->PrototypeTemplate();
-	v8::Handle<v8::ObjectTemplate> instanceTemplate = classTemplate->InstanceTemplate();
+	prototypeTemplate = classTemplate->PrototypeTemplate();
+	instanceTemplate = classTemplate->InstanceTemplate();
 	instanceTemplate->SetInternalFieldCount(1);
 
 #if 0
@@ -401,18 +416,40 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap,
 		copyMethodsToObject(self, protocol, NO, classTemplate);
 	});
 
+	// Set constructor callback
+	classTemplate->SetCallHandler(ObjCConstructor,v8::String::New(class_getName(cls)));
+
+	// Cache the class
+	// TODO Do cache here
+
+	return localScope.Close(classTemplate);
+}
+
+/*!
+ * Create a wrapper-to-JavaScript for an Objective-C object
+ *
+ * @return an L8Value containing the V8 handle wrapping the object
+ */
+- (L8Value *)JSWrapperForObjCObject:(id)object
+{
+	v8::HandleScope localScope(v8::Isolate::GetCurrent());
+	v8::Handle<v8::FunctionTemplate> classTemplate;
+	v8::Handle<v8::Function> function;
+	Class cls;
+
+	cls = object_getClass(object);
+	classTemplate = [self functionTemplateForClass:cls];
+
 	// The class (constructor)
-	v8::Handle<v8::Function> function = classTemplate->GetFunction();
+	function = classTemplate->GetFunction();
 
 	if(class_isMetaClass(object_getClass(object))) {
-		classTemplate->SetCallHandler(ObjCConstructor,v8::String::New(class_getName(cls)));
 		return [L8Value valueWithV8Value:localScope.Close(function)];
 	} else {
-		// The objcConstructor should not be called when the object already exists
-		// so we set the constructor after use
+		[_runtime V8Context]->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SKIP_CONSTRUCTING, v8::True());
 		v8::Handle<v8::Object> instance = function->NewInstance();
+		[_runtime V8Context]->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SKIP_CONSTRUCTING, v8::False());
 
-		classTemplate->SetCallHandler(ObjCConstructor,v8::String::New(class_getName(cls)));
 		instance->SetInternalField(0, makeWrapper([_runtime V8Context], object));
 
 		return [L8Value valueWithV8Value:localScope.Close(instance)];

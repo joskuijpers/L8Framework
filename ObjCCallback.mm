@@ -499,81 +499,18 @@ void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 	NSMethodSignature *methodSignature;
 	NSInvocation *invocation;
 
-	className = createStringFromV8Value(info.Data().As<v8::String>());
+	// In one situation we should no nothing:
+	// When just created the class for an existing object
+	v8::Handle<v8::Value> skipConstruct = info.GetIsolate()->GetCurrentContext()->GetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SKIP_CONSTRUCTING);
+	if(!skipConstruct.IsEmpty() && skipConstruct->IsTrue())
+		return;
+
+	className = createStringFromV8Value(info.Data());
 	cls = objc_getClass(className);
 	free((void *)className); className = NULL;
 
 	// TODO find correct selector!
-	// Implementation below sucks ballz. Make some algorithm to find
-	// the best selector for given arguments for init
-
-	// Look at all selectors, finding the correct init*
-	forEachMethodInClass(cls, ^(Method method, BOOL *stop) {
-		const char *selName, *enc;
-		char *simpleEnc;
-
-		// Find only selectors starting with 'init'
-		selName = sel_getName(method_getName(method));
-		if(strnpos(selName,"init",MAX(4, strlen(selName))) != 0)
-		   return;
-
-		// Get encoding
-		enc = method_getTypeEncoding(method);
-
-		// Remove all numbers
-		simpleEnc = (char *)calloc(strlen(enc)+1,sizeof(char));
-		int j = 0, k = 0;
-		for(const char *p = enc; *p != '\0'; p++) {
-			if(*p < '0' || *p > '9') {
-				if(k < 3) // skip first three: @@: (return, self, _cmd)
-					k++;
-				else
-					simpleEnc[j++] = *p;
-			}
-		}
-
-		// Check number of arguments
-		if(j/*strlen of simpleEnc*/ != info.Length()) {
-			free(simpleEnc);
-			return;
-		}
-
-
-		// Now we have the argument types for the method
-		// Go over all input arguments and see if they fit
-		// If they do, stop searching (so first hit counts)
-		for(int i = 0; i < info.Length() && i < j; i++) {
-			L8Value *argument = [L8Value valueWithV8Value:info[i]];
-			BOOL valid = NO;
-
-			switch(simpleEnc[i]) {
-				case '@': // We can always convert to an object
-					valid = YES;
-					break;
-				case 'i':
-					valid = [argument isNumber];
-					break;
-				default:
-					NSLog(@"NO HANDLE OF %c",simpleEnc[i]);
-					break;
-			}
-
-			// Not valid? Next method!
-			if(!valid)
-				return;
-
-//			NSLog(@"Argument %d: %@, %c",i,argument,simpleEnc[i]);
-		}
-
-		selector = method_getName(method);
-		free(simpleEnc);
-		*stop = YES;
-
-		// TODO cache this: Class + Req Argument Types + SEL
-	});
-
-	if(selector == nil)
-		selector = @selector(init);
+	selector = @selector(init);
 
 	// Allocate...
 	object = [cls alloc];
@@ -630,6 +567,9 @@ void ObjCMethodCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 	v8::Handle<v8::Array> extraData;
 	v8::Handle<v8::Value> retVal;
 
+	// A constructor call should be with ObjCConstructor
+	assert(info.IsConstructCall() == false);
+
 	extraData = info.Data().As<v8::Array>();
 	selector = selectorFromV8Value(extraData->Get(0));
 	types = createStringFromV8Value(extraData->Get(1));
@@ -649,8 +589,7 @@ void ObjCMethodCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 		object = objectFromWrapper(info.This()->GetInternalField(0));
 
 	invocation.selector = selector;
-	if(!info.IsConstructCall())
-		invocation.target = object;
+	invocation.target = object;
 
 	// Set the arguments
 	objCSetInvocationArguments(invocation, info, 2);
