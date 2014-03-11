@@ -456,16 +456,13 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 		}
 		case ':': // SEL
 			return v8::Undefined();
-		case '?': { // Structs
-
-			if(*(returnType+1) == '=') {
-				NSLog(@"What TO DO?");
-
-				break;
-			}
-		}
-		case '^': // pointer
+		case '[': // array, [type]
+		case '{': // struct, {name=type}
+		case '(': // union, (name=type)
+		case '^': // pointer, ^type
+		case '?': // Unknown
 		default:
+			NSLog(@"Returntype: '%s', len %lu",returnType,retLength);
 			assert(0 && "A return type is not implemented");
 	}
 
