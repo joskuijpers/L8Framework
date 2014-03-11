@@ -233,7 +233,8 @@ using namespace v8;
 
 - (void)defineProperty:(NSString *)property descriptor:(id)descriptor
 {
-	@throw [NSException exceptionWithName:@"NotImplementedException" reason:@"" userInfo:nil];
+	[_runtime.globalObject[@"Object"] invokeMethod:@"defineProperty"
+									 withArguments:@[self, property, descriptor]];
 }
 
 - (BOOL)isUndefined
