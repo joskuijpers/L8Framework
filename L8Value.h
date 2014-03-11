@@ -199,9 +199,13 @@
 /**
  * Convert a L8Value to a block.
  *
- * @return A block object or <code>nil</code> if not a function.
+ * This method can only return a block when actual blocks are used
+ * to generate the function.
+ *
+ * @return A block object or <code>nil</code> if not a function
+ * or not a native function.
  */
-- (id)toFunction;
+- (id)toBlockFunction;
 
 /**
  * Convert a L8Value to a boolean.

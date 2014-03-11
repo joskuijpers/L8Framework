@@ -118,16 +118,23 @@ using namespace v8;
 	return [result isKindOfClass:expectedClass]?result:nil;
 }
 
-- (id)toFunction
+- (id)toBlockFunction
 {
-	@throw [NSException exceptionWithName:@"NotImplemented" reason:@"Not Implemented" userInfo:nil];
+	Local<Function> function;
+	Local<Value> isBlock;
 
-	Local<Function> function = _v8value.As<Function>();
-	Local<Value> isBlock = function->GetHiddenValue(String::New("isBlock"));
+	if(!_v8value->IsFunction())
+		return nil;
+
+	function = _v8value.As<Function>();
+
+	isBlock = function->GetHiddenValue(String::New("isBlock"));
 	if(!isBlock.IsEmpty() && isBlock->IsTrue()) {
-		NSLog(@"BLOCK %@",[self toString]);
-	} else {
-		NSLog(@"New Function %@",[self toString]);
+		id block;
+
+		block = unwrapBlock(function);
+
+		return block;
 	}
 
 	return nil;
