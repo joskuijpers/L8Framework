@@ -32,6 +32,13 @@
 
 #include "v8.h"
 
+using v8::Local;
+using v8::Value;
+using v8::TryCatch;
+using v8::Isolate;
+using v8::HandleScope;
+using v8::String;
+
 static L8Reporter *g_sharedReporter = nil;
 
 @implementation L8Reporter
@@ -58,7 +65,7 @@ static L8Reporter *g_sharedReporter = nil;
 	return self;
 }
 
-+ (void)reportTryCatch:(v8::TryCatch *)tryCatch inIsolate:(v8::Isolate *)isolate
++ (void)reportTryCatch:(TryCatch *)tryCatch inIsolate:(Isolate *)isolate
 {
 	L8Exception *exception;
 
@@ -68,12 +75,12 @@ static L8Reporter *g_sharedReporter = nil;
 	[[self sharedReporter] exceptionHandler](exception);
 }
 
-+ (L8Exception *)objcExceptionForTryCatch:(v8::TryCatch *)tryCatch inIsolate:(v8::Isolate *)isolate
++ (L8Exception *)objcExceptionForTryCatch:(TryCatch *)tryCatch inIsolate:(Isolate *)isolate
 {
 	if(!tryCatch->HasCaught())
 		return nil;
 
-	v8::HandleScope localScope(isolate);
+	HandleScope localScope(isolate);
 	L8Exception *exception;
 	id ball;
 	Class exceptionClass = [L8Exception class];
@@ -87,8 +94,8 @@ static L8Reporter *g_sharedReporter = nil;
 		if([(L8Value *)ball isNativeError]) {
 
 			// Is some internal v8 object. Only thing we can do is make it a string
-			v8::String::AsciiValue excStr(tryCatch->Exception());
-			ball = [NSString stringWithV8String:v8::String::New(*excStr)];
+			String::AsciiValue excStr(tryCatch->Exception());
+			ball = [NSString stringWithV8String:String::New(*excStr)];
 
 			// Find prefix
 			if((strRange = [ball rangeOfString:@"SyntaxError: "]).location != NSNotFound)

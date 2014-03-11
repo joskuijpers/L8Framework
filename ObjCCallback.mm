@@ -37,16 +37,18 @@
 
 #include "v8.h"
 
+using namespace v8;
+
 /**
  * Creates a C string from given v8 value
  *
  * @param value The V8 value
  * @return A string. Must be freed!
  */
-const char *createStringFromV8Value(v8::Local<v8::Value> value)
+const char *createStringFromV8Value(Local<Value> value)
 {
 	char *buffer;
-	v8::Local<v8::String> v8String;
+	Local<String> v8String;
 
 	if(!value->IsString())
 		return NULL;
@@ -58,7 +60,7 @@ const char *createStringFromV8Value(v8::Local<v8::Value> value)
 	return buffer;
 }
 
-SEL selectorFromV8Value(v8::Local<v8::Value> value)
+SEL selectorFromV8Value(Local<Value> value)
 {
 	const char *selName;
 	SEL selector;
@@ -99,11 +101,11 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 			long long value;
 
 			if(![val isNumber])
-				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
+				Exception::TypeError(String::New("The implementation requests a number"));
 
 			value = [[val toNumber] longLongValue];
 			if(value > INT8_MAX)
-				v8::Exception::RangeError(v8::String::New("Value exceeds native argument size (int8)"));
+				Exception::RangeError(String::New("Value exceeds native argument size (int8)"));
 
 			[invocation setArgument:&value
 							atIndex:index];
@@ -113,11 +115,11 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 			long long value;
 
 			if(![val isNumber])
-				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
+				Exception::TypeError(String::New("The implementation requests a number"));
 
 			value = [[val toNumber] longLongValue];
 			if(value > INT_MAX)
-				v8::Exception::RangeError(v8::String::New("Value exceeds native argument size (int)"));
+				Exception::RangeError(String::New("Value exceeds native argument size (int)"));
 
 			[invocation setArgument:&value
 							atIndex:index];
@@ -127,11 +129,11 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 			long long value;
 
 			if(![val isNumber])
-				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
+				Exception::TypeError(String::New("The implementation requests a number"));
 
 			value = [[val toNumber] longLongValue];
 			if(value > INT16_MAX)
-				v8::Exception::RangeError(v8::String::New("Value exceeds native argument size (int16)"));
+				Exception::RangeError(String::New("Value exceeds native argument size (int16)"));
 
 			[invocation setArgument:&value
 							atIndex:index];
@@ -141,11 +143,11 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 			long long value;
 
 			if(![val isNumber])
-				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
+				Exception::TypeError(String::New("The implementation requests a number"));
 
 			value = [[val toNumber] longLongValue];
 			if(value > INT32_MAX)
-				v8::Exception::RangeError(v8::String::New("Value exceeds native argument size (int32)"));
+				Exception::RangeError(String::New("Value exceeds native argument size (int32)"));
 
 			[invocation setArgument:&value
 							atIndex:index];
@@ -155,11 +157,11 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 			long long value;
 
 			if(![val isNumber])
-				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
+				Exception::TypeError(String::New("The implementation requests a number"));
 
 			value = [[val toNumber] longLongValue];
 			if(value > INT64_MAX)
-				v8::Exception::RangeError(v8::String::New("Value exceeds native argument size (int64)"));
+				Exception::RangeError(String::New("Value exceeds native argument size (int64)"));
 
 			[invocation setArgument:&value
 							atIndex:index];
@@ -169,11 +171,11 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 			unsigned long long value;
 
 			if(![val isNumber])
-				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
+				Exception::TypeError(String::New("The implementation requests a number"));
 
 			value = [[val toNumber] longLongValue];
 			if(value > UINT8_MAX)
-				v8::Exception::RangeError(v8::String::New("Value exceeds native argument size (uint8)"));
+				Exception::RangeError(String::New("Value exceeds native argument size (uint8)"));
 
 			[invocation setArgument:&value
 							atIndex:index];
@@ -183,11 +185,11 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 			unsigned long long value;
 
 			if(![val isNumber])
-				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
+				Exception::TypeError(String::New("The implementation requests a number"));
 
 			value = [[val toNumber] longLongValue];
 			if(value > UINT_MAX)
-				v8::Exception::RangeError(v8::String::New("Value exceeds native argument size (uint)"));
+				Exception::RangeError(String::New("Value exceeds native argument size (uint)"));
 
 			[invocation setArgument:&value
 							atIndex:index];
@@ -197,11 +199,11 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 			unsigned long long value;
 
 			if(![val isNumber])
-				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
+				Exception::TypeError(String::New("The implementation requests a number"));
 
 			value = [[val toNumber] longLongValue];
 			if(value > UINT16_MAX)
-				v8::Exception::RangeError(v8::String::New("Value exceeds native argument size (uint16)"));
+				Exception::RangeError(String::New("Value exceeds native argument size (uint16)"));
 
 			[invocation setArgument:&value
 							atIndex:index];
@@ -211,11 +213,11 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 			unsigned long long value;
 
 			if(![val isNumber])
-				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
+				Exception::TypeError(String::New("The implementation requests a number"));
 
 			value = [[val toNumber] longLongValue];
 			if(value > UINT32_MAX)
-				v8::Exception::RangeError(v8::String::New("Value exceeds native argument size (uint32)"));
+				Exception::RangeError(String::New("Value exceeds native argument size (uint32)"));
 
 			[invocation setArgument:&value
 							atIndex:index];
@@ -225,11 +227,11 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 			unsigned long long value;
 
 			if(![val isNumber])
-				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
+				Exception::TypeError(String::New("The implementation requests a number"));
 
 			value = [[val toNumber] longLongValue];
 			if(value > UINT64_MAX)
-				v8::Exception::RangeError(v8::String::New("Value exceeds native argument size (uint64)"));
+				Exception::RangeError(String::New("Value exceeds native argument size (uint64)"));
 
 			[invocation setArgument:&value
 							atIndex:index];
@@ -238,7 +240,7 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 
 		case 'f': { // float
 			if(![val isNumber])
-				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
+				Exception::TypeError(String::New("The implementation requests a number"));
 
 			float value = [[val toNumber] floatValue];
 			[invocation setArgument:&value
@@ -247,7 +249,7 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 		}
 		case 'd': { // double
 			if(![val isNumber])
-				v8::Exception::TypeError(v8::String::New("The implementation requests a number"));
+				Exception::TypeError(String::New("The implementation requests a number"));
 
 			double value = [[val toNumber] doubleValue];
 			[invocation setArgument:&value
@@ -265,7 +267,7 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 			break;
 		case '*': { // char *
 			if(![val isString])
-				v8::Exception::TypeError(v8::String::New("The implementation requests a string"));
+				Exception::TypeError(String::New("The implementation requests a string"));
 
 			const char *value = [[val toString] UTF8String];
 			[invocation setArgument:&value
@@ -316,7 +318,7 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 	}
 }
 
-v8::Local<v8::Value> objCInvocation(NSInvocation *invocation, const char *neededReturnType = NULL)
+Local<Value> objCInvocation(NSInvocation *invocation, const char *neededReturnType = NULL)
 {
 	@autoreleasepool {
 		[invocation invoke];
@@ -403,7 +405,7 @@ v8::Local<v8::Value> objCInvocation(NSInvocation *invocation, const char *needed
 			break;
 		}
 		case 'v': // void
-			return v8::Undefined();
+			return Undefined();
 		case '*': { // char *
 			char *string;
 			assert(retLength == sizeof(char *));
@@ -422,7 +424,7 @@ v8::Local<v8::Value> objCInvocation(NSInvocation *invocation, const char *needed
 			// Has needed return type. It is either a block or a class
 			if(neededReturnType && strlen(neededReturnType) > 1) {
 				if(*(returnType+1) == '?' && [object isKindOfClass:BlockClass()]) {
-					v8::Local<v8::Function> function = wrapBlock(object);
+					Local<Function> function = wrapBlock(object);
 					return function;
 				} else {
 					size_t length;
@@ -455,7 +457,7 @@ v8::Local<v8::Value> objCInvocation(NSInvocation *invocation, const char *needed
 			break;
 		}
 		case ':': // SEL
-			return v8::Undefined();
+			return Undefined();
 		case '[': // array, [type]
 		case '{': // struct, {name=type}
 		case '(': // union, (name=type)
@@ -470,7 +472,7 @@ v8::Local<v8::Value> objCInvocation(NSInvocation *invocation, const char *needed
 }
 
 inline void objCSetInvocationArguments(NSInvocation *invocation,
-									   const v8::FunctionCallbackInfo<v8::Value>& info, int offset)
+									   const FunctionCallbackInfo<Value>& info, int offset)
 {
 	for(int i = 0; i < invocation.methodSignature.numberOfArguments; i++) {
 		L8Value *argument;
@@ -485,48 +487,48 @@ inline void objCSetInvocationArguments(NSInvocation *invocation,
 	}
 }
 
-inline void objCSetContextEmbedderData(const v8::FunctionCallbackInfo<v8::Value>& info)
+inline void objCSetContextEmbedderData(const FunctionCallbackInfo<Value>& info)
 {
-	v8::Local<v8::Context> context = [[L8Runtime currentRuntime] V8Context];
+	Local<Context> context = [[L8Runtime currentRuntime] V8Context];
 
 	// Set embedder data
 	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_THIS, info.This());
 	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_CALLEE, info.Callee());
-	v8::Local<v8::Array> argList = v8::Array::New(info.Length());
+	Local<Array> argList = Array::New(info.Length());
 	for(int i = 0; i < info.Length(); ++i)
 		argList->Set(i, info[i]);
 	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_ARGS, argList);
 }
 
 inline void objCClearContextEmbedderData() {
-	v8::Local<v8::Context> context = [[L8Runtime currentRuntime] V8Context];
+	Local<Context> context = [[L8Runtime currentRuntime] V8Context];
 
 	// Clear embedder data
-	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_THIS, v8::Null());
-	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_CALLEE, v8::Null());
-	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_ARGS, v8::Null());
+	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_THIS, Null());
+	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_CALLEE, Null());
+	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_ARGS, Null());
 }
 
-void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
+void ObjCConstructor(const FunctionCallbackInfo<Value>& info)
 {
 	const char *className, *selName;
 	Class cls;
 	SEL selector = nil;
 	id object;
 	id __unsafe_unretained resultObject;
-	v8::HandleScope localScope(info.GetIsolate());
+	HandleScope localScope(info.GetIsolate());
 
 	NSMethodSignature *methodSignature;
 	NSInvocation *invocation;
 
 	// In one situation we should no nothing:
 	// When just created the class for an existing object
-	v8::Local<v8::Value> skipConstruct = info.GetIsolate()->GetCurrentContext()->GetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SKIP_CONSTRUCTING);
+	Local<Value> skipConstruct = info.GetIsolate()->GetCurrentContext()->GetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SKIP_CONSTRUCTING);
 	if(!skipConstruct.IsEmpty() && skipConstruct->IsTrue())
 		return;
 
-	v8::Local<v8::Array> extraClassData;
-	extraClassData = info.Data().As<v8::Array>();
+	Local<Array> extraClassData;
+	extraClassData = info.Data().As<Array>();
 
 	className = createStringFromV8Value(extraClassData->Get(0));
 	cls = objc_getClass(className);
@@ -564,10 +566,10 @@ void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 			// Failure to initialize
 			if(resultObject == nil) {
-				v8::Local<v8::String> error;
+				Local<String> error;
 
-				error = v8::String::New("Failed to create native object: initializer returned <nil>.");
-				info.GetReturnValue().Set(v8::Exception::ReferenceError(error));
+				error = String::New("Failed to create native object: initializer returned <nil>.");
+				info.GetReturnValue().Set(Exception::ReferenceError(error));
 
 				return;
 			} else
@@ -577,12 +579,12 @@ void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 			info.This()->SetInternalField(0, makeWrapper([[L8Runtime currentRuntime] V8Context], resultObject));
 
 		} @catch(L8Exception *l8e) {
-			info.GetReturnValue().Set(v8::ThrowException([l8e v8exception]));
+			info.GetReturnValue().Set(ThrowException([l8e v8exception]));
 			return;
 		} @catch (NSException *nse) {
 			NSLog(@"Caught NSException");
 		} @catch (id e) {
-			info.GetReturnValue().Set(v8::ThrowException([[L8Value valueWithObject:e] V8Value]));
+			info.GetReturnValue().Set(ThrowException([[L8Value valueWithObject:e] V8Value]));
 			return;
 		} @finally {
 			objCClearContextEmbedderData();
@@ -592,7 +594,7 @@ void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 	info.GetReturnValue().Set(info.This());
 }
 
-void ObjCMethodCall(const v8::FunctionCallbackInfo<v8::Value>& info)
+void ObjCMethodCall(const FunctionCallbackInfo<Value>& info)
 {
 	SEL selector;
 	id object;
@@ -600,13 +602,13 @@ void ObjCMethodCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 	bool isClassMethod = false;
 	NSMethodSignature *methodSignature;
 	NSInvocation *invocation;
-	v8::Local<v8::Array> extraData;
-	v8::Local<v8::Value> retVal;
+	Local<Array> extraData;
+	Local<Value> retVal;
 
 	// A constructor call should be with ObjCConstructor
 	assert(info.IsConstructCall() == false);
 
-	extraData = info.Data().As<v8::Array>();
+	extraData = info.Data().As<Array>();
 	selector = selectorFromV8Value(extraData->Get(0));
 	types = createStringFromV8Value(extraData->Get(1));
 	isClassMethod = extraData->Get(2)->ToBoolean()->Value();
@@ -617,7 +619,7 @@ void ObjCMethodCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 	// Class methods must use the function (This) name to find the class meta object
 	if(isClassMethod) {
-		v8::Local<v8::Function> function = info.This().As<v8::Function>();
+		Local<Function> function = info.This().As<Function>();
 		const char *classStr = createStringFromV8Value(function->GetName());
 		object = objc_getClass(classStr);
 		free((void *)classStr);
@@ -641,9 +643,9 @@ void ObjCMethodCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 	info.GetReturnValue().Set(retVal);
 }
 
-void ObjCBlockCall(const v8::FunctionCallbackInfo<v8::Value>& info)
+void ObjCBlockCall(const FunctionCallbackInfo<Value>& info)
 {
-	id block = (__bridge id)info.Data().As<v8::External>()->Value();
+	id block = (__bridge id)info.Data().As<External>()->Value();
 
 	NSMethodSignature *methodSignature;
 	NSInvocation *invocation;
@@ -661,24 +663,24 @@ void ObjCBlockCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 	@autoreleasepool {
 		@try {
-			v8::Local<v8::Value> retVal;
+			Local<Value> retVal;
 
 			retVal = objCInvocation(invocation);
 			info.GetReturnValue().Set(retVal);
 
 		} @catch(L8Exception *l8e) {
-			info.GetReturnValue().Set(v8::ThrowException([l8e v8exception]));
+			info.GetReturnValue().Set(ThrowException([l8e v8exception]));
 			return;
 		} @catch (NSException *nse) {
 			NSLog(@"Caught NSException");
 		} @catch (id e) {
-			info.GetReturnValue().Set(v8::ThrowException([[L8Value valueWithObject:e] V8Value]));
+			info.GetReturnValue().Set(ThrowException([[L8Value valueWithObject:e] V8Value]));
 			return;
 		}
 	}
 }
 
-void ObjCNamedPropertySetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
+void ObjCNamedPropertySetter(Local<String> property, Local<Value> value, const PropertyCallbackInfo<Value>& info)
 {
 	id object = objectFromWrapper(info.This()->GetInternalField(0));
 	L8Value *setValue = [L8Value valueWithV8Value:value];
@@ -687,7 +689,7 @@ void ObjCNamedPropertySetter(v8::Local<v8::String> property, v8::Local<v8::Value
 	info.GetReturnValue().Set([setValue V8Value]);
 }
 
-void ObjCNamedPropertyGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value>& info)
+void ObjCNamedPropertyGetter(Local<String> property, const PropertyCallbackInfo<Value>& info)
 {
 	id object = objectFromWrapper(info.This()->GetInternalField(0));
 	id value = [object objectForKeyedSubscript:[NSString stringWithV8String:property]];
@@ -696,13 +698,13 @@ void ObjCNamedPropertyGetter(v8::Local<v8::String> property, const v8::PropertyC
 		info.GetReturnValue().Set(objectToValue([L8Runtime currentRuntime], value));
 }
 
-void ObjCNamedPropertyQuery(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Integer>& info)
+void ObjCNamedPropertyQuery(Local<String> property, const PropertyCallbackInfo<Integer>& info)
 {
 //	TODO NSLog(@"property query");
 //	NSLog(@"Not yet implemented: ObjCNamedPropertyQuery");
 }
 
-void ObjCIndexedPropertySetter(uint32_t index, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<v8::Value>& info)
+void ObjCIndexedPropertySetter(uint32_t index, Local<Value> value, const PropertyCallbackInfo<Value>& info)
 {
 	id object = objectFromWrapper(info.This()->GetInternalField(0));
 	L8Value *setValue = [L8Value valueWithV8Value:value];
@@ -711,7 +713,7 @@ void ObjCIndexedPropertySetter(uint32_t index, v8::Local<v8::Value> value, const
 	info.GetReturnValue().Set([setValue V8Value]);
 }
 
-void ObjCIndexedPropertyGetter(uint32_t index, const v8::PropertyCallbackInfo<v8::Value>& info)
+void ObjCIndexedPropertyGetter(uint32_t index, const PropertyCallbackInfo<Value>& info)
 {
 	id object = objectFromWrapper(info.This()->GetInternalField(0));
 	id value = [object objectAtIndexedSubscript:index];
@@ -720,24 +722,24 @@ void ObjCIndexedPropertyGetter(uint32_t index, const v8::PropertyCallbackInfo<v8
 		info.GetReturnValue().Set(objectToValue([L8Runtime currentRuntime], value));
 }
 
-void ObjCIndexedPropertyQuery(uint32_t index, const v8::PropertyCallbackInfo<v8::Integer>& info)
+void ObjCIndexedPropertyQuery(uint32_t index, const PropertyCallbackInfo<Integer>& info)
 {
 //	TODO NSLog(@"index %d query",index);
 //	NSLog(@"Not yet implemented: ObjCIndexedPropertyQuery");
 }
 
-void ObjCAccessorSetter(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void> &info)
+void ObjCAccessorSetter(Local<String> property, Local<Value> value, const PropertyCallbackInfo<void> &info)
 {
 	SEL selector;
 	id object;
 	NSMethodSignature *methodSignature;
 	NSInvocation *invocation;
 	const char *types;//, *valueType;
-	v8::Local<v8::Array> extraData;
-	v8::Local<v8::Value> retVal;
+	Local<Array> extraData;
+	Local<Value> retVal;
 
 	object = objectFromWrapper(info.This()->GetInternalField(0));
-	extraData = info.Data().As<v8::Array>();
+	extraData = info.Data().As<Array>();
 
 	// 0 = name, 1 = value type, 2 = getter SEL, 3 = getter types, 4 = setter SEL, 5 = setter types
 	// TODO use valuetype to verify argument
@@ -768,18 +770,18 @@ void ObjCAccessorSetter(v8::Local<v8::String> property, v8::Local<v8::Value> val
 	info.GetReturnValue().Set(retVal);
 }
 
-void ObjCAccessorGetter(v8::Local<v8::String> property, const v8::PropertyCallbackInfo<v8::Value> &info)
+void ObjCAccessorGetter(Local<String> property, const PropertyCallbackInfo<Value> &info)
 {
 	SEL selector;
 	id object;
 	NSMethodSignature *methodSignature;
 	NSInvocation *invocation;
 	const char *types, *returnType;
-	v8::Local<v8::Array> extraData;
-	v8::Local<v8::Value> retVal;
+	Local<Array> extraData;
+	Local<Value> retVal;
 
 	object = objectFromWrapper(info.This()->GetInternalField(0));
-	extraData = info.Data().As<v8::Array>();
+	extraData = info.Data().As<Array>();
 
 	// 0 = name, 1 = value type, 2 = getter SEL, 3 = getter types, 4 = setter SEL, 5 = setter types
 	returnType = createStringFromV8Value(extraData->Get(1));
@@ -808,9 +810,9 @@ void ObjCAccessorGetter(v8::Local<v8::String> property, const v8::PropertyCallba
  * Called when an ObjC object stored in v8 will be released by v8.
  * This function causes an ObjC release on the object.
  */
-void ObjCWeakReferenceCallback(v8::Isolate *isolate, v8::Persistent<v8::External> *persistent, void *parameter)
+void ObjCWeakReferenceCallback(Isolate *isolate, Persistent<External> *persistent, void *parameter)
 {
-	v8::Local<v8::External> ext = v8::Local<v8::External>::New(isolate, *persistent);
+	Local<External> ext = Local<External>::New(isolate, *persistent);
 
 #if 1 // Debug
 	id wrappedObject = 	CFBridgingRelease(ext->Value());

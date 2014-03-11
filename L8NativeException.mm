@@ -27,58 +27,62 @@
 #import "NSString+L8.h"
 #include "v8.h"
 
+using v8::Local;
+using v8::Value;
+using v8::Exception;
+
 @implementation L8SyntaxErrorException
 
-+ (v8::Local<v8::Value>)v8exceptionWithMessage:(NSString *)message
++ (Local<Value>)v8exceptionWithMessage:(NSString *)message
 {
-	return v8::Exception::SyntaxError([(message == nil?@"":message) V8String]);
+	return Exception::SyntaxError([(message == nil?@"":message) V8String]);
 }
 
-- (v8::Local<v8::Value>)v8exception
+- (Local<Value>)v8exception
 {
-	return v8::Exception::SyntaxError([(self.message == nil?@"":self.message) V8String]);
+	return Exception::SyntaxError([(self.message == nil?@"":self.message) V8String]);
 }
 
 @end
 
 @implementation L8TypeErrorException
 
-+ (v8::Local<v8::Value>)v8exceptionWithMessage:(NSString *)message
++ (Local<Value>)v8exceptionWithMessage:(NSString *)message
 {
-	return v8::Exception::TypeError([(message == nil?@"":message) V8String]);
+	return Exception::TypeError([(message == nil?@"":message) V8String]);
 }
 
-- (v8::Local<v8::Value>)v8exception
+- (Local<Value>)v8exception
 {
-	return v8::Exception::TypeError([(self.message == nil?@"":self.message) V8String]);
+	return Exception::TypeError([(self.message == nil?@"":self.message) V8String]);
 }
 
 @end
 
 @implementation L8ReferenceErrorException
 
-+ (v8::Local<v8::Value>)v8exceptionWithMessage:(NSString *)message
++ (Local<Value>)v8exceptionWithMessage:(NSString *)message
 {
-	return v8::Exception::ReferenceError([(message == nil?@"":message) V8String]);
+	return Exception::ReferenceError([(message == nil?@"":message) V8String]);
 }
 
-- (v8::Local<v8::Value>)v8exception
+- (Local<Value>)v8exception
 {
-	return v8::Exception::ReferenceError([(self.message == nil?@"":self.message) V8String]);
+	return Exception::ReferenceError([(self.message == nil?@"":self.message) V8String]);
 }
 
 @end
 
 @implementation L8RangeErrorException
 
-+ (v8::Local<v8::Value>)v8exceptionWithMessage:(NSString *)message
++ (Local<Value>)v8exceptionWithMessage:(NSString *)message
 {
-	return v8::Exception::RangeError([(message == nil?@"":message) V8String]);
+	return Exception::RangeError([(message == nil?@"":message) V8String]);
 }
 
-- (v8::Local<v8::Value>)v8exception
+- (Local<Value>)v8exception
 {
-	return v8::Exception::RangeError([(self.message == nil?@"":self.message) V8String]);
+	return Exception::RangeError([(self.message == nil?@"":self.message) V8String]);
 }
 
 @end

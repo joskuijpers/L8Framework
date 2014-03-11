@@ -26,9 +26,15 @@
 #import "NSString+L8.h"
 #include "v8.h"
 
+using v8::Local;
+using v8::String;
+using v8::Value;
+using v8::HandleScope;
+using v8::Isolate;
+
 @implementation NSString (L8)
 
-+ (NSString *)stringWithV8String:(v8::Local<v8::String>)v8string
++ (NSString *)stringWithV8String:(Local<String>)v8string
 {
 	char *buffer;
 	NSString *ret;
@@ -47,34 +53,34 @@
 	return ret;
 }
 
-+ (NSString *)stringWithV8Value:(v8::Local<v8::Value>)v8value
++ (NSString *)stringWithV8Value:(Local<Value>)v8value
 {
 	return [NSString stringWithV8Value:v8value
-						   withIsolate:v8::Isolate::GetCurrent()];
+						   withIsolate:Isolate::GetCurrent()];
 }
 
-+ (NSString *)stringWithV8Value:(v8::Local<v8::Value>)v8value
-					withIsolate:(v8::Isolate *)isolate
++ (NSString *)stringWithV8Value:(Local<Value>)v8value
+					withIsolate:(Isolate *)isolate
 {
 	if(v8value.IsEmpty())
 		return nil;
 
-	v8::HandleScope handleScope(isolate);
-	v8::Local<v8::String> string = v8value->ToString();
+	HandleScope handleScope(isolate);
+	Local<String> string = v8value->ToString();
 
 	return [NSString stringWithV8String:string];
 }
 
-- (v8::Local<v8::String>)V8String
+- (Local<String>)V8String
 {
-	return [self V8StringWithIsolate:v8::Isolate::GetCurrent()];
+	return [self V8StringWithIsolate:Isolate::GetCurrent()];
 }
 
-- (v8::Local<v8::String>)V8StringWithIsolate:(v8::Isolate *)isolate
+- (Local<String>)V8StringWithIsolate:(Isolate *)isolate
 {
-	v8::HandleScope scope(isolate);
+	HandleScope scope(isolate);
 
-	v8::Local<v8::String> ret = v8::String::NewFromUtf8(isolate, [self UTF8String]);
+	Local<String> ret = String::NewFromUtf8(isolate, [self UTF8String]);
 
 	return scope.Close(ret);
 }

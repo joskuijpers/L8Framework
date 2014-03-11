@@ -29,12 +29,16 @@
 
 #define L8_STACKTRACE_FRAMELIMIT 20
 
+using v8::Local;
+using v8::StackTrace;
+using v8::StackFrame;
+
 @implementation L8StackTrace {
 	NSMutableArray *_frameCache;
-	v8::Local<v8::StackTrace> _v8stackTrace;
+	Local<StackTrace> _v8stackTrace;
 }
 
-- (id)initWithV8StackTrace:(v8::Local<v8::StackTrace>)v8stackTrace;
+- (id)initWithV8StackTrace:(Local<StackTrace>)v8stackTrace;
 {
 	self = [super init];
 	if(self) {
@@ -72,8 +76,8 @@
 
 + (L8StackTrace *)currentStackTrace
 {
-	v8::Local<v8::StackTrace> trace;
-	trace = v8::StackTrace::CurrentStackTrace(L8_STACKTRACE_FRAMELIMIT);
+	Local<StackTrace> trace;
+	trace = StackTrace::CurrentStackTrace(L8_STACKTRACE_FRAMELIMIT);
 
 	return [[self alloc] initWithV8StackTrace:trace];
 }
@@ -118,10 +122,10 @@
 @end
 
 @implementation L8StackFrame {
-	v8::Local<v8::StackFrame> _v8stackFrame;
+	Local<StackFrame> _v8stackFrame;
 }
 
-- (id)initWithV8StackFrame:(v8::Local<v8::StackFrame>)v8stackFrame
+- (id)initWithV8StackFrame:(Local<StackFrame>)v8stackFrame
 {
 	self = [super init];
 	if(self) {

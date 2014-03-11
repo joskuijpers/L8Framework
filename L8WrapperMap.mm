@@ -41,6 +41,8 @@
 
 #include "v8.h"
 
+using namespace v8;
+
 /*!
  * Extract a propertyname from a selectorname.
  *
@@ -94,12 +96,12 @@ done:
  *
  * @return v8 Handle containing the wrapped object
  */
-v8::Local<v8::External> makeWrapper(v8::Local<v8::Context> context, id wrappedObject)
+Local<External> makeWrapper(Local<Context> context, id wrappedObject)
 {
 	void *voidObject = (void *)CFBridgingRetain(wrappedObject);
 
-	v8::Local<v8::External> ext = v8::External::New(voidObject);
-	v8::Persistent<v8::External> persist(context->GetIsolate(),ext);
+	Local<External> ext = External::New(voidObject);
+	Persistent<External> persist(context->GetIsolate(),ext);
 	persist.MakeWeak((__bridge void *)wrappedObject, ObjCWeakReferenceCallback);
 
 	return ext;
@@ -110,12 +112,12 @@ v8::Local<v8::External> makeWrapper(v8::Local<v8::Context> context, id wrappedOb
  *
  * @return Objective-C object withing wrapper, or nil on failure
  */
-id objectFromWrapper(v8::Local<v8::Value> wrapper)
+id objectFromWrapper(Local<Value> wrapper)
 {
 	if(!wrapper->IsExternal())
 		return nil;
 
-	id object = (__bridge id)v8::External::Cast(*wrapper)->Value();
+	id object = (__bridge id)External::Cast(*wrapper)->Value();
 	return object;
 }
 
@@ -202,7 +204,7 @@ bool shouldSkipMethodWhenCopying(SEL sel)
  */
 void copyMethodsToObject(L8WrapperMap *wrapperMap, Protocol *protocol,
 						 BOOL isInstanceMethod,
-						 v8::Local<v8::Template> theTemplate,
+						 Local<Template> theTemplate,
 						 NSMutableDictionary *accessorMethods = nil)
 {
 	NSMutableDictionary *renameMap = createRenameMap(protocol, isInstanceMethod);
@@ -221,12 +223,12 @@ void copyMethodsToObject(L8WrapperMap *wrapperMap, Protocol *protocol,
 		extraTypes = _protocol_getMethodTypeEncoding(protocol, sel, YES, isInstanceMethod);
 
 		if(accessorMethods[rawName]) {
-			accessorMethods[rawName] = [L8Value valueWithV8Value:v8::String::New(extraTypes)];
+			accessorMethods[rawName] = [L8Value valueWithV8Value:String::New(extraTypes)];
 		} else {
 			NSString *propertyName;
-			v8::Local<v8::String> v8Name;
-			v8::Local<v8::FunctionTemplate> function;
-			v8::Local<v8::Array> extraData;
+			Local<String> v8Name;
+			Local<FunctionTemplate> function;
+			Local<Array> extraData;
 
 			propertyName = renameMap[rawName];
 			if(propertyName == nil)
@@ -234,11 +236,11 @@ void copyMethodsToObject(L8WrapperMap *wrapperMap, Protocol *protocol,
 
 			v8Name = [propertyName V8String];
 
-			function = v8::FunctionTemplate::New();
+			function = FunctionTemplate::New();
 
-			extraData = v8::Array::New();
-			extraData->Set(0, v8::String::New(selName));
-			extraData->Set(1, v8::String::New(extraTypes));
+			extraData = Array::New();
+			extraData->Set(0, String::New(selName));
+			extraData->Set(1, String::New(extraTypes));
 			extraData->Set(2, v8::Boolean::New(!isInstanceMethod));
 			function->SetCallHandler(ObjCMethodCall,extraData);
 
@@ -291,8 +293,8 @@ void parsePropertyAttributes(objc_property_t property, char *&getterName, char *
  * we first need to find all properties and get their getter (and setter). Then, when copying
  * the methods, we should skip these as they are already covered by the property-accessors
  */
-void copyPrototypeProperties(L8WrapperMap *wrapperMap, v8::Local<v8::ObjectTemplate> prototypeTemplate,
-							 v8::Local<v8::ObjectTemplate> instanceTemplate, Protocol *protocol)
+void copyPrototypeProperties(L8WrapperMap *wrapperMap, Local<ObjectTemplate> prototypeTemplate,
+							 Local<ObjectTemplate> instanceTemplate, Protocol *protocol)
 {
 	struct property_t {
 		const char *name;
@@ -348,16 +350,16 @@ void copyPrototypeProperties(L8WrapperMap *wrapperMap, v8::Local<v8::ObjectTempl
 	for(int i = 0; i < propertyList.size(); i++) {
 		property_t& property = propertyList[i];
 
-		v8::Local<v8::String> v8PropertyName = [@(property.name) V8String];
-		v8::Local<v8::Array> extraData = v8::Array::New();
+		Local<String> v8PropertyName = [@(property.name) V8String];
+		Local<Array> extraData = Array::New();
 
 		extraData->Set(0, v8PropertyName);
-		extraData->Set(1, v8::String::New(property.type)); // value type
-		extraData->Set(2, v8::String::New(property.getterName)); // getter SEL
+		extraData->Set(1, String::New(property.type)); // value type
+		extraData->Set(2, String::New(property.getterName)); // getter SEL
 		extraData->Set(3, [accessorMethods[@(property.getterName)] V8Value]); // getter Types
 
 		if(!property.readonly) {
-			extraData->Set(4, v8::String::New(property.setterName)); // setter SEL
+			extraData->Set(4, String::New(property.setterName)); // setter SEL
 			extraData->Set(5, [accessorMethods[@(property.setterName)] V8Value]); // setter Types
 		}
 
@@ -366,9 +368,9 @@ void copyPrototypeProperties(L8WrapperMap *wrapperMap, v8::Local<v8::ObjectTempl
 		free(property.setterName);
 
 		instanceTemplate->SetAccessor(v8PropertyName, ObjCAccessorGetter, ObjCAccessorSetter, extraData,
-									  v8::AccessControl::DEFAULT,
-									  property.readonly ? v8::PropertyAttribute::ReadOnly : v8::PropertyAttribute::None
-									  /*| v8::PropertyAttribute::DontEnum*/);
+									  AccessControl::DEFAULT,
+									  property.readonly ? PropertyAttribute::ReadOnly : PropertyAttribute::None
+									  /*| PropertyAttribute::DontEnum*/);
 	}
 }
 
@@ -377,7 +379,7 @@ void copyPrototypeProperties(L8WrapperMap *wrapperMap, v8::Local<v8::ObjectTempl
  * in the ObjC class.
  */
 void installSubscriptionMethods(L8WrapperMap *wrapperMap,
-								v8::Local<v8::ObjectTemplate> instanceTemplate,
+								Local<ObjectTemplate> instanceTemplate,
 								Class cls)
 {
 	bool readonly = true;
@@ -436,7 +438,7 @@ SEL initializerSelectorForClass(Class cls)
 
 @implementation L8WrapperMap {
 	L8Runtime * _runtime;
-	std::unordered_map<std::string,v8::Eternal<v8::FunctionTemplate>> _classCache;
+	std::unordered_map<std::string,Eternal<FunctionTemplate>> _classCache;
 }
 
 - (id)initWithRuntime:(L8Runtime *)runtime
@@ -448,55 +450,55 @@ SEL initializerSelectorForClass(Class cls)
 	return self;
 }
 
-- (void)cacheFunctionTemplate:(v8::Local<v8::FunctionTemplate>)funcTemplate
+- (void)cacheFunctionTemplate:(Local<FunctionTemplate>)funcTemplate
 					 forClass:(Class)cls
 {
 	std::string key(class_getName(cls));
 
 	assert(_classCache.find(key) == _classCache.end() && "Must only cache once");
 
-	v8::Eternal<v8::FunctionTemplate> myEternal;
+	Eternal<FunctionTemplate> myEternal;
 	{
-		v8::HandleScope localScope(v8::Isolate::GetCurrent());
-		myEternal.Set(v8::Isolate::GetCurrent(), funcTemplate);
+		HandleScope localScope(Isolate::GetCurrent());
+		myEternal.Set(Isolate::GetCurrent(), funcTemplate);
 	}
 
 	_classCache[key] = myEternal;
 }
 
-- (v8::Local<v8::FunctionTemplate>)getCachedFunctionTemplateForClass:(Class)cls
+- (Local<FunctionTemplate>)getCachedFunctionTemplateForClass:(Class)cls
 {
 	std::string key(class_getName(cls));
-	std::unordered_map<std::string,v8::Eternal<v8::FunctionTemplate>>::iterator it;
+	std::unordered_map<std::string,Eternal<FunctionTemplate>>::iterator it;
 
 	it = _classCache.find(key);
 	if(it != _classCache.end()) {
-		v8::Eternal<v8::FunctionTemplate> eternal;
+		Eternal<FunctionTemplate> eternal;
 
 		eternal = it->second;
-		return eternal.Get(v8::Isolate::GetCurrent());
+		return eternal.Get(Isolate::GetCurrent());
 	}
 
-	v8::HandleScope localScope(v8::Isolate::GetCurrent());
-	return localScope.Close(v8::Local<v8::FunctionTemplate>());
+	HandleScope localScope(Isolate::GetCurrent());
+	return localScope.Close(Local<FunctionTemplate>());
 }
 
-- (v8::Local<v8::FunctionTemplate>)functionTemplateForClass:(Class)cls
+- (Local<FunctionTemplate>)functionTemplateForClass:(Class)cls
 {
-	v8::HandleScope localScope(v8::Isolate::GetCurrent());
-	v8::Local<v8::FunctionTemplate> classTemplate;
-	v8::Local<v8::ObjectTemplate> prototypeTemplate, instanceTemplate;
-	v8::Local<v8::Array> extraClassData;
+	HandleScope localScope(Isolate::GetCurrent());
+	Local<FunctionTemplate> classTemplate;
+	Local<ObjectTemplate> prototypeTemplate, instanceTemplate;
+	Local<Array> extraClassData;
 	NSString *className;
 	Class parentClass;
 	SEL initSelector;
 
 	className = @(class_getName(cls));
-	classTemplate = v8::FunctionTemplate::New();
+	classTemplate = FunctionTemplate::New();
 
 	parentClass = class_getSuperclass(cls);
 	if(parentClass != Nil && cls != parentClass && class_isMetaClass(parentClass)) { // Top-level class
-		v8::Local<v8::FunctionTemplate> parentTemplate;
+		Local<FunctionTemplate> parentTemplate;
 
 		parentTemplate = [self getCachedFunctionTemplateForClass:parentClass];
 		if(parentTemplate.IsEmpty())
@@ -525,9 +527,9 @@ SEL initializerSelectorForClass(Class cls)
 	});
 
 	// Set constructor callback
-	extraClassData = v8::Array::New();
-	extraClassData->Set(0, v8::String::New(class_getName(cls))); // classname
-	extraClassData->Set(1, v8::String::New(sel_getName(initSelector))); // init selector
+	extraClassData = Array::New();
+	extraClassData->Set(0, String::New(class_getName(cls))); // classname
+	extraClassData->Set(1, String::New(sel_getName(initSelector))); // init selector
 	classTemplate->SetCallHandler(ObjCConstructor,extraClassData);
 
 	[self cacheFunctionTemplate:classTemplate
@@ -543,9 +545,9 @@ SEL initializerSelectorForClass(Class cls)
  */
 - (L8Value *)JSWrapperForObjCObject:(id)object
 {
-	v8::HandleScope localScope(v8::Isolate::GetCurrent());
-	v8::Local<v8::FunctionTemplate> classTemplate;
-	v8::Local<v8::Function> function;
+	HandleScope localScope(Isolate::GetCurrent());
+	Local<FunctionTemplate> classTemplate;
+	Local<Function> function;
 	Class cls;
 
 	cls = object_getClass(object);
@@ -560,9 +562,9 @@ SEL initializerSelectorForClass(Class cls)
 	if(class_isMetaClass(object_getClass(object))) {
 		return [L8Value valueWithV8Value:localScope.Close(function)];
 	} else {
-		[_runtime V8Context]->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SKIP_CONSTRUCTING, v8::True());
-		v8::Local<v8::Object> instance = function->NewInstance();
-		[_runtime V8Context]->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SKIP_CONSTRUCTING, v8::False());
+		[_runtime V8Context]->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SKIP_CONSTRUCTING, True());
+		Local<Object> instance = function->NewInstance();
+		[_runtime V8Context]->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SKIP_CONSTRUCTING, False());
 
 		instance->SetInternalField(0, makeWrapper([_runtime V8Context], object));
 
@@ -579,7 +581,7 @@ SEL initializerSelectorForClass(Class cls)
  */
 - (L8Value *)JSWrapperForBlock:(id)object
 {
-	v8::Local<v8::Function> function = wrapBlock(object);
+	Local<Function> function = wrapBlock(object);
 
 	return [L8Value valueWithV8Value:function];
 }
@@ -607,34 +609,34 @@ SEL initializerSelectorForClass(Class cls)
  * @return an L8Value wrapping the value. Use the appropriate value-converter to retrieve the
  * wanted object.
  */
-- (L8Value *)ObjCWrapperForValue:(v8::Local<v8::Value>)value
+- (L8Value *)ObjCWrapperForValue:(Local<Value>)value
 {
 	return [[L8Value alloc] initWithV8Value:value];
 }
 
 @end
 
-id unwrapObjcObject(v8::Local<v8::Context> context, v8::Local<v8::Value> value) {
+id unwrapObjcObject(Local<Context> context, Local<Value> value) {
 	if(!value->IsObject())
 		return nil;
 
-	v8::Local<v8::Object> object = value->ToObject();
+	Local<Object> object = value->ToObject();
 
 	if(object->InternalFieldCount() > 0) { // Instance
-		v8::Local<v8::Value> field = object->GetInternalField(0);
+		Local<Value> field = object->GetInternalField(0);
 		if(!field.IsEmpty() && field->IsExternal())
-			return (__bridge id)v8::External::Cast(*field)->Value();
+			return (__bridge id)External::Cast(*field)->Value();
 	}
 
 	if(object->IsFunction()) { // Class (arguments.callee), or block
-		v8::Local<v8::Value> isBlockInfo;
+		Local<Value> isBlockInfo;
 		bool isBlock;
 		NSString *name;
 
-		isBlockInfo = object->GetHiddenValue(v8::String::New("isBlock"));
+		isBlockInfo = object->GetHiddenValue(String::New("isBlock"));
 		isBlock = !isBlockInfo.IsEmpty() && isBlockInfo->IsTrue();
 
-		name = [NSString stringWithV8Value:object.As<v8::Function>()->GetName()];
+		name = [NSString stringWithV8Value:object.As<Function>()->GetName()];
 
 		if(isBlock) {
 			if(id target = unwrapBlock(object)) // Block
@@ -647,32 +649,32 @@ id unwrapObjcObject(v8::Local<v8::Context> context, v8::Local<v8::Value> value) 
 	return nil;
 }
 
-v8::Local<v8::Function> wrapBlock(id object)
+Local<Function> wrapBlock(id object)
 {
-	v8::HandleScope localScope(v8::Isolate::GetCurrent());
+	HandleScope localScope(Isolate::GetCurrent());
 
-	v8::Local<v8::FunctionTemplate> functionTemplate = v8::FunctionTemplate::New();
+	Local<FunctionTemplate> functionTemplate = FunctionTemplate::New();
 	functionTemplate->SetCallHandler(ObjCBlockCall, makeWrapper([[L8Runtime currentRuntime] V8Context], object));
 	functionTemplate->PrototypeTemplate()->SetInternalFieldCount(1);
 	functionTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
-	v8::Local<v8::Function> function = functionTemplate->GetFunction();
-	function->SetHiddenValue(v8::String::New("isBlock"), v8::Boolean::New(true));
-	function->SetHiddenValue(v8::String::New("cBlock"), makeWrapper([[L8Runtime currentRuntime] V8Context], object));
+	Local<Function> function = functionTemplate->GetFunction();
+	function->SetHiddenValue(String::New("isBlock"), v8::Boolean::New(true));
+	function->SetHiddenValue(String::New("cBlock"), makeWrapper([[L8Runtime currentRuntime] V8Context], object));
 
 	return localScope.Close(function);
 }
 
-id unwrapBlock(v8::Local<v8::Object> object)
+id unwrapBlock(Local<Object> object)
 {
 	assert(object->IsFunction());
-	if(object->GetHiddenValue(v8::String::New("isBlock"))->IsTrue() == false)
+	if(object->GetHiddenValue(String::New("isBlock"))->IsTrue() == false)
 		return nil;
 
-	v8::Local<v8::Value> cblock = object->GetHiddenValue(v8::String::New("cBlock"));
+	Local<Value> cblock = object->GetHiddenValue(String::New("cBlock"));
 	assert(cblock->IsExternal());
 
-	id blockObject = (__bridge id)v8::External::Cast(*cblock)->Value();
+	id blockObject = (__bridge id)External::Cast(*cblock)->Value();
 	assert([blockObject isKindOfClass:BlockClass()]);
 
 	return blockObject;

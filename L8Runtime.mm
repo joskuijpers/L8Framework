@@ -37,26 +37,28 @@
 #include "v8.h"
 #include "v8-debug.h"
 
+using namespace v8;
+
 @interface L8Runtime ()
 - (id)init;
 @end
 
 @implementation L8Runtime {
-	v8::Persistent<v8::Context> _v8context;
+	Persistent<Context> _v8context;
 	NSMapTable *_managedObjectGraph;
 }
 
 + (void)initialize
 {
-	v8::V8::SetCaptureStackTraceForUncaughtExceptions(true);
+	V8::SetCaptureStackTraceForUncaughtExceptions(true);
 }
 
-+ (L8Runtime *)contextWithV8Context:(v8::Local<v8::Context>)v8context;
++ (L8Runtime *)contextWithV8Context:(Local<Context>)v8context;
 {
 	if(v8context.IsEmpty())
 		return nil;
 
-	v8::Local<v8::External> data = v8context->GetEmbedderData(0).As<v8::External>();
+	Local<External> data = v8context->GetEmbedderData(0).As<External>();
 	L8Runtime *context = (__bridge L8Runtime *)data->Value();
 
 	return context;
@@ -66,16 +68,16 @@
 {
 	self = [super init];
 	if(self) {
-		v8::Isolate *isolate = v8::Isolate::GetCurrent();
-		v8::HandleScope mainScope(isolate);
+		Isolate *isolate = Isolate::GetCurrent();
+		HandleScope mainScope(isolate);
 
 		// Create the context
-		v8::Local<v8::Context> context = v8::Context::New(isolate);
-		context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SELF, v8::External::New((void *)CFBridgingRetain(self)));
+		Local<Context> context = Context::New(isolate);
+		context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SELF, External::New((void *)CFBridgingRetain(self)));
 		_v8context.Reset(isolate, context);
 
 		// Start the context scope
-		v8::Context::Scope contextScope(isolate,_v8context);
+		Context::Scope contextScope(isolate,_v8context);
 
 		// Create the wrappermap for the context
 		_wrapperMap = [[L8WrapperMap alloc] initWithRuntime:self];
@@ -89,12 +91,12 @@
 
 - (void)dealloc
 {
-	v8::Isolate *isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope mainScope(isolate);
-	v8::Context::Scope contextScope(isolate,_v8context);
-	v8::Local<v8::Context> context = v8::Local<v8::Context>::New(isolate, _v8context);
+	Isolate *isolate = Isolate::GetCurrent();
+	HandleScope mainScope(isolate);
+	Context::Scope contextScope(isolate,_v8context);
+	Local<Context> context = Local<Context>::New(isolate, _v8context);
 
-	v8::Local<v8::External> selfStored = context->GetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SELF).As<v8::External>();
+	Local<External> selfStored = context->GetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SELF).As<External>();
 	if(!selfStored.IsEmpty()) {
 		CFRelease(selfStored->Value());
 	}
@@ -104,11 +106,11 @@
 
 - (void)executeBlockInRuntime:(void(^)(L8Runtime *runtime))block
 {
-	v8::Isolate *isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope localScope(isolate);
-	v8::Context::Scope contextScope(isolate,_v8context);
+	Isolate *isolate = Isolate::GetCurrent();
+	HandleScope localScope(isolate);
+	Context::Scope contextScope(isolate,_v8context);
 
-	v8::TryCatch tryCatch;
+	TryCatch tryCatch;
 
 	block(self);
 
@@ -134,15 +136,15 @@
 	if(scriptData == nil)
 		return NO;
 
-	v8::Isolate *isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope localScope(isolate);
-	v8::ScriptOrigin scriptOrigin = v8::ScriptOrigin([name V8String]);
+	Isolate *isolate = Isolate::GetCurrent();
+	HandleScope localScope(isolate);
+	ScriptOrigin scriptOrigin = ScriptOrigin([name V8String]);
 
-	v8::Local<v8::Script> script;
+	Local<Script> script;
 	{
-		v8::TryCatch tryCatch;
+		TryCatch tryCatch;
 
-		script = v8::Script::Compile([scriptData V8String], &scriptOrigin);
+		script = Script::Compile([scriptData V8String], &scriptOrigin);
 		if(script.IsEmpty()) {
 			[L8Reporter reportTryCatch:&tryCatch inIsolate:isolate];
 			return NO;
@@ -150,7 +152,7 @@
 	}
 
 	{
-		v8::TryCatch tryCatch;
+		TryCatch tryCatch;
 		script->Run();
 
 		if(tryCatch.HasCaught()) {
@@ -172,15 +174,15 @@
 	if(scriptData == nil)
 		return nil;
 
-	v8::Isolate *isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope localScope(isolate);
-	v8::ScriptOrigin scriptOrigin = v8::ScriptOrigin([name V8String]);
+	Isolate *isolate = Isolate::GetCurrent();
+	HandleScope localScope(isolate);
+	ScriptOrigin scriptOrigin = ScriptOrigin([name V8String]);
 
-	v8::Local<v8::Script> script;
+	Local<Script> script;
 	{
-		v8::TryCatch tryCatch;
+		TryCatch tryCatch;
 
-		script = v8::Script::Compile([scriptData V8String], &scriptOrigin);
+		script = Script::Compile([scriptData V8String], &scriptOrigin);
 		if(script.IsEmpty()) {
 			[L8Reporter reportTryCatch:&tryCatch inIsolate:isolate];
 			return nil;
@@ -188,8 +190,8 @@
 	}
 
 	{
-		v8::TryCatch tryCatch;
-		v8::Local<v8::Value> retVal = script->Run();
+		TryCatch tryCatch;
+		Local<Value> retVal = script->Run();
 
 		if(tryCatch.HasCaught()) {
 			[L8Reporter reportTryCatch:&tryCatch inIsolate:isolate];
@@ -204,22 +206,22 @@
 
 - (L8Value *)globalObject
 {
-	v8::Local<v8::Context> localContext = v8::Local<v8::Context>::New(v8::Isolate::GetCurrent(),_v8context);
+	Local<Context> localContext = Local<Context>::New(Isolate::GetCurrent(),_v8context);
 	return [L8Value valueWithV8Value:localContext->Global()];
 }
 
 + (L8Runtime *)currentRuntime
 {
-	v8::Local<v8::Context> context = v8::Isolate::GetCurrent()->GetCurrentContext();
+	Local<Context> context = Isolate::GetCurrent()->GetCurrentContext();
 	return [self contextWithV8Context:context];
 }
 
 + (L8Value *)currentThis
 {
-	v8::Local<v8::Value> thisObject;
-	v8::Local<v8::Context> context;
+	Local<Value> thisObject;
+	Local<Context> context;
 
-	context = v8::Isolate::GetCurrent()->GetCurrentContext();
+	context = Isolate::GetCurrent()->GetCurrentContext();
 	if(context.IsEmpty())
 		return nil;
 
@@ -235,10 +237,10 @@
 
 + (L8Value *)currentCallee
 {
-	v8::Local<v8::Value> thisObject;
-	v8::Local<v8::Context> context;
+	Local<Value> thisObject;
+	Local<Context> context;
 
-	context = v8::Isolate::GetCurrent()->GetCurrentContext();
+	context = Isolate::GetCurrent()->GetCurrentContext();
 	if(context.IsEmpty())
 		return nil;
 
@@ -255,12 +257,12 @@
 
 + (NSArray *)currentArguments
 {
-	v8::Local<v8::Value> thisObject;
-	v8::Local<v8::Context> context;
-	v8::Local<v8::Array> argArray;
+	Local<Value> thisObject;
+	Local<Context> context;
+	Local<Array> argArray;
 	NSMutableArray *arguments;
 
-	context = v8::Isolate::GetCurrent()->GetCurrentContext();
+	context = Isolate::GetCurrent()->GetCurrentContext();
 	if(context.IsEmpty())
 		return nil;
 
@@ -272,7 +274,7 @@
 	// Callee should be an array
 	assert(thisObject->IsArray());
 
-	argArray = v8::Local<v8::Array>::Cast(thisObject);
+	argArray = Local<Array>::Cast(thisObject);
 	arguments = [[NSMutableArray alloc] init];
 
 	for(int i = 0; i < argArray->Length(); ++i)
@@ -281,9 +283,9 @@
 	return arguments;
 }
 
-- (v8::Local<v8::Context>)V8Context
+- (Local<Context>)V8Context
 {
-	return v8::Local<v8::Context>::New(v8::Isolate::GetCurrent(), _v8context);
+	return Local<Context>::New(Isolate::GetCurrent(), _v8context);
 }
 
 - (L8Value *)wrapperForObjCObject:(id)object
@@ -293,7 +295,7 @@
 	}
 }
 
-- (L8Value *)wrapperForJSObject:(v8::Local<v8::Value>)value
+- (L8Value *)wrapperForJSObject:(Local<Value>)value
 {
 	@synchronized(_wrapperMap) {
 		return [_wrapperMap ObjCWrapperForValue:value];
@@ -303,16 +305,16 @@
 void L8RuntimeDebugMessageDispatchHandler()
 {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		v8::Isolate *isolate = v8::Isolate::GetCurrent();
-		v8::HandleScope localScope(isolate);
+		Isolate *isolate = Isolate::GetCurrent();
+		HandleScope localScope(isolate);
 
-		v8::Local<v8::Context> debugContext = v8::Debug::GetDebugContext();
-		L8Runtime *runtime = (__bridge L8Runtime *)debugContext->GetEmbedderData(1).As<v8::External>()->Value();
+		Local<Context> debugContext = Debug::GetDebugContext();
+		L8Runtime *runtime = (__bridge L8Runtime *)debugContext->GetEmbedderData(1).As<External>()->Value();
 
-		v8::Local<v8::Context> context = v8::Local<v8::Context>::New(isolate, [runtime V8Context]);
-		v8::Context::Scope contextScope(context);
+		Local<Context> context = Local<Context>::New(isolate, [runtime V8Context]);
+		Context::Scope contextScope(context);
 
-		v8::Debug::ProcessDebugMessages();
+		Debug::ProcessDebugMessages();
 	});
 }
 
@@ -322,25 +324,25 @@ void L8RuntimeDebugMessageDispatchHandler()
 		_debuggerPort = 12228; // L=12 V=22 8, LFV8
 	}
 
-	v8::Debug::EnableAgent("sphere_runtime", _debuggerPort, _waitForDebugger);
-	v8::Debug::SetDebugMessageDispatchHandler(L8RuntimeDebugMessageDispatchHandler);
+	Debug::EnableAgent("sphere_runtime", _debuggerPort, _waitForDebugger);
+	Debug::SetDebugMessageDispatchHandler(L8RuntimeDebugMessageDispatchHandler);
 
-	v8::HandleScope localScope(v8::Isolate::GetCurrent());
-	v8::Debug::GetDebugContext()->SetEmbedderData(1, v8::External::New((__bridge void *)self));
+	HandleScope localScope(Isolate::GetCurrent());
+	Debug::GetDebugContext()->SetEmbedderData(1, External::New((__bridge void *)self));
 }
 
 - (void)disableDebugging
 {
-	v8::Debug::DisableAgent();
+	Debug::DisableAgent();
 }
 
 - (id)getInternalObjCObject:(id)object
 {
-	v8::Isolate *isolate = v8::Isolate::GetCurrent();
-	v8::HandleScope localScope(isolate);
-	v8::Local<v8::Context> localContext;
+	Isolate *isolate = Isolate::GetCurrent();
+	HandleScope localScope(isolate);
+	Local<Context> localContext;
 
-	localContext = v8::Local<v8::Context>::New(isolate, _v8context);
+	localContext = Local<Context>::New(isolate, _v8context);
 
 	if([object isKindOfClass:[L8ManagedValue class]]) {
 		id temp;
@@ -428,7 +430,7 @@ void L8RuntimeDebugMessageDispatchHandler()
 
 - (void)runGarbageCollector
 {
-	while(!v8::V8::IdleNotification()) {};
+	while(!V8::IdleNotification()) {};
 }
 
 @end

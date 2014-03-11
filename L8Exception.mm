@@ -28,6 +28,11 @@
 #import "L8StackTrace_Private.h"
 #include "v8.h"
 
+using v8::Local;
+using v8::Value;
+using v8::Message;
+using v8::Exception;
+
 @implementation L8Exception {
 	L8StackTrace *_backtrace;
 }
@@ -42,7 +47,7 @@
 	return [[self alloc] initWithMessage:message];
 }
 
-+ (instancetype)exceptionWithV8Message:(v8::Local<v8::Message>)message
++ (instancetype)exceptionWithV8Message:(Local<Message>)message
 						  thrownObject:(__weak id)object
 {
 	return [[self alloc] initWithV8Message:message
@@ -58,7 +63,7 @@
 	return self;
 }
 
-- (instancetype)initWithV8Message:(v8::Local<v8::Message>)message
+- (instancetype)initWithV8Message:(Local<Message>)message
 					 thrownObject:(__weak id)object
 {
 	self = [super init];
@@ -79,14 +84,14 @@
 	return self;
 }
 
-- (v8::Local<v8::Value>)v8exception
+- (Local<Value>)v8exception
 {
-	return v8::Exception::Error([(_message == nil?@"":_message) V8String]);
+	return Exception::Error([(_message == nil?@"":_message) V8String]);
 }
 
-+ (v8::Local<v8::Value>)v8exceptionWithMessage:(NSString *)message
++ (Local<Value>)v8exceptionWithMessage:(NSString *)message
 {
-	return v8::Exception::Error([(message == nil?@"":message) V8String]);
+	return Exception::Error([(message == nil?@"":message) V8String]);
 }
 
 - (NSString *)description

@@ -29,14 +29,20 @@
 
 #include "v8.h"
 
-static void L8ManagedValueWeakReferenceCallback(const v8::WeakCallbackData<v8::Value, void>& data);
+using v8::Local;
+using v8::Value;
+using v8::Persistent;
+using v8::Isolate;
+using v8::WeakCallbackData;
+
+static void L8ManagedValueWeakReferenceCallback(const WeakCallbackData<Value, void>& data);
 
 @interface L8ManagedValue (Private)
 - (void)removeValue;
 @end
 
 @implementation L8ManagedValue {
-	v8::Persistent<v8::Value> _persist;
+	Persistent<Value> _persist;
 	NSMapTable *_owners;
 }
 
@@ -71,7 +77,7 @@ static void L8ManagedValueWeakReferenceCallback(const v8::WeakCallbackData<v8::V
 											valueOptions:NSPointerFunctionsOpaqueMemory | NSPointerFunctionsIntegerPersonality
 												capacity:1];
 
-		_persist.Reset(v8::Isolate::GetCurrent(), [value V8Value]);
+		_persist.Reset(Isolate::GetCurrent(), [value V8Value]);
 		void *p = (__bridge void *)self;
 		_persist.SetWeak(p, L8ManagedValueWeakReferenceCallback);
 	}
@@ -80,10 +86,10 @@ static void L8ManagedValueWeakReferenceCallback(const v8::WeakCallbackData<v8::V
 
 - (void)dealloc
 {
-	v8::Isolate *isolate;
+	Isolate *isolate;
 	L8Runtime *runtime;
 
-	isolate = v8::Isolate::GetCurrent();
+	isolate = Isolate::GetCurrent();
 	runtime = [L8Runtime currentRuntime];
 
 	if(isolate != NULL) {
@@ -128,12 +134,12 @@ static void L8ManagedValueWeakReferenceCallback(const v8::WeakCallbackData<v8::V
 
 - (L8Value *)value
 {
-	v8::Local<v8::Value> v;
+	Local<Value> v;
 
 	if(_persist.IsEmpty())
 		return nil;
 
-	v = v8::Local<v8::Value>::New(v8::Isolate::GetCurrent(), _persist);
+	v = Local<Value>::New(Isolate::GetCurrent(), _persist);
 
 	return [L8Value valueWithV8Value:v];
 }
@@ -145,9 +151,9 @@ static void L8ManagedValueWeakReferenceCallback(const v8::WeakCallbackData<v8::V
 
 @end
 
-static void L8ManagedValueWeakReferenceCallback(const v8::WeakCallbackData<v8::Value, void>& data)
+static void L8ManagedValueWeakReferenceCallback(const WeakCallbackData<Value, void>& data)
 {
-	v8::Local<v8::Value> ext;
+	Local<Value> ext;
 	L8ManagedValue *managedValue;
 
 	ext = data.GetValue();
