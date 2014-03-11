@@ -162,6 +162,37 @@ static char *makeSetterName(const char *name)
 	return setterName;
 }
 
+bool isMethodAnInitializer(SEL sel)
+{
+	char *selStr;
+
+	selStr = (char *)sel_getName(sel);
+
+	while(*selStr == '_')
+		selStr++;
+
+	if(*selStr == '\0')
+		return false;
+
+	if(strncmp(selStr, "init", 4) != 0)
+		return false;
+	selStr += 4;
+
+	if(*selStr == '\0' || isupper(*selStr) || *selStr == ':')
+		return true;
+
+	return false;
+}
+
+/**
+ * Get whether the given method should not be copied
+ * to the JavaScript object.
+ */
+bool shouldSkipMethodWhenCopying(SEL sel)
+{
+	return isMethodAnInitializer(sel);
+}
+
 /*
  * Install the ObjC methods from the protocol in the JS prototype.
  * If isInstanceMethod is YES, only instance methods will be installed.
@@ -177,26 +208,35 @@ void copyMethodsToObject(L8WrapperMap *wrapperMap, Protocol *protocol,
 	NSMutableDictionary *renameMap = createRenameMap(protocol, isInstanceMethod);
 
 	forEachMethodInProtocol(protocol, YES, isInstanceMethod, ^(SEL sel, const char *types) {
-
-		const char *selName = sel_getName(sel);
-		NSString *rawName = @(selName);
+		const char *selName;
+		NSString *rawName;
 		const char *extraTypes;
+
+		if(shouldSkipMethodWhenCopying(sel))
+			return;
+
+		selName = sel_getName(sel);
+		rawName = @(selName);
 
 		extraTypes = _protocol_getMethodTypeEncoding(protocol, sel, YES, isInstanceMethod);
 
 		if(accessorMethods[rawName]) {
 			accessorMethods[rawName] = [L8Value valueWithV8Value:v8::String::New(extraTypes)];
 		} else {
-			NSString *propertyName = renameMap[rawName];
+			NSString *propertyName;
+			v8::Local<v8::String> v8Name;
+			v8::Local<v8::FunctionTemplate> function;
+			v8::Local<v8::Array> extraData;
 
+			propertyName = renameMap[rawName];
 			if(propertyName == nil)
 				propertyName = selectorToPropertyName(selName,isInstanceMethod);
 
-			v8::Handle<v8::String> v8Name = [propertyName V8String];
+			v8Name = [propertyName V8String];
 
-			v8::Handle<v8::FunctionTemplate> function = v8::FunctionTemplate::New();
+			function = v8::FunctionTemplate::New();
 
-			v8::Handle<v8::Array> extraData = v8::Array::New();
+			extraData = v8::Array::New();
 			extraData->Set(0, v8::String::New(selName));
 			extraData->Set(1, v8::String::New(extraTypes));
 			extraData->Set(2, v8::Boolean::New(!isInstanceMethod));
@@ -361,6 +401,39 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap,
 	}
 }
 
+SEL initializerSelectorForClass(Class cls)
+{
+	__block SEL selector;
+	__block BOOL found = NO;
+	__block BOOL foundMultiple = NO;
+
+	forEachProtocolImplementingProtocol(cls, objc_getProtocol("L8Export"), ^(Protocol *protocol) {
+
+		forEachMethodInProtocol(protocol, YES, YES, ^(SEL sel, const char *encoding) {
+			if(!isMethodAnInitializer(sel))
+				return;
+
+			if(sel_isEqual(sel, selector))
+				return;
+
+			if(found) {
+				// TODO find a way to exit this double loop
+				NSLog(@"Found multiple init methods for class %@. Falling back to -[init].",NSStringFromClass(cls));
+				foundMultiple = YES;
+				return;
+			}
+
+			found = YES;
+			selector = sel;
+		});
+
+	});
+
+	if(found && !foundMultiple)
+		return selector;
+	return @selector(init);
+}
+
 @implementation L8WrapperMap {
 	L8Runtime * _runtime;
 	std::unordered_map<std::string,v8::Eternal<v8::FunctionTemplate>> _classCache;
@@ -412,19 +485,18 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap,
 {
 	v8::HandleScope localScope(v8::Isolate::GetCurrent());
 	v8::Handle<v8::FunctionTemplate> classTemplate;
-	v8::Handle<v8::ObjectTemplate> prototypeTemplate, instanceTemplate;
+	v8::Local<v8::ObjectTemplate> prototypeTemplate, instanceTemplate;
+	v8::Local<v8::Array> extraClassData;
 	NSString *className;
 	Class parentClass;
+	SEL initSelector;
 
 	className = @(class_getName(cls));
 	classTemplate = v8::FunctionTemplate::New();
 
-	// TODO set prototype of the prototype, to prototype of the superclass
-	// TODO Get from cache
-
 	parentClass = class_getSuperclass(cls);
 	if(parentClass != Nil && cls != parentClass && class_isMetaClass(parentClass)) { // Top-level class
-		v8::Handle<v8::FunctionTemplate> parentTemplate;
+		v8::Local<v8::FunctionTemplate> parentTemplate;
 
 		parentTemplate = [self getCachedFunctionTemplateForClass:parentClass];
 		if(parentTemplate.IsEmpty())
@@ -432,6 +504,8 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap,
 		if(!parentTemplate.IsEmpty())
 			classTemplate->Inherit(parentTemplate);
 	}
+
+	initSelector = initializerSelectorForClass(cls);
 
 	classTemplate->SetClassName([className V8String]);
 
@@ -451,7 +525,10 @@ void installSubscriptionMethods(L8WrapperMap *wrapperMap,
 	});
 
 	// Set constructor callback
-	classTemplate->SetCallHandler(ObjCConstructor,v8::String::New(class_getName(cls)));
+	extraClassData = v8::Array::New();
+	extraClassData->Set(0, v8::String::New(class_getName(cls))); // classname
+	extraClassData->Set(1, v8::String::New(sel_getName(initSelector))); // init selector
+	classTemplate->SetCallHandler(ObjCConstructor,extraClassData);
 
 	[self cacheFunctionTemplate:classTemplate
 					   forClass:cls];

@@ -509,9 +509,9 @@ inline void objCClearContextEmbedderData() {
 
 void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 {
-	const char *className;
+	const char *className, *selName;
 	Class cls;
-	__block SEL selector = nil;
+	SEL selector = nil;
 	id object;
 	id __unsafe_unretained resultObject;
 	v8::HandleScope localScope(info.GetIsolate());
@@ -525,15 +525,26 @@ void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 	if(!skipConstruct.IsEmpty() && skipConstruct->IsTrue())
 		return;
 
-	className = createStringFromV8Value(info.Data());
+	v8::Local<v8::Array> extraClassData;
+	extraClassData = info.Data().As<v8::Array>();
+
+	className = createStringFromV8Value(extraClassData->Get(0));
 	cls = objc_getClass(className);
 	free((void *)className); className = NULL;
 
-	// TODO find correct selector!
-	selector = @selector(init);
+	selName = createStringFromV8Value(extraClassData->Get(1));
+	selector = sel_registerName(selName);
+	free((void *)selName); selName = NULL;
 
 	// Allocate...
 	object = [cls alloc];
+
+	// The allocated object is now already released by
+	// the runtime because the init returned nil. We can't
+	// release object anymore: it is a zombie.
+	// That is why CFRetain and a conditional CFRelease is used:
+	// to circumvent the ARC problem.
+	CFRetain((void *)object);
 
 	methodSignature = [object methodSignatureForSelector:selector];
 	invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
@@ -553,9 +564,14 @@ void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 			// Failure to initialize
 			if(resultObject == nil) {
-				info.GetReturnValue().SetNull();
+				v8::Local<v8::String> error;
+
+				error = v8::String::New("Failed to create native object: initializer returned <nil>.");
+				info.GetReturnValue().Set(v8::Exception::ReferenceError(error));
+
 				return;
-			}
+			} else
+				CFRelease((void *)object);
 
 			// Set our self to, ourself
 			info.This()->SetInternalField(0, makeWrapper([[L8Runtime currentRuntime] V8Context], resultObject));
