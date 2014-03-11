@@ -314,22 +314,26 @@ using namespace v8;
 
 - (void)throwValue
 {
-	ThrowException(_v8value);
+	Isolate::GetCurrent()->ThrowException(_v8value);
 }
 
 - (L8Value *)callWithArguments:(NSArray *)arguments
 {
 	Isolate *isolate = Isolate::GetCurrent();
 	HandleScope localScope(isolate);
+	Local<Value> *argv, result;
+	Local<Object> function;
 
-	Local<Value> *argv = (Local<Value> *)calloc(arguments.count,sizeof(Local<Value>));
+	if(!_v8value->IsFunction())
+		return [L8Value valueWithUndefined];
+
+	argv = (Local<Value> *)calloc(arguments.count,sizeof(Local<Value>));
 	[arguments enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
 		argv[idx] = objectToValue(_runtime, obj);
 	}];
 
-	Local<Object> function = _v8value->ToObject();
+	function = _v8value->ToObject();
 
-	Local<Value> result;
 	{
 		TryCatch tryCatch;
 
@@ -350,15 +354,21 @@ using namespace v8;
 {
 	Isolate *isolate = Isolate::GetCurrent();
 	HandleScope localScope(isolate);
+	Local<Function> function;
+	Local<Value> *argv, result;
 
-	Local<Function> function = _v8value.As<Function>();
+	// Just like ObjC, we want no need to check the validity of
+	// self when invoking this method.
+	if(!_v8value->IsFunction())
+		return [L8Value valueWithUndefined];
 
-	Local<Value> *argv = (Local<Value> *)calloc(arguments.count,sizeof(Local<Value>));
+	function = _v8value.As<Function>();
+
+	argv = (Local<Value> *)calloc(arguments.count,sizeof(Local<Value>));
 	[arguments enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
 		argv[idx] = objectToValue(_runtime, obj);
 	}];
 
-	Local<Value> result;
 	{
 		TryCatch tryCatch;
 
@@ -378,25 +388,37 @@ using namespace v8;
 {
 	Isolate *isolate = Isolate::GetCurrent();
 	HandleScope localScope(isolate);
+	L8Value *function;
+	Local<Value> v8value, result, *argv;
+	Local<Function> v8function;
 
-	Local<Value> v8value = self[method]->_v8value;
-	Local<Function> function = v8value.As<Function>();
+	// Just like ObjC, we want no need to check the validity of
+	// self when invoking this method.
+	if(_v8value->IsUndefined() || _v8value->IsNull())
+		return [L8Value valueWithUndefined];
 
-	Local<Value> *argv = (Local<Value> *)calloc(arguments.count,sizeof(Local<Value>));
+	function = self[method];
+	if(!function || function->_v8value->IsUndefined())
+		return [L8Value valueWithUndefined];
+
+	v8value = function->_v8value;
+	v8function = v8value.As<Function>();
+
+	argv = (Local<Value> *)calloc(arguments.count,sizeof(Local<Value>));
 	[arguments enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
 		argv[idx] = objectToValue(_runtime, obj);
 	}];
 
-	Local<Value> result;
 	{
 		TryCatch tryCatch;
 
-		result = function->CallAsFunction(_v8value->ToObject(), (int)[arguments count], argv);
+		result = v8function->CallAsFunction(_v8value->ToObject(), (int)[arguments count], argv);
 		free((void *)argv);
 
 		if(tryCatch.HasCaught()) {
 			[L8Reporter reportTryCatch:&tryCatch
 							 inIsolate:isolate];
+			return nil;
 		}
 	}
 

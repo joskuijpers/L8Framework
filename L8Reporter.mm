@@ -29,6 +29,7 @@
 #import "L8Exception_Private.h"
 #import "L8Value_Private.h"
 #import "L8NativeException.h"
+#import "config.h"
 
 #include "v8.h"
 
@@ -72,7 +73,11 @@ static L8Reporter *g_sharedReporter = nil;
 	exception = [self objcExceptionForTryCatch:tryCatch
 									 inIsolate:isolate];
 
+#ifndef L8_TRANSFER_JS_EXCEPTIONS
 	[[self sharedReporter] exceptionHandler](exception);
+#else
+	@throw exception;
+#endif
 }
 
 + (L8Exception *)objcExceptionForTryCatch:(TryCatch *)tryCatch inIsolate:(Isolate *)isolate
