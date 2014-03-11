@@ -33,7 +33,7 @@
 + (instancetype)exceptionWithV8Message:(v8::Local<v8::Message>)message
 						  thrownObject:(__weak id)object;
 
-- (v8::Handle<v8::Value>)v8exception;
-+ (v8::Handle<v8::Value>)v8exceptionWithMessage:(NSString *)message;
+- (v8::Local<v8::Value>)v8exception;
++ (v8::Local<v8::Value>)v8exceptionWithMessage:(NSString *)message;
 
 @end

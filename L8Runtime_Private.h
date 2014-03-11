@@ -39,10 +39,10 @@
 
 @property (readonly) L8WrapperMap *wrapperMap;
 
-+ (L8Runtime *)contextWithV8Context:(v8::Handle<v8::Context>)v8context;
++ (L8Runtime *)contextWithV8Context:(v8::Local<v8::Context>)v8context;
 - (v8::Local<v8::Context>)V8Context;
 
 - (L8Value *)wrapperForObjCObject:(id)object;
-- (L8Value *)wrapperForJSObject:(v8::Handle<v8::Value>)value;
+- (L8Value *)wrapperForJSObject:(v8::Local<v8::Value>)value;
 
 @end

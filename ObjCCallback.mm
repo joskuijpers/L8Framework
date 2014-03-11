@@ -43,10 +43,10 @@
  * @param value The V8 value
  * @return A string. Must be freed!
  */
-const char *createStringFromV8Value(v8::Handle<v8::Value> value)
+const char *createStringFromV8Value(v8::Local<v8::Value> value)
 {
 	char *buffer;
-	v8::Handle<v8::String> v8String;
+	v8::Local<v8::String> v8String;
 
 	if(!value->IsString())
 		return NULL;
@@ -58,7 +58,7 @@ const char *createStringFromV8Value(v8::Handle<v8::Value> value)
 	return buffer;
 }
 
-SEL selectorFromV8Value(v8::Handle<v8::Value> value)
+SEL selectorFromV8Value(v8::Local<v8::Value> value)
 {
 	const char *selName;
 	SEL selector;
@@ -316,7 +316,7 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 	}
 }
 
-v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neededReturnType = NULL)
+v8::Local<v8::Value> objCInvocation(NSInvocation *invocation, const char *neededReturnType = NULL)
 {
 	@autoreleasepool {
 		[invocation invoke];
@@ -422,7 +422,7 @@ v8::Handle<v8::Value> objCInvocation(NSInvocation *invocation, const char *neede
 			// Has needed return type. It is either a block or a class
 			if(neededReturnType && strlen(neededReturnType) > 1) {
 				if(*(returnType+1) == '?' && [object isKindOfClass:BlockClass()]) {
-					v8::Handle<v8::Function> function = wrapBlock(object);
+					v8::Local<v8::Function> function = wrapBlock(object);
 					return function;
 				} else {
 					size_t length;
@@ -521,7 +521,7 @@ void ObjCConstructor(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 	// In one situation we should no nothing:
 	// When just created the class for an existing object
-	v8::Handle<v8::Value> skipConstruct = info.GetIsolate()->GetCurrentContext()->GetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SKIP_CONSTRUCTING);
+	v8::Local<v8::Value> skipConstruct = info.GetIsolate()->GetCurrentContext()->GetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SKIP_CONSTRUCTING);
 	if(!skipConstruct.IsEmpty() && skipConstruct->IsTrue())
 		return;
 
@@ -600,8 +600,8 @@ void ObjCMethodCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 	bool isClassMethod = false;
 	NSMethodSignature *methodSignature;
 	NSInvocation *invocation;
-	v8::Handle<v8::Array> extraData;
-	v8::Handle<v8::Value> retVal;
+	v8::Local<v8::Array> extraData;
+	v8::Local<v8::Value> retVal;
 
 	// A constructor call should be with ObjCConstructor
 	assert(info.IsConstructCall() == false);
@@ -617,7 +617,7 @@ void ObjCMethodCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 	// Class methods must use the function (This) name to find the class meta object
 	if(isClassMethod) {
-		v8::Handle<v8::Function> function = info.This().As<v8::Function>();
+		v8::Local<v8::Function> function = info.This().As<v8::Function>();
 		const char *classStr = createStringFromV8Value(function->GetName());
 		object = objc_getClass(classStr);
 		free((void *)classStr);
@@ -661,7 +661,7 @@ void ObjCBlockCall(const v8::FunctionCallbackInfo<v8::Value>& info)
 
 	@autoreleasepool {
 		@try {
-			v8::Handle<v8::Value> retVal;
+			v8::Local<v8::Value> retVal;
 
 			retVal = objCInvocation(invocation);
 			info.GetReturnValue().Set(retVal);
@@ -733,8 +733,8 @@ void ObjCAccessorSetter(v8::Local<v8::String> property, v8::Local<v8::Value> val
 	NSMethodSignature *methodSignature;
 	NSInvocation *invocation;
 	const char *types;//, *valueType;
-	v8::Handle<v8::Array> extraData;
-	v8::Handle<v8::Value> retVal;
+	v8::Local<v8::Array> extraData;
+	v8::Local<v8::Value> retVal;
 
 	object = objectFromWrapper(info.This()->GetInternalField(0));
 	extraData = info.Data().As<v8::Array>();
@@ -775,8 +775,8 @@ void ObjCAccessorGetter(v8::Local<v8::String> property, const v8::PropertyCallba
 	NSMethodSignature *methodSignature;
 	NSInvocation *invocation;
 	const char *types, *returnType;
-	v8::Handle<v8::Array> extraData;
-	v8::Handle<v8::Value> retVal;
+	v8::Local<v8::Array> extraData;
+	v8::Local<v8::Value> retVal;
 
 	object = objectFromWrapper(info.This()->GetInternalField(0));
 	extraData = info.Data().As<v8::Array>();

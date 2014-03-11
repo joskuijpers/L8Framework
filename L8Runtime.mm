@@ -51,12 +51,12 @@
 	v8::V8::SetCaptureStackTraceForUncaughtExceptions(true);
 }
 
-+ (L8Runtime *)contextWithV8Context:(v8::Handle<v8::Context>)v8context;
++ (L8Runtime *)contextWithV8Context:(v8::Local<v8::Context>)v8context;
 {
 	if(v8context.IsEmpty())
 		return nil;
 
-	v8::Handle<v8::External> data = v8context->GetEmbedderData(0).As<v8::External>();
+	v8::Local<v8::External> data = v8context->GetEmbedderData(0).As<v8::External>();
 	L8Runtime *context = (__bridge L8Runtime *)data->Value();
 
 	return context;
@@ -92,9 +92,9 @@
 	v8::Isolate *isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope mainScope(isolate);
 	v8::Context::Scope contextScope(isolate,_v8context);
-	v8::Handle<v8::Context> context = v8::Handle<v8::Context>::New(isolate, _v8context);
+	v8::Local<v8::Context> context = v8::Local<v8::Context>::New(isolate, _v8context);
 
-	v8::Handle<v8::External> selfStored = context->GetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SELF).As<v8::External>();
+	v8::Local<v8::External> selfStored = context->GetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SELF).As<v8::External>();
 	if(!selfStored.IsEmpty()) {
 		CFRelease(selfStored->Value());
 	}
@@ -138,7 +138,7 @@
 	v8::HandleScope localScope(isolate);
 	v8::ScriptOrigin scriptOrigin = v8::ScriptOrigin([name V8String]);
 
-	v8::Handle<v8::Script> script;
+	v8::Local<v8::Script> script;
 	{
 		v8::TryCatch tryCatch;
 
@@ -176,7 +176,7 @@
 	v8::HandleScope localScope(isolate);
 	v8::ScriptOrigin scriptOrigin = v8::ScriptOrigin([name V8String]);
 
-	v8::Handle<v8::Script> script;
+	v8::Local<v8::Script> script;
 	{
 		v8::TryCatch tryCatch;
 
@@ -189,7 +189,7 @@
 
 	{
 		v8::TryCatch tryCatch;
-		v8::Handle<v8::Value> retVal = script->Run();
+		v8::Local<v8::Value> retVal = script->Run();
 
 		if(tryCatch.HasCaught()) {
 			[L8Reporter reportTryCatch:&tryCatch inIsolate:isolate];
@@ -272,7 +272,7 @@
 	// Callee should be an array
 	assert(thisObject->IsArray());
 
-	argArray = v8::Handle<v8::Array>::Cast(thisObject);
+	argArray = v8::Local<v8::Array>::Cast(thisObject);
 	arguments = [[NSMutableArray alloc] init];
 
 	for(int i = 0; i < argArray->Length(); ++i)
@@ -283,7 +283,7 @@
 
 - (v8::Local<v8::Context>)V8Context
 {
-	return v8::Handle<v8::Context>::New(v8::Isolate::GetCurrent(), _v8context);
+	return v8::Local<v8::Context>::New(v8::Isolate::GetCurrent(), _v8context);
 }
 
 - (L8Value *)wrapperForObjCObject:(id)object
@@ -293,7 +293,7 @@
 	}
 }
 
-- (L8Value *)wrapperForJSObject:(v8::Handle<v8::Value>)value
+- (L8Value *)wrapperForJSObject:(v8::Local<v8::Value>)value
 {
 	@synchronized(_wrapperMap) {
 		return [_wrapperMap ObjCWrapperForValue:value];
@@ -306,10 +306,10 @@ void L8RuntimeDebugMessageDispatchHandler()
 		v8::Isolate *isolate = v8::Isolate::GetCurrent();
 		v8::HandleScope localScope(isolate);
 
-		v8::Handle<v8::Context> debugContext = v8::Debug::GetDebugContext();
+		v8::Local<v8::Context> debugContext = v8::Debug::GetDebugContext();
 		L8Runtime *runtime = (__bridge L8Runtime *)debugContext->GetEmbedderData(1).As<v8::External>()->Value();
 
-		v8::Handle<v8::Context> context = v8::Handle<v8::Context>::New(isolate, [runtime V8Context]);
+		v8::Local<v8::Context> context = v8::Local<v8::Context>::New(isolate, [runtime V8Context]);
 		v8::Context::Scope contextScope(context);
 
 		v8::Debug::ProcessDebugMessages();

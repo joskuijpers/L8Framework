@@ -31,10 +31,10 @@
 
 @implementation L8StackTrace {
 	NSMutableArray *_frameCache;
-	v8::Handle<v8::StackTrace> _v8stackTrace;
+	v8::Local<v8::StackTrace> _v8stackTrace;
 }
 
-- (id)initWithV8StackTrace:(v8::Handle<v8::StackTrace>)v8stackTrace;
+- (id)initWithV8StackTrace:(v8::Local<v8::StackTrace>)v8stackTrace;
 {
 	self = [super init];
 	if(self) {
@@ -72,7 +72,7 @@
 
 + (L8StackTrace *)currentStackTrace
 {
-	v8::Handle<v8::StackTrace> trace;
+	v8::Local<v8::StackTrace> trace;
 	trace = v8::StackTrace::CurrentStackTrace(L8_STACKTRACE_FRAMELIMIT);
 
 	return [[self alloc] initWithV8StackTrace:trace];
@@ -118,10 +118,10 @@
 @end
 
 @implementation L8StackFrame {
-	v8::Handle<v8::StackFrame> _v8stackFrame;
+	v8::Local<v8::StackFrame> _v8stackFrame;
 }
 
-- (id)initWithV8StackFrame:(v8::Handle<v8::StackFrame>)v8stackFrame
+- (id)initWithV8StackFrame:(v8::Local<v8::StackFrame>)v8stackFrame
 {
 	self = [super init];
 	if(self) {

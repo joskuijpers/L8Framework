@@ -28,12 +28,12 @@
 
 @interface L8StackTrace ()
 
-- (id)initWithV8StackTrace:(v8::Handle<v8::StackTrace>)v8stackTrace;
+- (id)initWithV8StackTrace:(v8::Local<v8::StackTrace>)v8stackTrace;
 
 @end
 
 @interface L8StackFrame ()
 
-- (id)initWithV8StackFrame:(v8::Handle<v8::StackFrame>)v8stackFrame;
+- (id)initWithV8StackFrame:(v8::Local<v8::StackFrame>)v8stackFrame;
 
 @end

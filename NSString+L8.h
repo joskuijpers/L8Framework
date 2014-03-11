@@ -29,8 +29,8 @@
 
 + (NSString *)stringWithV8String:(v8::Local<v8::String>)v8string;
 
-+ (NSString *)stringWithV8Value:(v8::Handle<v8::Value>)v8value withIsolate:(v8::Isolate *)isolate;
-+ (NSString *)stringWithV8Value:(v8::Handle<v8::Value>)v8value;
++ (NSString *)stringWithV8Value:(v8::Local<v8::Value>)v8value withIsolate:(v8::Isolate *)isolate;
++ (NSString *)stringWithV8Value:(v8::Local<v8::Value>)v8value;
 
 - (v8::Local<v8::String>)V8StringWithIsolate:(v8::Isolate *)isolate;
 - (v8::Local<v8::String>)V8String;

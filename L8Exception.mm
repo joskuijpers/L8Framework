@@ -79,12 +79,12 @@
 	return self;
 }
 
-- (v8::Handle<v8::Value>)v8exception
+- (v8::Local<v8::Value>)v8exception
 {
 	return v8::Exception::Error([(_message == nil?@"":_message) V8String]);
 }
 
-+ (v8::Handle<v8::Value>)v8exceptionWithMessage:(NSString *)message
++ (v8::Local<v8::Value>)v8exceptionWithMessage:(NSString *)message
 {
 	return v8::Exception::Error([(message == nil?@"":message) V8String]);
 }

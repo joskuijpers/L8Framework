@@ -47,13 +47,13 @@
 	return ret;
 }
 
-+ (NSString *)stringWithV8Value:(v8::Handle<v8::Value>)v8value
++ (NSString *)stringWithV8Value:(v8::Local<v8::Value>)v8value
 {
 	return [NSString stringWithV8Value:v8value
 						   withIsolate:v8::Isolate::GetCurrent()];
 }
 
-+ (NSString *)stringWithV8Value:(v8::Handle<v8::Value>)v8value
++ (NSString *)stringWithV8Value:(v8::Local<v8::Value>)v8value
 					withIsolate:(v8::Isolate *)isolate
 {
 	if(v8value.IsEmpty())
