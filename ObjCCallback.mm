@@ -318,15 +318,48 @@ void objCSetInvocationArgument(NSInvocation *invocation, int index, L8Value *val
 	}
 }
 
+Local<Value> handleInvocationException(id exception)
+{
+	Isolate *isolate = Isolate::GetCurrent();
+	Local<Value> valueToThrow;
+
+	if([exception isKindOfClass:[L8Exception class]])
+		valueToThrow = [exception v8exception];
+	else if([exception isKindOfClass:[NSException class]]) {
+		NSException *nsException = (NSException *)exception;
+		Local<String> message;
+
+		message = [[NSString stringWithFormat:@"%@ exception from native code: %@",
+					nsException.name,nsException.reason] V8String];
+
+		if([nsException.name isEqualToString:NSRangeException])
+			valueToThrow = Exception::RangeError(message);
+		else if([nsException.name isEqualToString:NSInvalidArgumentException])
+			valueToThrow = Exception::TypeError(message);
+		else
+			valueToThrow = Exception::Error(message);
+	} else
+		valueToThrow = [[L8Value valueWithObject:exception] V8Value];
+
+	return isolate->ThrowException(valueToThrow);
+}
+
 Local<Value> objCInvocation(NSInvocation *invocation, const char *neededReturnType = NULL)
 {
+	unsigned long retLength;
+	const char *returnType;
+	L8Value *result;
+
 	@autoreleasepool {
-		[invocation invoke];
+		@try {
+			[invocation invoke];
+		} @catch(id exception) {
+			return handleInvocationException(exception);
+		}
 	}
 
-	unsigned long retLength = invocation.methodSignature.methodReturnLength;
-	const char *returnType = invocation.methodSignature.methodReturnType;
-	L8Value *result;
+	retLength = invocation.methodSignature.methodReturnLength;
+	returnType = invocation.methodSignature.methodReturnType;
 
 	if(neededReturnType) {
 		assert(*returnType == *neededReturnType);
@@ -418,37 +451,8 @@ Local<Value> objCInvocation(NSInvocation *invocation, const char *neededReturnTy
 			assert(retLength == sizeof(id));
 
 			[invocation getReturnValue:&object];
-#if 1
+
 			return objectToValue([L8Runtime currentRuntime], object);
-#else
-			// Has needed return type. It is either a block or a class
-			if(neededReturnType && strlen(neededReturnType) > 1) {
-				if(*(returnType+1) == '?' && [object isKindOfClass:BlockClass()]) {
-					Local<Function> function = wrapBlock(object);
-					return function;
-				} else {
-					size_t length;
-					const char *className;
-					Class neededClass;
-
-					// Get the name of the class
-					length = strlen(neededReturnType);
-					className = strndup(neededReturnType+2,length-3);
-
-					neededClass = objc_getClass(className);
-					free((void *)className);
-
-//					NSLog(@"Needed class is %@",NSStringFromClass(neededClass));
-					// TODO: Find a situation where this assert fails
-					assert(strcmp(returnType, neededReturnType) == 0);
-
-					result = [L8Value valueWithObject:object];
-				}
-			} else
-				result = [L8Value valueWithObject:object];
-
-			break;
-#endif
 		}
 		case '#': { // Class
 			Class __unsafe_unretained classObject;
@@ -538,7 +542,6 @@ void ObjCConstructor(const FunctionCallbackInfo<Value>& info)
 	selector = sel_registerName(selName);
 	free((void *)selName); selName = NULL;
 
-	// Allocate...
 	object = [cls alloc];
 
 	// The allocated object is now already released by
@@ -564,12 +567,14 @@ void ObjCConstructor(const FunctionCallbackInfo<Value>& info)
 			[invocation invoke];
 			[invocation getReturnValue:&resultObject];
 
-			// Failure to initialize
+			// init returned nil.
 			if(resultObject == nil) {
 				Local<String> error;
+				Local<Value> exception;
 
 				error = String::New("Failed to create native object: initializer returned <nil>.");
-				info.GetReturnValue().Set(Exception::ReferenceError(error));
+				exception = Exception::ReferenceError(error);
+				info.GetReturnValue().Set(Isolate::GetCurrent()->ThrowException(exception));
 
 				return;
 			} else
@@ -578,13 +583,8 @@ void ObjCConstructor(const FunctionCallbackInfo<Value>& info)
 			// Set our self to, ourself
 			info.This()->SetInternalField(0, makeWrapper([[L8Runtime currentRuntime] V8Context], resultObject));
 
-		} @catch(L8Exception *l8e) {
-			info.GetReturnValue().Set(ThrowException([l8e v8exception]));
-			return;
-		} @catch (NSException *nse) {
-			NSLog(@"Caught NSException");
-		} @catch (id e) {
-			info.GetReturnValue().Set(ThrowException([[L8Value valueWithObject:e] V8Value]));
+		} @catch (id exception) {
+			info.GetReturnValue().Set(handleInvocationException(exception));
 			return;
 		} @finally {
 			objCClearContextEmbedderData();
@@ -667,15 +667,8 @@ void ObjCBlockCall(const FunctionCallbackInfo<Value>& info)
 
 			retVal = objCInvocation(invocation);
 			info.GetReturnValue().Set(retVal);
-
-		} @catch(L8Exception *l8e) {
-			info.GetReturnValue().Set(ThrowException([l8e v8exception]));
-			return;
-		} @catch (NSException *nse) {
-			NSLog(@"Caught NSException");
-		} @catch (id e) {
-			info.GetReturnValue().Set(ThrowException([[L8Value valueWithObject:e] V8Value]));
-			return;
+		} @catch (id exception) {
+			info.GetReturnValue().Set(handleInvocationException(exception));
 		}
 	}
 }
@@ -737,15 +730,12 @@ void ObjCAccessorSetter(Local<String> property, Local<Value> value, const Proper
 	const char *types;//, *valueType;
 	Local<Array> extraData;
 	Local<Value> retVal;
+	L8Value *newValue;
 
 	object = objectFromWrapper(info.This()->GetInternalField(0));
 	extraData = info.Data().As<Array>();
 
 	// 0 = name, 1 = value type, 2 = getter SEL, 3 = getter types, 4 = setter SEL, 5 = setter types
-	// TODO use valuetype to verify argument
-//	valueType = createStringFromV8Value(extraData->Get(1));
-//	free((void *)valueType);
-
 	selector = selectorFromV8Value(extraData->Get(4));
 	types = createStringFromV8Value(extraData->Get(5));
 
@@ -756,14 +746,11 @@ void ObjCAccessorSetter(Local<String> property, Local<Value> value, const Proper
 	invocation.selector = selector;
 	invocation.target = object;
 
-	if(invocation.methodSignature.numberOfArguments != 3) {
-		// make JS exception
-		assert(0 && "More parameters than arguments: not a setter called?");
-	}
+	assert(invocation.methodSignature.numberOfArguments == 3
+		   && "More parameters than arguments: not a setter called?");
 
-	L8Value *val = [L8Value valueWithV8Value:value];
-	// TODO verify or transform class
-	objCSetInvocationArgument(invocation,2,val);
+	newValue = [L8Value valueWithV8Value:value];
+	objCSetInvocationArgument(invocation,2,newValue);
 
 	retVal = objCInvocation(invocation);
 
@@ -795,10 +782,8 @@ void ObjCAccessorGetter(Local<String> property, const PropertyCallbackInfo<Value
 	invocation.selector = selector;
 	invocation.target = object;
 
-	if(invocation.methodSignature.numberOfArguments != 2) {
-		// make JS exception
-		assert(0 && "More parameters than arguments: not a getter called?");
-	}
+	assert(invocation.methodSignature.numberOfArguments == 2
+		   && "More parameters than arguments: not a getter called?");
 
 	retVal = objCInvocation(invocation,returnType);
 	free((void *)returnType);
@@ -806,18 +791,15 @@ void ObjCAccessorGetter(Local<String> property, const PropertyCallbackInfo<Value
 	info.GetReturnValue().Set(retVal);
 }
 
-/*!
+/**
  * Called when an ObjC object stored in v8 will be released by v8.
  * This function causes an ObjC release on the object.
  */
 void ObjCWeakReferenceCallback(Isolate *isolate, Persistent<External> *persistent, void *parameter)
 {
-	Local<External> ext = Local<External>::New(isolate, *persistent);
+	Local<External> ext;
 
-#if 1 // Debug
-	id wrappedObject = 	CFBridgingRelease(ext->Value());
-	NSLog(@"Weakreferencecallback for object %@",wrappedObject);
-#else
+	ext = Local<External>::New(isolate, *persistent);
+
 	CFRelease(ext->Value());
-#endif
 }
