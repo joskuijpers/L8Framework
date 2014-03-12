@@ -366,18 +366,38 @@ Local<Value> objCInvocation(NSInvocation *invocation, const char *neededReturnTy
 		assert(strlen(neededReturnType) == 1 || *neededReturnType == '@');
 	}
 
+	_Static_assert(sizeof(uint8_t) == sizeof(unsigned char), "Sizeof uint32_t and unsigned char");
+	_Static_assert(sizeof(uint16_t) == sizeof(unsigned short), "Sizeof uint32_t and unsigned short");
+	_Static_assert(sizeof(uint32_t) == sizeof(unsigned int), "Sizeof uint32_t and unsigned int");
+	_Static_assert(sizeof(uint64_t) == sizeof(unsigned long), "Sizeof uint64_t and unsigned long");
+	_Static_assert(sizeof(uint64_t) == sizeof(unsigned long long), "Sizeof uint64_t and unsigned long long");
+
 	switch(*returnType) {
-		case 'c': // char (8)
-		case 'i': // int
-		case 's': // short (16)
-		case 'l': { // long (32)
-			int32_t value;
-			assert(retLength <= sizeof(int32_t));
+		case 'c': { // char (8)
+			int8_t value;
+			assert(retLength == sizeof(int8_t));
 
 			[invocation getReturnValue:&value];
 			result = [L8Value valueWithInt32:value];
 			break;
 		}
+		case 's': { // short (16)
+			int16_t value;
+			assert(retLength == sizeof(int16_t));
+
+			[invocation getReturnValue:&value];
+			result = [L8Value valueWithInt32:value];
+			break;
+		}
+		case 'i': { // int (32)
+			int32_t value;
+			assert(retLength == sizeof(int32_t));
+
+			[invocation getReturnValue:&value];
+			result = [L8Value valueWithInt32:value];
+			break;
+		}
+		case 'l': // long (64)
 		case 'q': { // long long (64)
 			int64_t value;
 			assert(retLength == sizeof(int64_t));
@@ -390,18 +410,31 @@ Local<Value> objCInvocation(NSInvocation *invocation, const char *neededReturnTy
 
 			break;
 		}
-		case 'C': // unsigned char (8)
-		case 'I': // unsigned int
-		case 'S': // unsigned short (16)
-		case 'L': { // unsigned long (32)
-			uint32_t value;
-			assert(retLength <= sizeof(uint32_t));
+		case 'C': { // unsigned char (8)
+			uint8_t value;
+			assert(retLength == sizeof(uint8_t));
 
 			[invocation getReturnValue:&value];
-
 			result = [L8Value valueWithUInt32:value];
 			break;
 		}
+		case 'S': { // unsigned short (16)
+			uint16_t value;
+			assert(retLength == sizeof(uint16_t));
+
+			[invocation getReturnValue:&value];
+			result = [L8Value valueWithUInt32:value];
+			break;
+		}
+		case 'I': { // unsigned int (32)
+			uint32_t value;
+			assert(retLength == sizeof(uint32_t));
+
+			[invocation getReturnValue:&value];
+			result = [L8Value valueWithUInt32:value];
+			break;
+		}
+		case 'L': // unsigned long (64)
 		case 'Q': { // unsigned long long (64)
 			uint64_t value;
 			assert(retLength == sizeof(uint64_t));
@@ -451,22 +484,28 @@ Local<Value> objCInvocation(NSInvocation *invocation, const char *neededReturnTy
 			assert(retLength == sizeof(id));
 
 			[invocation getReturnValue:&object];
-
 			return objectToValue([L8Runtime currentRuntime], object);
 		}
 		case '#': { // Class
 			Class __unsafe_unretained classObject;
+
 			[invocation getReturnValue:&classObject];
+
+			// TODO find name of class if available
+
 			result = [L8Value valueWithObject:classObject];
+
 			break;
 		}
 		case ':': // SEL
 			return Undefined();
-		case '[': // array, [type]
 		case '{': // struct, {name=type}
+			// TODO implement
+		case '[': // array, [type]
 		case '(': // union, (name=type)
 		case '^': // pointer, ^type
 		case '?': // Unknown
+		case 'b': // bitfield, bnum
 		default:
 			NSLog(@"Returntype: '%s', len %lu",returnType,retLength);
 			assert(0 && "A return type is not implemented");

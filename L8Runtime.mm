@@ -102,6 +102,7 @@ using namespace v8;
 	}
 
 	_v8context.Clear();
+	isolate->Dispose();
 }
 
 - (void)executeBlockInRuntime:(void(^)(L8Runtime *runtime))block

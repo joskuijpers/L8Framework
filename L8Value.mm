@@ -29,6 +29,7 @@
 #import "L8Reporter_Private.h"
 #import "L8Export.h"
 #import "L8WrapperMap.h"
+#import "L8ManagedValue_Private.h"
 
 #include "v8.h"
 #import <objc/runtime.h>
@@ -142,7 +143,7 @@ using namespace v8;
 
 - (BOOL)toBool
 {
-	return (BOOL)_v8value->IsTrue();
+	return (BOOL)_v8value->ToBoolean()->IsTrue();
 }
 
 - (double)toDouble
@@ -249,7 +250,7 @@ using namespace v8;
 
 - (BOOL)isBoolean
 {
-	return _v8value->IsBoolean();
+	return _v8value->IsBoolean() || (_v8value->IsNumber() && _v8value->Uint32Value() <= 1);
 }
 
 - (BOOL)isNumber
@@ -736,46 +737,48 @@ ObjCContainerConverter::Job ObjCContainerConverter::take()
 static ObjCContainerConverter::Job objectToValueWithoutCopy(L8Runtime *runtime, id object)
 {
 	if(!object)
-		return (ObjCContainerConverter::Job){ object, Undefined(), COLLECTION_NONE };
+		return (ObjCContainerConverter::Job){object, Undefined(), COLLECTION_NONE};
 
 	if(![object conformsToProtocol:@protocol(L8Export)]) {
 
 		if([object isKindOfClass:[NSArray class]])
-			return (ObjCContainerConverter::Job){ object, Array::New(), COLLECTION_ARRAY };
+			return (ObjCContainerConverter::Job){object, Array::New(), COLLECTION_ARRAY};
 
 		if([object isKindOfClass:[NSDictionary class]])
-			return (ObjCContainerConverter::Job){ object, Object::New(), COLLECTION_DICTIONARY };
+			return (ObjCContainerConverter::Job){object, Object::New(), COLLECTION_DICTIONARY};
 
 		if([object isKindOfClass:[NSNull class]])
-			return (ObjCContainerConverter::Job){ object, Null(), COLLECTION_NONE };
+			return (ObjCContainerConverter::Job){object, Null(), COLLECTION_NONE};
 
 		if([object isKindOfClass:[L8Value class]])
-			return (ObjCContainerConverter::Job){ object, ((L8Value *)object)->_v8value, COLLECTION_NONE };
+			return (ObjCContainerConverter::Job){object, ((L8Value *)object)->_v8value, COLLECTION_NONE};
 
 		if([object isKindOfClass:[NSString class]])
-			return (ObjCContainerConverter::Job){ object, [(NSString *)object V8String], COLLECTION_NONE };
+			return (ObjCContainerConverter::Job){object, [(NSString *)object V8String], COLLECTION_NONE};
 
 		if([object isKindOfClass:[NSNumber class]]) {
 			assert([@YES class] == [@NO class]);
 			assert([@YES class] != [NSNumber class]);
 			assert([[@YES class] isSubclassOfClass:[NSNumber class]]);
 			if([object isKindOfClass:[@YES class]]) // Pretty much a hack: assumes Boolean class cluster
-				return (ObjCContainerConverter::Job){ object, v8::Boolean::New([object boolValue]), COLLECTION_NONE };
-			return (ObjCContainerConverter::Job){ object, Number::New([object doubleValue]), COLLECTION_NONE };
+				return (ObjCContainerConverter::Job){object, v8::Boolean::New([object boolValue]), COLLECTION_NONE};
+			return (ObjCContainerConverter::Job){object, Number::New([object doubleValue]), COLLECTION_NONE};
 		}
 
 		if([object isKindOfClass:[NSDate class]])
-			return (ObjCContainerConverter::Job){ object, Date::New([object timeIntervalSince1970]), COLLECTION_NONE };
+			return (ObjCContainerConverter::Job){object, Date::New([object timeIntervalSince1970]), COLLECTION_NONE};
 
-		if([object isKindOfClass:BlockClass()]) {
-			//return (ObjCContainerConverter::Job){ object, makeWrapper([runtime V8Context], [object copy]), COLLECTION_NONE };
-			return (ObjCContainerConverter::Job){ object, [runtime wrapperForObjCObject:object]->_v8value, COLLECTION_NONE };
+		if([object isKindOfClass:BlockClass()])
+			return (ObjCContainerConverter::Job){object, [runtime wrapperForObjCObject:object]->_v8value, COLLECTION_NONE};
+
+		if([object isKindOfClass:[L8ManagedValue class]]) {
+			L8Value *value;
+
+			value = [(L8ManagedValue *)object value];
+			if(!value) // collected
+				return (ObjCContainerConverter::Job){object, Undefined(), COLLECTION_NONE};
+			return (ObjCContainerConverter::Job){object, [value V8Value], COLLECTION_NONE};
 		}
-
-		assert(0 && "Code must not be reached, or implementation is missing");
-
-		// managed value
-		// https://github.com/WebKit/webkit/blob/master/Source/JavaScriptCore/API/L8Value.mm#L901
 	}
 
 	return (ObjCContainerConverter::Job){ object, [runtime wrapperForObjCObject:object]->_v8value, COLLECTION_NONE };
@@ -787,7 +790,7 @@ Local<Value> objectToValue(L8Runtime *runtime, id object)
 	HandleScope handleScope(context->GetIsolate());
 
 	if(object == nil)
-		handleScope.Close(Null());
+		return handleScope.Close(Undefined());
 
 	ObjCContainerConverter::Job job = objectToValueWithoutCopy(runtime, object);
 	if(job.type == COLLECTION_NONE)
