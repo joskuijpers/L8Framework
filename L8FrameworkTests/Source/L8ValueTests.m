@@ -303,8 +303,6 @@
 
 			XCTAssertEqualObjects([retVal toNumber], @42, "-[invokeMethod:(int returning) withArguments:@[]]");
 			XCTAssertTrue([retVal isNumber], "-[retVal isNumber]");
-
-			// TODO: more methods
 		}];
 	}
 }

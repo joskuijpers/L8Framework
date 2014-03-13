@@ -13,7 +13,6 @@
 		8024956318D26A3A0071F3C4 /* libv8_base.x64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6D18D11A6200B16692 /* libv8_base.x64.a */; };
 		8024956418D26A3A0071F3C4 /* libv8_snapshot.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6E18D11A6200B16692 /* libv8_snapshot.a */; };
 		80477B3C18D119F000B16692 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B3B18D119F000B16692 /* XCTest.framework */; };
-		80477B3D18D119F000B16692 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B2618D119ED00B16692 /* Cocoa.framework */; };
 		80477B4018D119F000B16692 /* L8Framework.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B2318D119ED00B16692 /* L8Framework.framework */; };
 		80477B6318D11A5100B16692 /* v8-debug.h in Headers */ = {isa = PBXBuildFile; fileRef = 80477B5C18D11A5100B16692 /* v8-debug.h */; };
 		80477B6418D11A5100B16692 /* v8-platform.h in Headers */ = {isa = PBXBuildFile; fileRef = 80477B5D18D11A5100B16692 /* v8-platform.h */; };
@@ -55,7 +54,6 @@
 		80477BB518D11AD700B16692 /* ObjCRuntime+L8.mm in Sources */ = {isa = PBXBuildFile; fileRef = 80477BB118D11AD700B16692 /* ObjCRuntime+L8.mm */; };
 		80477BB718D11B0000B16692 /* config.h in Headers */ = {isa = PBXBuildFile; fileRef = 80477BB618D11B0000B16692 /* config.h */; };
 		80477BB918D11B0700B16692 /* Doxyfile in Resources */ = {isa = PBXBuildFile; fileRef = 80477BB818D11B0700B16692 /* Doxyfile */; };
-		80477BC018D11BFC00B16692 /* L8Runtime+L8Test.m in Sources */ = {isa = PBXBuildFile; fileRef = 80477BBC18D11BFC00B16692 /* L8Runtime+L8Test.m */; };
 		80477BC118D11BFC00B16692 /* L8RuntimeTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 80477BBD18D11BFC00B16692 /* L8RuntimeTests.m */; };
 		80477BC218D11BFC00B16692 /* L8ValueTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 80477BBE18D11BFC00B16692 /* L8ValueTests.m */; };
 /* End PBXBuildFile section */
@@ -72,10 +70,7 @@
 
 /* Begin PBXFileReference section */
 		80477B2318D119ED00B16692 /* L8Framework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = L8Framework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		80477B2618D119ED00B16692 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		80477B2918D119ED00B16692 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		80477B2A18D119ED00B16692 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
-		80477B2B18D119ED00B16692 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		80477B2E18D119EE00B16692 /* L8Framework-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "L8Framework-Info.plist"; sourceTree = "<group>"; };
 		80477B3218D119EE00B16692 /* L8Framework-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "L8Framework-Prefix.pch"; sourceTree = "<group>"; };
 		80477B3A18D119F000B16692 /* L8FrameworkTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = L8FrameworkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -126,8 +121,6 @@
 		80477BB118D11AD700B16692 /* ObjCRuntime+L8.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = "ObjCRuntime+L8.mm"; path = "Source/Categories/ObjCRuntime+L8.mm"; sourceTree = "<group>"; };
 		80477BB618D11B0000B16692 /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 		80477BB818D11B0700B16692 /* Doxyfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Doxyfile; sourceTree = "<group>"; };
-		80477BBB18D11BFC00B16692 /* L8Runtime+L8Test.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "L8Runtime+L8Test.h"; path = "Source/L8Runtime+L8Test.h"; sourceTree = "<group>"; };
-		80477BBC18D11BFC00B16692 /* L8Runtime+L8Test.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "L8Runtime+L8Test.m"; path = "Source/L8Runtime+L8Test.m"; sourceTree = "<group>"; };
 		80477BBD18D11BFC00B16692 /* L8RuntimeTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = L8RuntimeTests.m; path = Source/L8RuntimeTests.m; sourceTree = "<group>"; };
 		80477BBE18D11BFC00B16692 /* L8ValueTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = L8ValueTests.m; path = Source/L8ValueTests.m; sourceTree = "<group>"; };
 		8060610418D223B5003CC846 /* v8_build.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = v8_build.sh; sourceTree = "<group>"; };
@@ -153,7 +146,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				80477B3D18D119F000B16692 /* Cocoa.framework in Frameworks */,
 				80477B4018D119F000B16692 /* L8Framework.framework in Frameworks */,
 				80477B3C18D119F000B16692 /* XCTest.framework in Frameworks */,
 			);
@@ -173,9 +165,9 @@
 		80477B1918D119ED00B16692 = {
 			isa = PBXGroup;
 			children = (
-				8060610518D223C0003CC846 /* Supporting Files */,
 				80477B2C18D119EE00B16692 /* L8Framework */,
 				80477B4118D119F000B16692 /* L8FrameworkTests */,
+				8060610518D223C0003CC846 /* Supporting Files */,
 				80477B2518D119ED00B16692 /* Frameworks */,
 				80477B2418D119ED00B16692 /* Products */,
 			);
@@ -194,21 +186,10 @@
 			isa = PBXGroup;
 			children = (
 				8060610318D221A6003CC846 /* V8 */,
-				80477B2618D119ED00B16692 /* Cocoa.framework */,
+				80477B2918D119ED00B16692 /* Foundation.framework */,
 				80477B3B18D119F000B16692 /* XCTest.framework */,
-				80477B2818D119ED00B16692 /* Other Frameworks */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		80477B2818D119ED00B16692 /* Other Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				80477B2918D119ED00B16692 /* Foundation.framework */,
-				80477B2A18D119ED00B16692 /* CoreData.framework */,
-				80477B2B18D119ED00B16692 /* AppKit.framework */,
-			);
-			name = "Other Frameworks";
 			sourceTree = "<group>";
 		};
 		80477B2C18D119EE00B16692 /* L8Framework */ = {
@@ -233,8 +214,6 @@
 		80477B4118D119F000B16692 /* L8FrameworkTests */ = {
 			isa = PBXGroup;
 			children = (
-				80477BBB18D11BFC00B16692 /* L8Runtime+L8Test.h */,
-				80477BBC18D11BFC00B16692 /* L8Runtime+L8Test.m */,
 				80477BBD18D11BFC00B16692 /* L8RuntimeTests.m */,
 				80477BBE18D11BFC00B16692 /* L8ValueTests.m */,
 				80477B4218D119F000B16692 /* Supporting Files */,
@@ -509,7 +488,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				80477BC018D11BFC00B16692 /* L8Runtime+L8Test.m in Sources */,
 				80477BC218D11BFC00B16692 /* L8ValueTests.m in Sources */,
 				80477BC118D11BFC00B16692 /* L8RuntimeTests.m in Sources */,
 			);

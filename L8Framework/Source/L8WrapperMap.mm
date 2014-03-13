@@ -392,7 +392,6 @@ SEL initializerSelectorForClass(Class cls)
 				return;
 
 			if(found) {
-				// TODO find a way to exit this double loop
 				NSLog(@"Found multiple init methods for class %@. Falling back to -[init].",NSStringFromClass(cls));
 				foundMultiple = YES;
 				return;

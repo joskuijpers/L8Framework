@@ -339,7 +339,6 @@ using namespace v8;
 	{
 		TryCatch tryCatch;
 
-		// TODO: the receiving object should be zero (is that Global?)
 		result = function->CallAsFunction(_v8value->ToObject(), (int)[arguments count], argv);
 		free((void *)argv);
 
