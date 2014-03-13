@@ -34,7 +34,7 @@ export GYP_GENERATORS=xcode
 export GYP_DEFINES="clang=1 -Dcomponent=shared_library "${V8_OPTIONS}
 
 echo "Retrieving dependencies..."
-#make dependencies || exit $?
+make dependencies || exit $?
 
 echo "Applying patches..."
 for patch in ../Patches/*; do
