@@ -4,6 +4,33 @@ A framework wrapping V8 into Objective-C.
 
 Nearly compatible with the JavaScriptCore Objective-C API by Apple, Inc.
 
+## Building L8Framework ##
+
+To build L8Framework, only a couple of simple steps are required:
+
+First, clone the repository and load the submodules:
+```
+$ git clone https://github.com/joskuijpers/L8Framework.git
+$ cd L8Framework
+$ git submodule init
+$ git submodule update
+```
+
+Then run the v8_build script, to download v8 dependencies, configure
+and patch the build system, and to build v8:
+```
+$ ./v8_build.sh
+```
+
+Then either open the Xcode project and build, or use:
+```
+$ xcodebuild
+```
+
+## Examples ##
+
+TODO
+
 ## License ##
 This software is released under the 2 clause BSD license. See LICENSE.
 

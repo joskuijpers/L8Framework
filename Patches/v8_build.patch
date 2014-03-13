@@ -1,0 +1,17 @@
+diff --git a/build/standalone.gypi b/build/standalone.gypi
+index cae63fe..55f741d 100644
+--- a/build/standalone.gypi
++++ b/build/standalone.gypi
+@@ -327,6 +327,12 @@
+           }, {
+             'xcode_settings': {'GCC_TREAT_WARNINGS_AS_ERRORS': 'YES'},
+           }],
++          ['clang==1', {
++            'xcode_settings': {
++              'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0',
++              'CLANG_CXX_LANGUAGE_STANDARD': 'gnu++11',
++            },
++          }],
+         ],
+         'target_conditions': [
+           ['_type!="static_library"', {

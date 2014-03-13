@@ -81,18 +81,18 @@
 		80477B3A18D119F000B16692 /* L8FrameworkTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = L8FrameworkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		80477B3B18D119F000B16692 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		80477B4318D119F000B16692 /* L8FrameworkTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "L8FrameworkTests-Info.plist"; sourceTree = "<group>"; };
-		80477B5C18D11A5100B16692 /* v8-debug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "v8-debug.h"; path = "../v8/include/v8-debug.h"; sourceTree = SOURCE_ROOT; };
-		80477B5D18D11A5100B16692 /* v8-platform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "v8-platform.h"; path = "../v8/include/v8-platform.h"; sourceTree = SOURCE_ROOT; };
-		80477B5E18D11A5100B16692 /* v8-profiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "v8-profiler.h"; path = "../v8/include/v8-profiler.h"; sourceTree = SOURCE_ROOT; };
-		80477B5F18D11A5100B16692 /* v8-testing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "v8-testing.h"; path = "../v8/include/v8-testing.h"; sourceTree = SOURCE_ROOT; };
-		80477B6018D11A5100B16692 /* v8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = v8.h; path = ../v8/include/v8.h; sourceTree = SOURCE_ROOT; };
-		80477B6118D11A5100B16692 /* v8config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = v8config.h; path = ../v8/include/v8config.h; sourceTree = SOURCE_ROOT; };
-		80477B6218D11A5100B16692 /* v8stdint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = v8stdint.h; path = ../v8/include/v8stdint.h; sourceTree = SOURCE_ROOT; };
-		80477B6A18D11A6200B16692 /* libicudata.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libicudata.a; path = ../v8/xcodebuild/Release/libicudata.a; sourceTree = SOURCE_ROOT; };
-		80477B6B18D11A6200B16692 /* libicui18n.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libicui18n.a; path = ../v8/xcodebuild/Release/libicui18n.a; sourceTree = SOURCE_ROOT; };
-		80477B6C18D11A6200B16692 /* libicuuc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libicuuc.a; path = ../v8/xcodebuild/Release/libicuuc.a; sourceTree = SOURCE_ROOT; };
-		80477B6D18D11A6200B16692 /* libv8_base.x64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libv8_base.x64.a; path = ../v8/xcodebuild/Release/libv8_base.x64.a; sourceTree = SOURCE_ROOT; };
-		80477B6E18D11A6200B16692 /* libv8_snapshot.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libv8_snapshot.a; path = ../v8/xcodebuild/Release/libv8_snapshot.a; sourceTree = SOURCE_ROOT; };
+		80477B5C18D11A5100B16692 /* v8-debug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "v8-debug.h"; path = "v8/include/v8-debug.h"; sourceTree = SOURCE_ROOT; };
+		80477B5D18D11A5100B16692 /* v8-platform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "v8-platform.h"; path = "v8/include/v8-platform.h"; sourceTree = SOURCE_ROOT; };
+		80477B5E18D11A5100B16692 /* v8-profiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "v8-profiler.h"; path = "v8/include/v8-profiler.h"; sourceTree = SOURCE_ROOT; };
+		80477B5F18D11A5100B16692 /* v8-testing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "v8-testing.h"; path = "v8/include/v8-testing.h"; sourceTree = SOURCE_ROOT; };
+		80477B6018D11A5100B16692 /* v8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = v8.h; path = v8/include/v8.h; sourceTree = SOURCE_ROOT; };
+		80477B6118D11A5100B16692 /* v8config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = v8config.h; path = v8/include/v8config.h; sourceTree = SOURCE_ROOT; };
+		80477B6218D11A5100B16692 /* v8stdint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = v8stdint.h; path = v8/include/v8stdint.h; sourceTree = SOURCE_ROOT; };
+		80477B6A18D11A6200B16692 /* libicudata.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libicudata.a; path = v8/xcodebuild/Release/libicudata.a; sourceTree = SOURCE_ROOT; };
+		80477B6B18D11A6200B16692 /* libicui18n.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libicui18n.a; path = v8/xcodebuild/Release/libicui18n.a; sourceTree = SOURCE_ROOT; };
+		80477B6C18D11A6200B16692 /* libicuuc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libicuuc.a; path = v8/xcodebuild/Release/libicuuc.a; sourceTree = SOURCE_ROOT; };
+		80477B6D18D11A6200B16692 /* libv8_base.x64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libv8_base.x64.a; path = v8/xcodebuild/Release/libv8_base.x64.a; sourceTree = SOURCE_ROOT; };
+		80477B6E18D11A6200B16692 /* libv8_snapshot.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libv8_snapshot.a; path = v8/xcodebuild/Release/libv8_snapshot.a; sourceTree = SOURCE_ROOT; };
 		80477B7818D11AA700B16692 /* L8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = L8.h; path = Headers/L8.h; sourceTree = "<group>"; };
 		80477B7918D11AA700B16692 /* L8Exception.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = L8Exception.h; path = Headers/L8Exception.h; sourceTree = "<group>"; };
 		80477B7A18D11AA700B16692 /* L8Export.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = L8Export.h; path = Headers/L8Export.h; sourceTree = "<group>"; };
@@ -130,6 +130,10 @@
 		80477BBC18D11BFC00B16692 /* L8Runtime+L8Test.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "L8Runtime+L8Test.m"; path = "Source/L8Runtime+L8Test.m"; sourceTree = "<group>"; };
 		80477BBD18D11BFC00B16692 /* L8RuntimeTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = L8RuntimeTests.m; path = Source/L8RuntimeTests.m; sourceTree = "<group>"; };
 		80477BBE18D11BFC00B16692 /* L8ValueTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = L8ValueTests.m; path = Source/L8ValueTests.m; sourceTree = "<group>"; };
+		8060610418D223B5003CC846 /* v8_build.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = v8_build.sh; sourceTree = "<group>"; };
+		8060610618D223D4003CC846 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		8060610718D223D4003CC846 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
+		8060610818D223D4003CC846 /* v8_build.patch */ = {isa = PBXFileReference; lastKnownFileType = text; path = v8_build.patch; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -158,9 +162,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8024954318D22E260071F3C4 /* Patches */ = {
+			isa = PBXGroup;
+			children = (
+				8060610818D223D4003CC846 /* v8_build.patch */,
+			);
+			path = Patches;
+			sourceTree = "<group>";
+		};
 		80477B1918D119ED00B16692 = {
 			isa = PBXGroup;
 			children = (
+				8060610518D223C0003CC846 /* Supporting Files */,
 				80477B2C18D119EE00B16692 /* L8Framework */,
 				80477B4118D119F000B16692 /* L8FrameworkTests */,
 				80477B2518D119ED00B16692 /* Frameworks */,
@@ -180,11 +193,7 @@
 		80477B2518D119ED00B16692 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				80477B6A18D11A6200B16692 /* libicudata.a */,
-				80477B6B18D11A6200B16692 /* libicui18n.a */,
-				80477B6C18D11A6200B16692 /* libicuuc.a */,
-				80477B6D18D11A6200B16692 /* libv8_base.x64.a */,
-				80477B6E18D11A6200B16692 /* libv8_snapshot.a */,
+				8060610318D221A6003CC846 /* V8 */,
 				80477B2618D119ED00B16692 /* Cocoa.framework */,
 				80477B3B18D119F000B16692 /* XCTest.framework */,
 				80477B2818D119ED00B16692 /* Other Frameworks */,
@@ -327,6 +336,29 @@
 			name = Extensions;
 			sourceTree = "<group>";
 		};
+		8060610318D221A6003CC846 /* V8 */ = {
+			isa = PBXGroup;
+			children = (
+				80477B6A18D11A6200B16692 /* libicudata.a */,
+				80477B6B18D11A6200B16692 /* libicui18n.a */,
+				80477B6C18D11A6200B16692 /* libicuuc.a */,
+				80477B6D18D11A6200B16692 /* libv8_base.x64.a */,
+				80477B6E18D11A6200B16692 /* libv8_snapshot.a */,
+			);
+			name = V8;
+			sourceTree = "<group>";
+		};
+		8060610518D223C0003CC846 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				8060610418D223B5003CC846 /* v8_build.sh */,
+				8060610618D223D4003CC846 /* LICENSE */,
+				8060610718D223D4003CC846 /* README.md */,
+				8024954318D22E260071F3C4 /* Patches */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -376,6 +408,7 @@
 				80477B1F18D119ED00B16692 /* Frameworks */,
 				80477B2018D119ED00B16692 /* Headers */,
 				80477B2118D119ED00B16692 /* Resources */,
+				8024954418D233580071F3C4 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -453,6 +486,22 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		8024954418D233580071F3C4 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 12;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = /Users/jos/Documents/Jarvix/Production/L8Framework/v8_build.sh;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		80477B1E18D119ED00B16692 /* Sources */ = {
@@ -605,6 +654,7 @@
 		80477B4F18D119F000B16692 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/L8Framework.framework/Versions/A/L8Framework";
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(DEVELOPER_FRAMEWORKS_DIR)",
@@ -618,6 +668,7 @@
 				);
 				INFOPLIST_FILE = "L8FrameworkTests/L8FrameworkTests-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
 				WRAPPER_EXTENSION = xctest;
 			};
 			name = Debug;
@@ -625,6 +676,7 @@
 		80477B5018D119F000B16692 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/L8Framework.framework/Versions/A/L8Framework";
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(DEVELOPER_FRAMEWORKS_DIR)",
@@ -634,6 +686,7 @@
 				GCC_PREFIX_HEADER = "L8Framework/L8Framework-Prefix.pch";
 				INFOPLIST_FILE = "L8FrameworkTests/L8FrameworkTests-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
 				WRAPPER_EXTENSION = xctest;
 			};
 			name = Release;
