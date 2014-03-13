@@ -346,7 +346,6 @@
 
 			XCTAssertNotNil(value, "-[valueWithObject:(CustomPropertiesClassWithAttributes)]");
 
-			NSLog(@"%@",[value[@"hidden"] toNumber]);
 			XCTAssertEqual([value[@"hidden"] toBool], YES, "Boolean readonly property existence");
 			XCTAssertEqualObjects([value[@"stringVal"] toString], @"String", "NSString readonly property existence");
 			XCTAssertEqualObjects([value[@"maker"] toString], @"The Architect", "NSString renamed getter existence");
