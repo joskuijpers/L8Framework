@@ -1,13 +1,10 @@
 L8Framework
-=======
-
+===========
 A framework wrapping V8 into Objective-C.
 
 Nearly compatible with the JavaScriptCore Objective-C API by Apple, Inc.
 
-License
-===
-
+## License ##
 This software is released under the 2 clause BSD license. See LICENSE.
 
 ```
