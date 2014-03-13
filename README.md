@@ -2,7 +2,7 @@ L8Framework
 ===========
 A framework wrapping V8 into Objective-C.
 
-Nearly compatible with the JavaScriptCore Objective-C API by Apple, Inc.
+Nearly compatible with the JavaScriptCore Objective-C API by Apple Inc.
 
 ## Building L8Framework ##
 
