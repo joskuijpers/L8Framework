@@ -99,8 +99,7 @@ static L8Reporter *g_sharedReporter = nil;
 		if([(L8Value *)ball isNativeError]) {
 
 			// Is some internal v8 object. Only thing we can do is make it a string
-			String::AsciiValue excStr(tryCatch->Exception());
-			ball = [NSString stringWithV8String:String::New(*excStr)];
+			ball = [NSString stringWithV8Value:tryCatch->Exception()];
 
 			// Find prefix
 			if((strRange = [ball rangeOfString:@"SyntaxError: "]).location != NSNotFound)

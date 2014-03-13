@@ -29,9 +29,7 @@
 
 #define L8_STACKTRACE_FRAMELIMIT 20
 
-using v8::Local;
-using v8::StackTrace;
-using v8::StackFrame;
+using namespace v8;
 
 @implementation L8StackTrace {
 	NSMutableArray *_frameCache;
@@ -76,8 +74,10 @@ using v8::StackFrame;
 
 + (L8StackTrace *)currentStackTrace
 {
+	Isolate *isolate = Isolate::GetCurrent();
 	Local<StackTrace> trace;
-	trace = StackTrace::CurrentStackTrace(L8_STACKTRACE_FRAMELIMIT);
+
+	trace = StackTrace::CurrentStackTrace(isolate,L8_STACKTRACE_FRAMELIMIT);
 
 	return [[self alloc] initWithV8StackTrace:trace];
 }
@@ -115,6 +115,7 @@ using v8::StackFrame;
 								  objects:(__unsafe_unretained id [])buffer
 									count:(NSUInteger)len
 {
+	// TODO
 	@throw [NSException exceptionWithName:@"NotImplemented" reason:@"" userInfo:nil];
 	return 0;
 }

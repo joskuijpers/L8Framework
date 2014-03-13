@@ -26,11 +26,7 @@
 #import "NSString+L8.h"
 #include "v8.h"
 
-using v8::Local;
-using v8::String;
-using v8::Value;
-using v8::HandleScope;
-using v8::Isolate;
+using namespace v8;
 
 @implementation NSString (L8)
 
@@ -78,11 +74,11 @@ using v8::Isolate;
 
 - (Local<String>)V8StringWithIsolate:(Isolate *)isolate
 {
-	HandleScope scope(isolate);
+	EscapableHandleScope scope(isolate);
 
 	Local<String> ret = String::NewFromUtf8(isolate, [self UTF8String]);
 
-	return scope.Close(ret);
+	return scope.Escape(ret);
 }
 
 @end

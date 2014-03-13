@@ -29,11 +29,7 @@
 
 #include "v8.h"
 
-using v8::Local;
-using v8::Value;
-using v8::Persistent;
-using v8::Isolate;
-using v8::WeakCallbackData;
+using namespace v8;
 
 static void L8ManagedValueWeakReferenceCallback(const WeakCallbackData<Value, void>& data);
 
@@ -146,7 +142,7 @@ static void L8ManagedValueWeakReferenceCallback(const WeakCallbackData<Value, vo
 
 - (void)removeValue
 {
-	_persist.Clear();
+	_persist.ClearAndLeak();
 }
 
 @end

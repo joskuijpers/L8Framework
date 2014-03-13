@@ -75,4 +75,4 @@ void ObjCAccessorGetter(v8::Local<v8::String> property, const v8::PropertyCallba
 /**
  * Callback for stored objective-c values in Persisent<> that need freeing.
  */
-void ObjCWeakReferenceCallback(v8::Isolate *isolate, v8::Persistent<v8::External> *object, void *parameter);
+void ObjCWeakReferenceCallback(const v8::WeakCallbackData<v8::External, void>& data);

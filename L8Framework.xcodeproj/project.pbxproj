@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8024956018D26A3A0071F3C4 /* libicudata.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6A18D11A6200B16692 /* libicudata.a */; };
+		8024956118D26A3A0071F3C4 /* libicui18n.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6B18D11A6200B16692 /* libicui18n.a */; };
+		8024956218D26A3A0071F3C4 /* libicuuc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6C18D11A6200B16692 /* libicuuc.a */; };
+		8024956318D26A3A0071F3C4 /* libv8_base.x64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6D18D11A6200B16692 /* libv8_base.x64.a */; };
+		8024956418D26A3A0071F3C4 /* libv8_snapshot.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6E18D11A6200B16692 /* libv8_snapshot.a */; };
 		80477B3C18D119F000B16692 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B3B18D119F000B16692 /* XCTest.framework */; };
 		80477B3D18D119F000B16692 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B2618D119ED00B16692 /* Cocoa.framework */; };
 		80477B4018D119F000B16692 /* L8Framework.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B2318D119ED00B16692 /* L8Framework.framework */; };
@@ -17,11 +22,6 @@
 		80477B6718D11A5100B16692 /* v8.h in Headers */ = {isa = PBXBuildFile; fileRef = 80477B6018D11A5100B16692 /* v8.h */; };
 		80477B6818D11A5100B16692 /* v8config.h in Headers */ = {isa = PBXBuildFile; fileRef = 80477B6118D11A5100B16692 /* v8config.h */; };
 		80477B6918D11A5100B16692 /* v8stdint.h in Headers */ = {isa = PBXBuildFile; fileRef = 80477B6218D11A5100B16692 /* v8stdint.h */; };
-		80477B6F18D11A6200B16692 /* libicudata.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6A18D11A6200B16692 /* libicudata.a */; };
-		80477B7018D11A6200B16692 /* libicui18n.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6B18D11A6200B16692 /* libicui18n.a */; };
-		80477B7118D11A6200B16692 /* libicuuc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6C18D11A6200B16692 /* libicuuc.a */; };
-		80477B7218D11A6200B16692 /* libv8_base.x64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6D18D11A6200B16692 /* libv8_base.x64.a */; };
-		80477B7318D11A6200B16692 /* libv8_snapshot.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6E18D11A6200B16692 /* libv8_snapshot.a */; };
 		80477B8218D11AA700B16692 /* L8.h in Headers */ = {isa = PBXBuildFile; fileRef = 80477B7818D11AA700B16692 /* L8.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		80477B8318D11AA700B16692 /* L8Exception.h in Headers */ = {isa = PBXBuildFile; fileRef = 80477B7918D11AA700B16692 /* L8Exception.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		80477B8418D11AA700B16692 /* L8Export.h in Headers */ = {isa = PBXBuildFile; fileRef = 80477B7A18D11AA700B16692 /* L8Export.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -141,11 +141,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				80477B6F18D11A6200B16692 /* libicudata.a in Frameworks */,
-				80477B7018D11A6200B16692 /* libicui18n.a in Frameworks */,
-				80477B7118D11A6200B16692 /* libicuuc.a in Frameworks */,
-				80477B7218D11A6200B16692 /* libv8_base.x64.a in Frameworks */,
-				80477B7318D11A6200B16692 /* libv8_snapshot.a in Frameworks */,
+				8024956018D26A3A0071F3C4 /* libicudata.a in Frameworks */,
+				8024956118D26A3A0071F3C4 /* libicui18n.a in Frameworks */,
+				8024956218D26A3A0071F3C4 /* libicuuc.a in Frameworks */,
+				8024956318D26A3A0071F3C4 /* libv8_base.x64.a in Frameworks */,
+				8024956418D26A3A0071F3C4 /* libv8_snapshot.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -224,7 +224,6 @@
 		80477B2D18D119EE00B16692 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				80477BB818D11B0700B16692 /* Doxyfile */,
 				80477B2E18D119EE00B16692 /* L8Framework-Info.plist */,
 				80477B3218D119EE00B16692 /* L8Framework-Prefix.pch */,
 			);
@@ -354,6 +353,7 @@
 				8060610418D223B5003CC846 /* v8_build.sh */,
 				8060610618D223D4003CC846 /* LICENSE */,
 				8060610718D223D4003CC846 /* README.md */,
+				80477BB818D11B0700B16692 /* Doxyfile */,
 				8024954318D22E260071F3C4 /* Patches */,
 			);
 			name = "Supporting Files";
@@ -408,7 +408,6 @@
 				80477B1F18D119ED00B16692 /* Frameworks */,
 				80477B2018D119ED00B16692 /* Headers */,
 				80477B2118D119ED00B16692 /* Resources */,
-				8024954418D233580071F3C4 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -486,22 +485,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		8024954418D233580071F3C4 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 12;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = /Users/jos/Documents/Jarvix/Production/L8Framework/v8_build.sh;
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		80477B1E18D119ED00B16692 /* Sources */ = {
@@ -616,6 +599,7 @@
 		80477B4C18D119F000B16692 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LIBRARY = "libstdc++";
 				COMBINE_HIDPI_IMAGES = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -625,7 +609,7 @@
 				INFOPLIST_FILE = "L8Framework/L8Framework-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/Users/jos/Documents/Jarvix/Production/v8/xcodebuild/Release,
+					"$(PROJECT_DIR)/v8/xcodebuild/Release",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = framework;
@@ -635,6 +619,7 @@
 		80477B4D18D119F000B16692 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LIBRARY = "libstdc++";
 				COMBINE_HIDPI_IMAGES = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -644,7 +629,7 @@
 				INFOPLIST_FILE = "L8Framework/L8Framework-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/Users/jos/Documents/Jarvix/Production/v8/xcodebuild/Release,
+					"$(PROJECT_DIR)/v8/xcodebuild/Release",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = framework;

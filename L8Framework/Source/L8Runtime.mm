@@ -73,11 +73,11 @@ using namespace v8;
 
 		// Create the context
 		Local<Context> context = Context::New(isolate);
-		context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SELF, External::New((void *)CFBridgingRetain(self)));
+		context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SELF, External::New(isolate,(void *)CFBridgingRetain(self)));
 		_v8context.Reset(isolate, context);
 
 		// Start the context scope
-		Context::Scope contextScope(isolate,_v8context);
+		Context::Scope contextScope(context);
 
 		// Create the wrappermap for the context
 		_wrapperMap = [[L8WrapperMap alloc] initWithRuntime:self];
@@ -93,15 +93,15 @@ using namespace v8;
 {
 	Isolate *isolate = Isolate::GetCurrent();
 	HandleScope mainScope(isolate);
-	Context::Scope contextScope(isolate,_v8context);
 	Local<Context> context = Local<Context>::New(isolate, _v8context);
+	Context::Scope contextScope(context);
 
 	Local<External> selfStored = context->GetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SELF).As<External>();
 	if(!selfStored.IsEmpty()) {
 		CFRelease(selfStored->Value());
 	}
 
-	_v8context.Clear();
+	_v8context.ClearAndLeak();
 	isolate->Dispose();
 }
 
@@ -109,7 +109,7 @@ using namespace v8;
 {
 	Isolate *isolate = Isolate::GetCurrent();
 	HandleScope localScope(isolate);
-	Context::Scope contextScope(isolate,_v8context);
+	Context::Scope contextScope(Local<Context>::New(isolate,_v8context));
 
 	TryCatch tryCatch;
 
@@ -176,7 +176,7 @@ using namespace v8;
 		return nil;
 
 	Isolate *isolate = Isolate::GetCurrent();
-	HandleScope localScope(isolate);
+	EscapableHandleScope localScope(isolate);
 	ScriptOrigin scriptOrigin = ScriptOrigin([name V8String]);
 
 	Local<Script> script;
@@ -199,7 +199,7 @@ using namespace v8;
 			return nil;
 		}
 
-		return [L8Value valueWithV8Value:localScope.Close(retVal)];
+		return [L8Value valueWithV8Value:localScope.Escape(retVal)];
 	}
 
 	return nil;
@@ -321,6 +321,9 @@ void L8RuntimeDebugMessageDispatchHandler()
 
 - (void)enableDebugging
 {
+	Isolate *isolate = Isolate::GetCurrent();
+	HandleScope localScope(isolate);
+
 	if(_debuggerPort == 0) {
 		_debuggerPort = 12228; // L=12 V=22 8, LFV8
 	}
@@ -328,8 +331,7 @@ void L8RuntimeDebugMessageDispatchHandler()
 	Debug::EnableAgent("sphere_runtime", _debuggerPort, _waitForDebugger);
 	Debug::SetDebugMessageDispatchHandler(L8RuntimeDebugMessageDispatchHandler);
 
-	HandleScope localScope(Isolate::GetCurrent());
-	Debug::GetDebugContext()->SetEmbedderData(1, External::New((__bridge void *)self));
+	Debug::GetDebugContext()->SetEmbedderData(1, External::New(isolate,(__bridge void *)self));
 }
 
 - (void)disableDebugging
