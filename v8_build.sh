@@ -46,7 +46,7 @@ echo "Creating Xcode projects..."
 build/gyp_v8 -Dtarget_arch=x64 || exit $?
 
 echo "Building V8..."
-xcodebuild -project build/all.xcodeproj -configuration Release -jobs 8 || exit $?
+xcodebuild -project build/all.xcodeproj -configuration Release || exit $?
 
 echo "Removing patches..."
 for patch in ../Patches/*; do
