@@ -15,6 +15,9 @@
 		8024959818D2A8710071F3C4 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B2918D119ED00B16692 /* Foundation.framework */; };
 		8024959B18D2A8710071F3C4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 8024959A18D2A8710071F3C4 /* main.m */; };
 		8024959F18D2A8720071F3C4 /* L8Debugger.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8024959E18D2A8710071F3C4 /* L8Debugger.1 */; };
+		802495C918D368130071F3C4 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B3B18D119F000B16692 /* XCTest.framework */; };
+		802495CD18D368130071F3C4 /* L8DebugFramework.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 802495B818D368130071F3C4 /* L8DebugFramework.framework */; };
+		802495D518D368130071F3C4 /* L8DebugFrameworkTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 802495D418D368130071F3C4 /* L8DebugFrameworkTests.m */; };
 		80477B3C18D119F000B16692 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B3B18D119F000B16692 /* XCTest.framework */; };
 		80477B4018D119F000B16692 /* L8Framework.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B2318D119ED00B16692 /* L8Framework.framework */; };
 		80477B6318D11A5100B16692 /* v8-debug.h in Headers */ = {isa = PBXBuildFile; fileRef = 80477B5C18D11A5100B16692 /* v8-debug.h */; };
@@ -62,6 +65,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		802495CB18D368130071F3C4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 80477B1A18D119ED00B16692 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 802495B718D368130071F3C4;
+			remoteInfo = L8DebugFramework;
+		};
+		802495E018D36ADE0071F3C4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 80477B1A18D119ED00B16692 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 802495B718D368130071F3C4;
+			remoteInfo = L8DebugFramework;
+		};
 		80477B3E18D119F000B16692 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 80477B1A18D119ED00B16692 /* Project object */;
@@ -93,6 +110,13 @@
 		8024959A18D2A8710071F3C4 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Source/main.m; sourceTree = "<group>"; };
 		8024959D18D2A8710071F3C4 /* L8Debugger-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "L8Debugger-Prefix.pch"; sourceTree = "<group>"; };
 		8024959E18D2A8710071F3C4 /* L8Debugger.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = L8Debugger.1; sourceTree = "<group>"; };
+		802495B818D368130071F3C4 /* L8DebugFramework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = L8DebugFramework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		802495BC18D368130071F3C4 /* L8DebugFramework-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; name = "L8DebugFramework-Info.plist"; path = "L8DebugFramework/L8DebugFramework-Info.plist"; sourceTree = "<group>"; };
+		802495C018D368130071F3C4 /* L8DebugFramework-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "L8DebugFramework-Prefix.pch"; path = "L8DebugFramework/L8DebugFramework-Prefix.pch"; sourceTree = "<group>"; };
+		802495C118D368130071F3C4 /* L8DebugFramework.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = L8DebugFramework.h; sourceTree = "<group>"; };
+		802495C818D368130071F3C4 /* L8DebugFrameworkTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = L8DebugFrameworkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		802495D018D368130071F3C4 /* L8DebugFrameworkTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; name = "L8DebugFrameworkTests-Info.plist"; path = "L8DebugFrameworkTests/L8DebugFrameworkTests-Info.plist"; sourceTree = "<group>"; };
+		802495D418D368130071F3C4 /* L8DebugFrameworkTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = L8DebugFrameworkTests.m; sourceTree = "<group>"; };
 		80477B2318D119ED00B16692 /* L8Framework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = L8Framework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		80477B2918D119ED00B16692 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		80477B2E18D119EE00B16692 /* L8Framework-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "L8Framework-Info.plist"; sourceTree = "<group>"; };
@@ -162,6 +186,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		802495B418D368130071F3C4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		802495C518D368130071F3C4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				802495CD18D368130071F3C4 /* L8DebugFramework.framework in Frameworks */,
+				802495C918D368130071F3C4 /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		80477B1F18D119ED00B16692 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -222,12 +262,83 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		802495BA18D368130071F3C4 /* L8DebugFramework */ = {
+			isa = PBXGroup;
+			children = (
+				802495DD18D368B90071F3C4 /* Private */,
+				802495DC18D368B40071F3C4 /* Public */,
+				802495DF18D36AB10071F3C4 /* Source */,
+				802495BB18D368130071F3C4 /* Supporting Files */,
+			);
+			path = L8DebugFramework;
+			sourceTree = "<group>";
+		};
+		802495BB18D368130071F3C4 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				802495BC18D368130071F3C4 /* L8DebugFramework-Info.plist */,
+				802495C018D368130071F3C4 /* L8DebugFramework-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		802495CE18D368130071F3C4 /* L8DebugFrameworkTests */ = {
+			isa = PBXGroup;
+			children = (
+				802495DE18D36A7B0071F3C4 /* Tests */,
+				802495CF18D368130071F3C4 /* Supporting Files */,
+			);
+			path = L8DebugFrameworkTests;
+			sourceTree = "<group>";
+		};
+		802495CF18D368130071F3C4 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				802495D018D368130071F3C4 /* L8DebugFrameworkTests-Info.plist */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		802495DC18D368B40071F3C4 /* Public */ = {
+			isa = PBXGroup;
+			children = (
+				802495C118D368130071F3C4 /* L8DebugFramework.h */,
+			);
+			name = Public;
+			path = Headers;
+			sourceTree = "<group>";
+		};
+		802495DD18D368B90071F3C4 /* Private */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Private;
+			sourceTree = "<group>";
+		};
+		802495DE18D36A7B0071F3C4 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				802495D418D368130071F3C4 /* L8DebugFrameworkTests.m */,
+			);
+			name = Tests;
+			path = Source;
+			sourceTree = "<group>";
+		};
+		802495DF18D36AB10071F3C4 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Source;
+			sourceTree = "<group>";
+		};
 		80477B1918D119ED00B16692 = {
 			isa = PBXGroup;
 			children = (
 				80477B2C18D119EE00B16692 /* L8Framework */,
 				80477B4118D119F000B16692 /* L8FrameworkTests */,
 				8024959918D2A8710071F3C4 /* L8Debugger */,
+				802495BA18D368130071F3C4 /* L8DebugFramework */,
+				802495CE18D368130071F3C4 /* L8DebugFrameworkTests */,
 				8060610518D223C0003CC846 /* Supporting Files */,
 				80477B2518D119ED00B16692 /* Frameworks */,
 				80477B2418D119ED00B16692 /* Products */,
@@ -240,6 +351,8 @@
 				80477B2318D119ED00B16692 /* L8Framework.framework */,
 				80477B3A18D119F000B16692 /* L8FrameworkTests.xctest */,
 				8024959718D2A8710071F3C4 /* L8Debugger */,
+				802495B818D368130071F3C4 /* L8DebugFramework.framework */,
+				802495C818D368130071F3C4 /* L8DebugFrameworkTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -405,6 +518,13 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
+		802495B518D368130071F3C4 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		80477B2018D119ED00B16692 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -454,11 +574,48 @@
 			buildRules = (
 			);
 			dependencies = (
+				802495E118D36ADE0071F3C4 /* PBXTargetDependency */,
 			);
 			name = L8Debugger;
 			productName = L8Debugger;
 			productReference = 8024959718D2A8710071F3C4 /* L8Debugger */;
 			productType = "com.apple.product-type.tool";
+		};
+		802495B718D368130071F3C4 /* L8DebugFramework */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 802495DA18D368130071F3C4 /* Build configuration list for PBXNativeTarget "L8DebugFramework" */;
+			buildPhases = (
+				802495B318D368130071F3C4 /* Sources */,
+				802495B418D368130071F3C4 /* Frameworks */,
+				802495B518D368130071F3C4 /* Headers */,
+				802495B618D368130071F3C4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = L8DebugFramework;
+			productName = L8DebugFramework;
+			productReference = 802495B818D368130071F3C4 /* L8DebugFramework.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		802495C718D368130071F3C4 /* L8DebugFrameworkTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 802495DB18D368130071F3C4 /* Build configuration list for PBXNativeTarget "L8DebugFrameworkTests" */;
+			buildPhases = (
+				802495C418D368130071F3C4 /* Sources */,
+				802495C518D368130071F3C4 /* Frameworks */,
+				802495C618D368130071F3C4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				802495CC18D368130071F3C4 /* PBXTargetDependency */,
+			);
+			name = L8DebugFrameworkTests;
+			productName = L8DebugFrameworkTests;
+			productReference = 802495C818D368130071F3C4 /* L8DebugFrameworkTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		80477B2218D119ED00B16692 /* L8Framework */ = {
 			isa = PBXNativeTarget;
@@ -505,6 +662,9 @@
 				LastUpgradeCheck = 0500;
 				ORGANIZATIONNAME = Jarvix;
 				TargetAttributes = {
+					802495C718D368130071F3C4 = {
+						TestTargetID = 802495B718D368130071F3C4;
+					};
 					80477B3918D119EF00B16692 = {
 						TestTargetID = 80477B2218D119ED00B16692;
 					};
@@ -525,11 +685,27 @@
 				80477B2218D119ED00B16692 /* L8Framework */,
 				80477B3918D119EF00B16692 /* L8FrameworkTests */,
 				8024959618D2A8710071F3C4 /* L8Debugger */,
+				802495B718D368130071F3C4 /* L8DebugFramework */,
+				802495C718D368130071F3C4 /* L8DebugFrameworkTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		802495B618D368130071F3C4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		802495C618D368130071F3C4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		80477B2118D119ED00B16692 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -553,6 +729,21 @@
 			buildActionMask = 2147483647;
 			files = (
 				8024959B18D2A8710071F3C4 /* main.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		802495B318D368130071F3C4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		802495C418D368130071F3C4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				802495D518D368130071F3C4 /* L8DebugFrameworkTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -586,6 +777,16 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		802495CC18D368130071F3C4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 802495B718D368130071F3C4 /* L8DebugFramework */;
+			targetProxy = 802495CB18D368130071F3C4 /* PBXContainerItemProxy */;
+		};
+		802495E118D36ADE0071F3C4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 802495B718D368130071F3C4 /* L8DebugFramework */;
+			targetProxy = 802495E018D36ADE0071F3C4 /* PBXContainerItemProxy */;
+		};
 		80477B3F18D119F000B16692 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 80477B2218D119ED00B16692 /* L8Framework */;
@@ -617,6 +818,84 @@
 				GCC_PREFIX_HEADER = "L8Debugger/L8Debugger-Prefix.pch";
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		802495D618D368130071F3C4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				FRAMEWORK_VERSION = A;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "L8DebugFramework/L8DebugFramework-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				INFOPLIST_FILE = "L8DebugFramework/L8DebugFramework-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = framework;
+			};
+			name = Debug;
+		};
+		802495D718D368130071F3C4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				FRAMEWORK_VERSION = A;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "L8DebugFramework/L8DebugFramework-Prefix.pch";
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				INFOPLIST_FILE = "L8DebugFramework/L8DebugFramework-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = framework;
+			};
+			name = Release;
+		};
+		802495D818D368130071F3C4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
+					"$(inherited)",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "L8DebugFramework/L8DebugFramework-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				INFOPLIST_FILE = "L8DebugFrameworkTests/L8DebugFrameworkTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = xctest;
+			};
+			name = Debug;
+		};
+		802495D918D368130071F3C4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(DEVELOPER_FRAMEWORKS_DIR)",
+					"$(inherited)",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "L8DebugFramework/L8DebugFramework-Prefix.pch";
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				INFOPLIST_FILE = "L8DebugFrameworkTests/L8DebugFrameworkTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = xctest;
 			};
 			name = Release;
 		};
@@ -778,6 +1057,23 @@
 			buildConfigurations = (
 				802495A118D2A8720071F3C4 /* Debug */,
 				802495A218D2A8720071F3C4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		802495DA18D368130071F3C4 /* Build configuration list for PBXNativeTarget "L8DebugFramework" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				802495D618D368130071F3C4 /* Debug */,
+				802495D718D368130071F3C4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		802495DB18D368130071F3C4 /* Build configuration list for PBXNativeTarget "L8DebugFrameworkTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				802495D818D368130071F3C4 /* Debug */,
+				802495D918D368130071F3C4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 		};
