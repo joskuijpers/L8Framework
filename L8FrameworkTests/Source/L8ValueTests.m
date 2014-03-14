@@ -201,7 +201,7 @@
 
 			XCTAssertNotNil(value, "-[valueWithNewObject]");
 			XCTAssertNotNil([value toObject], "-[toObject]");
-			NSLog(@"OBJECT %@",value);
+
 			XCTAssertTrue([value isObject], "-[isObject]");
 		}];
 	}
