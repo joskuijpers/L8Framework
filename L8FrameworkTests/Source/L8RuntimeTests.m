@@ -24,7 +24,7 @@
  */
 
 #import <XCTest/XCTest.h>
-#import "L8Runtime+L8Test.h"
+#import "L8Runtime.h"
 #import "L8Value.h"
 
 @interface L8RuntimeTests : XCTestCase
