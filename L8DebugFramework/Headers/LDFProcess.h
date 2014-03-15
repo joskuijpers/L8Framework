@@ -20,7 +20,55 @@
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#import "LDFProcess.h"
+@class LDFBreakPoint, LDFProcess;
+
+/**
+ * @brief Delegate used for process notifications.
+ */
+@protocol LDFProcessDelegate <NSObject>
+@optional
+
+/**
+ * Sent when successfully a connection is made to the remote process.
+ * @param process The process representation.
+ */
+- (void)processDidConnect:(LDFProcess *)process;
+
+/**
+ * Sent by the remote process when it hits a breakpoint.
+ *
+ * @param process The process hitting a breakpoint.
+ * @param breakpoint The breakpoint that is hit.
+ */
+- (void)process:(LDFProcess *)process hitBreakpoint:(LDFBreakPoint *)breakpoint;
+
+@end
+
+/**
+ * @brief A remote process.
+ */
+@interface LDFProcess : NSObject
+
+/// Object where async messages will be sent to
+@property (weak) id<LDFProcessDelegate> delegate;
+
+/// Port on which the L8 process is running
+@property (readonly) uint16_t port;
+
+/**
+ * Initialize a connection to a remote L8 process.
+ *
+ * @param port Port used by the remote L8 process.
+ * @return An initialized LDFProcess.
+ */
+- (instancetype)initWithPort:(uint16_t)port;
+
+/**
+ * Start the connection to the remote process.
+ */
+- (void)connect;
+
+@end

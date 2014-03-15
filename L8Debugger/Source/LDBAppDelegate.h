@@ -20,7 +20,26 @@
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
+#import <AppKit/NSApplication.h>
 #import "LDFProcess.h"
+
+/**
+ * @brief Notification-based entry point for the debugger.
+ */
+@interface LDBAppDelegate : NSObject <NSApplicationDelegate,LDFProcessDelegate>
+
+/// Arguments from the CLI.
+@property (readonly) NSArray *arguments;
+
+/**
+ * Initialize an app delegate instance with CLI input arguments.
+ *
+ * @param arguments The arguments from the CLI.
+ * @return Initialized LDBAppDelegate.
+ */
+- (instancetype)initWithArguments:(NSArray *)arguments;
+
+@end

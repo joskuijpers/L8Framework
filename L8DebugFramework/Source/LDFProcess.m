@@ -24,3 +24,21 @@
  */
 
 #import "LDFProcess.h"
+
+@implementation LDFProcess
+
+- (instancetype)initWithPort:(uint16_t)port
+{
+	self = [super init];
+	if(self) {
+		_port = port;
+	}
+	return self;
+}
+
+- (void)connect
+{
+	
+}
+
+@end

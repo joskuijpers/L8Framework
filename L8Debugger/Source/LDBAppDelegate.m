@@ -23,4 +23,34 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "LDFProcess.h"
+#import "LDBAppDelegate.h"
+#import "L8DebugFramework.h"
+
+#import <AppKit/AppKit.h>
+
+@implementation LDBAppDelegate {
+	LDFProcess *_remoteProcess;
+}
+
+- (instancetype)initWithArguments:(NSArray *)arguments
+{
+	self = [super init];
+	if(self) {
+		_arguments = arguments;
+	}
+	return self;
+}
+
+- (void)applicationDidFinishLaunching:(NSNotification *)notification;
+{
+	NSLog(@"%@",_arguments);
+	_remoteProcess = [[LDFProcess alloc] initWithPort:12345];
+	_remoteProcess.delegate = self;
+
+	NSLog(@"Connecting to port %hu...",_remoteProcess.port);
+	[_remoteProcess connect];
+
+//	[NSApp terminate:nil];
+}
+
+@end

@@ -23,4 +23,18 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "LDFProcess.h"
+#import <XCTest/XCTest.h>
+#import "L8Runtime_Debugging.h"
+#import "L8Value.h"
+
+
+@interface L8DebugTests : XCTestCase @end
+
+@implementation L8DebugTests
+
+- (void)testDebugging
+{
+	XCTFail("Not implemented");
+}
+
+@end

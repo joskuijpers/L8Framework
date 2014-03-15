@@ -23,4 +23,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "LDFProcess.h"
+#import "LDFBreakPoint.h"
+
+@implementation LDFBreakPoint
+
+@end

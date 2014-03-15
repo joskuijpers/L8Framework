@@ -23,13 +23,47 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-int main(int argc, const char * argv[])
-{
+#import "LDBAppDelegate.h"
 
+/**
+ * Create an Objective-C accessable list of CLI arguments.
+ *
+ * @todo Make this process the arguments and return an object instead.
+ *
+ * @param argc Argument count.
+ * @param argv Argument values.
+ * @return An NSArray containing NSString values.
+ */
+NSArray *ldb_process_arguments(int argc, const char *argv[]);
+
+int main(int argc, const char *argv[])
+{
 	@autoreleasepool {
-	    NSLog(@"Hello World!");
+		LDBAppDelegate *appDelegate;
+		NSArray *args;
+		NSApplication *application;
+
+		args = ldb_process_arguments(argc, argv);
+		appDelegate = [[LDBAppDelegate alloc] initWithArguments:args];
+
+		application = [NSApplication sharedApplication];
+		application.delegate = appDelegate;
+
+		[application run];
 	}
 
-    return 0;
+	return 0;
+}
+
+NSArray *ldb_process_arguments(int argc, const char *argv[])
+{
+	NSMutableArray *array;
+
+	array = [[NSMutableArray alloc] init];
+
+	for(int i = 0; i < argc; i++)
+		[array addObject:[NSString stringWithUTF8String:argv[i]]];
+
+	return array;
 }
 
