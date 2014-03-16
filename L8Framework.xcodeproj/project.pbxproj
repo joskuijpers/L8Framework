@@ -21,12 +21,6 @@
 		802495E718D378EA0071F3C4 /* L8DebugTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 802495E618D378EA0071F3C4 /* L8DebugTests.m */; };
 		802495EA18D379F00071F3C4 /* LDFProcess.h in Headers */ = {isa = PBXBuildFile; fileRef = 802495E818D379F00071F3C4 /* LDFProcess.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		802495EB18D379F00071F3C4 /* LDFProcess.m in Sources */ = {isa = PBXBuildFile; fileRef = 802495E918D379F00071F3C4 /* LDFProcess.m */; };
-		8024960118D37C2C0071F3C4 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8024956B18D2A82D0071F3C4 /* Cocoa.framework */; };
-		8024961018D37C2C0071F3C4 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 8024960F18D37C2C0071F3C4 /* AppDelegate.m */; };
-		8024961518D37C2C0071F3C4 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8024961418D37C2C0071F3C4 /* Images.xcassets */; };
-		8024963418D37D7F0071F3C4 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8024963118D37D750071F3C4 /* MainMenu.xib */; };
-		8024963B18D37E330071F3C4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 8024960818D37C2C0071F3C4 /* main.m */; };
-		8024963C18D37FCD0071F3C4 /* L8Framework.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B2318D119ED00B16692 /* L8Framework.framework */; };
 		8024963D18D387240071F3C4 /* L8DebugFramework.h in Headers */ = {isa = PBXBuildFile; fileRef = 802495C118D368130071F3C4 /* L8DebugFramework.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		8024964518D3D0BE0071F3C4 /* LDBAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 8024964418D3D0BE0071F3C4 /* LDBAppDelegate.m */; };
 		8024964818D3DFB60071F3C4 /* LDFBreakPoint.h in Headers */ = {isa = PBXBuildFile; fileRef = 8024964618D3DFB60071F3C4 /* LDFBreakPoint.h */; };
@@ -94,13 +88,6 @@
 			remoteGlobalIDString = 802495B718D368130071F3C4;
 			remoteInfo = L8DebugFramework;
 		};
-		8024963918D37DF50071F3C4 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 80477B1A18D119ED00B16692 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 80477B2218D119ED00B16692;
-			remoteInfo = L8Framework;
-		};
 		80477B3E18D119F000B16692 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 80477B1A18D119ED00B16692 /* Project object */;
@@ -142,14 +129,6 @@
 		802495E618D378EA0071F3C4 /* L8DebugTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = L8DebugTests.m; path = Source/L8DebugTests.m; sourceTree = "<group>"; };
 		802495E818D379F00071F3C4 /* LDFProcess.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LDFProcess.h; sourceTree = "<group>"; };
 		802495E918D379F00071F3C4 /* LDFProcess.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LDFProcess.m; sourceTree = "<group>"; };
-		8024960018D37C2C0071F3C4 /* L8TestApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = L8TestApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		8024960818D37C2C0071F3C4 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		8024960A18D37C2C0071F3C4 /* L8TestApp-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "L8TestApp-Prefix.pch"; path = "L8TestApp/L8TestApp-Prefix.pch"; sourceTree = "<group>"; };
-		8024960E18D37C2C0071F3C4 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		8024960F18D37C2C0071F3C4 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		8024961418D37C2C0071F3C4 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
-		8024963218D37D750071F3C4 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
-		8024963718D37DE00071F3C4 /* L8TestApp-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "L8TestApp-Info.plist"; sourceTree = "<group>"; };
 		8024964318D3D0BE0071F3C4 /* LDBAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LDBAppDelegate.h; sourceTree = "<group>"; };
 		8024964418D3D0BE0071F3C4 /* LDBAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LDBAppDelegate.m; sourceTree = "<group>"; };
 		8024964618D3DFB60071F3C4 /* LDFBreakPoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LDFBreakPoint.h; sourceTree = "<group>"; };
@@ -241,15 +220,6 @@
 			files = (
 				802495CD18D368130071F3C4 /* L8DebugFramework.framework in Frameworks */,
 				802495C918D368130071F3C4 /* XCTest.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		802495FD18D37C2C0071F3C4 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				8024963C18D37FCD0071F3C4 /* L8Framework.framework in Frameworks */,
-				8024960118D37C2C0071F3C4 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -391,28 +361,6 @@
 			path = Source;
 			sourceTree = "<group>";
 		};
-		8024960218D37C2C0071F3C4 /* L8TestApp */ = {
-			isa = PBXGroup;
-			children = (
-				8024960E18D37C2C0071F3C4 /* AppDelegate.h */,
-				8024963118D37D750071F3C4 /* MainMenu.xib */,
-				8024960F18D37C2C0071F3C4 /* AppDelegate.m */,
-				8024961418D37C2C0071F3C4 /* Images.xcassets */,
-				8024960818D37C2C0071F3C4 /* main.m */,
-				8024960318D37C2C0071F3C4 /* Supporting Files */,
-			);
-			path = L8TestApp;
-			sourceTree = "<group>";
-		};
-		8024960318D37C2C0071F3C4 /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				8024960A18D37C2C0071F3C4 /* L8TestApp-Prefix.pch */,
-				8024963718D37DE00071F3C4 /* L8TestApp-Info.plist */,
-			);
-			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
 		8024964118D38C7F0071F3C4 /* Source */ = {
 			isa = PBXGroup;
 			children = (
@@ -432,7 +380,6 @@
 				802495BA18D368130071F3C4 /* L8DebugFramework */,
 				802495CE18D368130071F3C4 /* L8DebugFrameworkTests */,
 				8060610518D223C0003CC846 /* Supporting Files */,
-				8024960218D37C2C0071F3C4 /* L8TestApp */,
 				80477B2518D119ED00B16692 /* Frameworks */,
 				80477B2418D119ED00B16692 /* Products */,
 			);
@@ -446,7 +393,6 @@
 				8024959718D2A8710071F3C4 /* L8Debugger */,
 				802495B818D368130071F3C4 /* L8DebugFramework.framework */,
 				802495C818D368130071F3C4 /* L8DebugFrameworkTests.xctest */,
-				8024960018D37C2C0071F3C4 /* L8TestApp.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -716,24 +662,6 @@
 			productReference = 802495C818D368130071F3C4 /* L8DebugFrameworkTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		802495FF18D37C2C0071F3C4 /* L8TestApp */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 8024962718D37C2D0071F3C4 /* Build configuration list for PBXNativeTarget "L8TestApp" */;
-			buildPhases = (
-				802495FC18D37C2C0071F3C4 /* Sources */,
-				802495FD18D37C2C0071F3C4 /* Frameworks */,
-				802495FE18D37C2C0071F3C4 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				8024963A18D37DF50071F3C4 /* PBXTargetDependency */,
-			);
-			name = L8TestApp;
-			productName = L8TestApp;
-			productReference = 8024960018D37C2C0071F3C4 /* L8TestApp.app */;
-			productType = "com.apple.product-type.application";
-		};
 		80477B2218D119ED00B16692 /* L8Framework */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 80477B4B18D119F000B16692 /* Build configuration list for PBXNativeTarget "L8Framework" */;
@@ -805,7 +733,6 @@
 				8024959618D2A8710071F3C4 /* L8Debugger */,
 				802495B718D368130071F3C4 /* L8DebugFramework */,
 				802495C718D368130071F3C4 /* L8DebugFrameworkTests */,
-				802495FF18D37C2C0071F3C4 /* L8TestApp */,
 			);
 		};
 /* End PBXProject section */
@@ -822,15 +749,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		802495FE18D37C2C0071F3C4 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				8024961518D37C2C0071F3C4 /* Images.xcassets in Resources */,
-				8024963418D37D7F0071F3C4 /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -878,15 +796,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		802495FC18D37C2C0071F3C4 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				8024961018D37C2C0071F3C4 /* AppDelegate.m in Sources */,
-				8024963B18D37E330071F3C4 /* main.m in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		80477B1E18D119ED00B16692 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -928,28 +837,12 @@
 			target = 802495B718D368130071F3C4 /* L8DebugFramework */;
 			targetProxy = 802495E018D36ADE0071F3C4 /* PBXContainerItemProxy */;
 		};
-		8024963A18D37DF50071F3C4 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 80477B2218D119ED00B16692 /* L8Framework */;
-			targetProxy = 8024963918D37DF50071F3C4 /* PBXContainerItemProxy */;
-		};
 		80477B3F18D119F000B16692 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 80477B2218D119ED00B16692 /* L8Framework */;
 			targetProxy = 80477B3E18D119F000B16692 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
-
-/* Begin PBXVariantGroup section */
-		8024963118D37D750071F3C4 /* MainMenu.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				8024963218D37D750071F3C4 /* Base */,
-			);
-			name = MainMenu.xib;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		802495A118D2A8720071F3C4 /* Debug */ = {
@@ -1057,40 +950,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUNDLE_LOADER)";
 				WRAPPER_EXTENSION = xctest;
-			};
-			name = Release;
-		};
-		8024962818D37C2D0071F3C4 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CLANG_ENABLE_MODULES = YES;
-				COMBINE_HIDPI_IMAGES = YES;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "L8TestApp/L8TestApp-Prefix.pch";
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				INFOPLIST_FILE = "L8TestApp/L8TestApp-Info.plist";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				WRAPPER_EXTENSION = app;
-			};
-			name = Debug;
-		};
-		8024962918D37C2D0071F3C4 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CLANG_ENABLE_MODULES = YES;
-				COMBINE_HIDPI_IMAGES = YES;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "L8TestApp/L8TestApp-Prefix.pch";
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				INFOPLIST_FILE = "L8TestApp/L8TestApp-Info.plist";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
 		};
@@ -1270,15 +1129,6 @@
 			buildConfigurations = (
 				802495D818D368130071F3C4 /* Debug */,
 				802495D918D368130071F3C4 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		8024962718D37C2D0071F3C4 /* Build configuration list for PBXNativeTarget "L8TestApp" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				8024962818D37C2D0071F3C4 /* Debug */,
-				8024962918D37C2D0071F3C4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
