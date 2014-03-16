@@ -1263,6 +1263,7 @@
 				802495D718D368130071F3C4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		802495DB18D368130071F3C4 /* Build configuration list for PBXNativeTarget "L8DebugFrameworkTests" */ = {
 			isa = XCConfigurationList;
@@ -1271,6 +1272,7 @@
 				802495D918D368130071F3C4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		8024962718D37C2D0071F3C4 /* Build configuration list for PBXNativeTarget "L8TestApp" */ = {
 			isa = XCConfigurationList;
@@ -1279,6 +1281,7 @@
 				8024962918D37C2D0071F3C4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		80477B1D18D119ED00B16692 /* Build configuration list for PBXProject "L8Framework" */ = {
 			isa = XCConfigurationList;

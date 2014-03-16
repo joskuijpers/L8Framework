@@ -49,7 +49,26 @@
 	NSLog(@"Connecting to port %hu...",_remoteProcess.port);
 	[_remoteProcess connect];
 
-//	[NSApp terminate:nil];
+#if 0
+	// WIP: Will be LDBInputHandler, with a -[requestUserInput] to activate STDIN for duration
+	// of one input string. ('(l8db) step')
+	NSFileHandle *input;
+	input = [NSFileHandle fileHandleWithStandardInput];
+	[input readInBackgroundAndNotify];
+
+	[[NSNotificationCenter defaultCenter] addObserverForName:NSFileHandleReadCompletionNotification
+													  object:nil
+													   queue:nil
+												  usingBlock:^(NSNotification *note) {
+													  NSData *data;
+
+													  data = note.userInfo[@"NSFileHandleNotificationDataItem"];
+													  NSLog(@"INPUT [%@]",[[NSString alloc] initWithData:data
+																								encoding:NSUTF8StringEncoding]);
+
+													  [note.object readInBackgroundAndNotify];
+												  }];
+#endif
 }
 
 - (void)process:(LDFProcess *)process failedToConnect:(NSError *)error
