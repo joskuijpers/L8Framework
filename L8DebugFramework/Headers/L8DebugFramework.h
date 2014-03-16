@@ -24,3 +24,5 @@
  */
 
 #import "LDFProcess.h"
+#import "LDFBreakPoint.h"
+#import "LDFMessage.h"

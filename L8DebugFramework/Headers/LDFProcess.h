@@ -23,7 +23,7 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-@class LDFBreakPoint, LDFProcess;
+@class LDFBreakPoint, LDFProcess, LDFMessage;
 
 /**
  * @brief Delegate used for process notifications.
@@ -32,10 +32,31 @@
 @optional
 
 /**
+ * Sent when an error occurred when trying to connect to
+ * the remote process.
+ *
+ * @param process The process representation.
+ * @param error Information about the problem.
+ */
+- (void)process:(LDFProcess *)process failedToConnect:(NSError *)error;
+
+/**
  * Sent when successfully a connection is made to the remote process.
  * @param process The process representation.
  */
 - (void)processDidConnect:(LDFProcess *)process;
+
+/**
+ * Sent when the process is about to handle a specific message.
+ *
+ * Return NO if the message should not be handled. For example, if
+ * you want to handle it yourself.
+ *
+ * @param process The process representation.
+ * @param message Message that will be processed.
+ * @return NO if the message should be skipped, YES otherwise.
+ */
+- (BOOL)process:(LDFProcess *)process shouldHandleMessage:(LDFMessage *)message;
 
 /**
  * Sent by the remote process when it hits a breakpoint.
@@ -58,6 +79,10 @@
 /// Port on which the L8 process is running
 @property (readonly) uint16_t port;
 
+@property (readonly) NSString *v8Version;
+@property (readonly) NSString *protocolVersion;
+@property (readonly) NSString *embeddingHost;
+
 /**
  * Initialize a connection to a remote L8 process.
  *
@@ -70,5 +95,12 @@
  * Start the connection to the remote process.
  */
 - (void)connect;
+
+/**
+ * Close the connection to the remote process.
+ *
+ * @todo How does this affect the remote process?
+ */
+- (void)close;
 
 @end

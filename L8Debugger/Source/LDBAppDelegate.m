@@ -43,7 +43,6 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification;
 {
-	NSLog(@"%@",_arguments);
 	_remoteProcess = [[LDFProcess alloc] initWithPort:12345];
 	_remoteProcess.delegate = self;
 
@@ -51,6 +50,23 @@
 	[_remoteProcess connect];
 
 //	[NSApp terminate:nil];
+}
+
+- (void)process:(LDFProcess *)process failedToConnect:(NSError *)error
+{
+	NSLog(@"Failed to connect with error %@",error);
+}
+
+- (void)processDidConnect:(LDFProcess *)process
+{
+	NSLog(@"Process did connect");
+}
+
+- (BOOL)process:(LDFProcess *)process shouldHandleMessage:(LDFMessage *)message
+{
+	NSLog(@"Received message: %@",message);
+
+	return YES;
 }
 
 @end

@@ -23,37 +23,24 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-/**
- * @brief A debug protocol message.
- */
-@interface LDFMessage : NSObject
+#import "LDFMessage.h"
 
-@property (copy) NSNumber *seq;
+@interface LDFMessage ()
 
-@end
++ (LDFMessage *)messageWithJSONData:(NSData *)data;
 
-@interface LDFRequestMessage : LDFMessage
-
-@property (copy) NSString *command;
-@property (copy) NSDictionary *arguments;
+- (instancetype)initWithJSONObject:(NSDictionary *)object;
 
 @end
 
-@interface LDFResponseMessage : LDFMessage
+@interface LDFResponseMessage ()
 
-@property (readonly) NSNumber *requestSeq;
-@property (readonly) LDFMessage *request;
-@property (readonly) NSString *command;
-@property (readonly) NSDictionary *body;
-@property (readonly,getter=isRunning) BOOL running;
-@property (readonly) BOOL success;
-@property (readonly) NSString *errorMessage;
+- (void)setRequest:(LDFRequestMessage *)request;
 
 @end
 
-@interface LDFEventMessage : LDFMessage
+@interface LDFRequestMessage ()
 
-@property (readonly) NSString *event;
-@property (readonly) NSDictionary *body;
+- (NSData *)JSONRepresentation;
 
 @end

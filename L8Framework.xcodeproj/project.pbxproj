@@ -156,6 +156,8 @@
 		8024964718D3DFB60071F3C4 /* LDFBreakPoint.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LDFBreakPoint.m; sourceTree = "<group>"; };
 		8024964A18D3DFDC0071F3C4 /* LDFMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LDFMessage.h; sourceTree = "<group>"; };
 		8024964B18D3DFDC0071F3C4 /* LDFMessage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LDFMessage.m; sourceTree = "<group>"; };
+		8024965318D3F2820071F3C4 /* LDFProcess_Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LDFProcess_Private.h; sourceTree = "<group>"; };
+		8024965418D5178A0071F3C4 /* LDFMessage_Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LDFMessage_Private.h; sourceTree = "<group>"; };
 		80477B2318D119ED00B16692 /* L8Framework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = L8Framework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		80477B2918D119ED00B16692 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		80477B2E18D119EE00B16692 /* L8Framework-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "L8Framework-Info.plist"; sourceTree = "<group>"; };
@@ -363,8 +365,11 @@
 		802495DD18D368B90071F3C4 /* Private */ = {
 			isa = PBXGroup;
 			children = (
+				8024965318D3F2820071F3C4 /* LDFProcess_Private.h */,
+				8024965418D5178A0071F3C4 /* LDFMessage_Private.h */,
 			);
 			name = Private;
+			path = Source;
 			sourceTree = "<group>";
 		};
 		802495DE18D36A7B0071F3C4 /* Tests */ = {

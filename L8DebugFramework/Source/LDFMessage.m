@@ -23,8 +23,111 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "LDFMessage.h"
+#import "LDFMessage_Private.h"
 
 @implementation LDFMessage
+
++ (LDFMessage *)messageWithJSONData:(NSData *)data
+{
+	NSDictionary *object;
+
+	object = [NSJSONSerialization JSONObjectWithData:data
+											 options:0
+											   error:NULL];
+
+	if([object[@"type"] isEqualToString:@"response"])
+		return [[LDFResponseMessage alloc] initWithJSONObject:object];
+	else if([object[@"type"] isEqualToString:@"event"])
+		return [[LDFEventMessage alloc] initWithJSONObject:object];
+
+	return nil;
+}
+
+- (instancetype)initWithJSONObject:(NSDictionary *)object
+{
+	self = [super init];
+	if(self) {
+		_seq = object[@"seq"];
+	}
+	return self;
+}
+
+@end
+
+@implementation LDFRequestMessage
+
+- (NSData *)JSONRepresentation
+{
+	NSDictionary *dict;
+
+	if(self.seq == nil || self.command == nil)
+		return nil;
+
+	dict = @{
+			 @"seq":self.seq,
+			 @"type":@"request",
+			 @"command":self.command,
+			 @"arguments":(!self.arguments)?@{}:self.arguments
+			 };
+	return [NSJSONSerialization dataWithJSONObject:dict
+										   options:0
+											 error:NULL];
+}
+
+- (NSString *)description
+{
+	return [NSString stringWithFormat:@"<LDFRequestMessage>{seq: %@, command: %@, arguments: %@}",
+			self.seq,_command,_arguments];
+}
+
+@end
+
+@implementation LDFResponseMessage
+
+- (instancetype)initWithJSONObject:(NSDictionary *)object
+{
+	self = [super initWithJSONObject:object];
+	if(self) {
+		_requestSeq = object[@"request_seq"];
+		_command = object[@"command"];
+		_body = object[@"body"];
+		_running = [object[@"running"] boolValue];
+		_success = [object[@"success"] boolValue];
+		_errorMessage = object[@"message"];
+	}
+	return self;
+}
+
+- (void)setRequest:(LDFRequestMessage *)request
+{
+	_request = request;
+}
+
+- (NSString *)description
+{
+	return [NSString stringWithFormat:@"<LDFResponseMessage>{seq: %@, command: %@, body: %@, "
+			@"running: %d, success: %d, error message: %@, request: %@",
+			self.seq,_command,_body,_running,_success,_errorMessage,_request];
+}
+
+@end
+
+@implementation LDFEventMessage
+
+- (instancetype)initWithJSONObject:(NSDictionary *)object
+{
+	self = [super initWithJSONObject:object];
+	if(self) {
+		_event = object[@"event"];
+		_body = object[@"body"];
+	}
+	return self;
+}
+
+- (NSString *)description
+{
+	return [NSString stringWithFormat:@"<LDFEventMessage>{seq: %@, event: %@, body: %@}",
+			self.seq,_event,_body];
+}
 
 @end

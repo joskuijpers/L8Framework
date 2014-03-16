@@ -23,37 +23,12 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-/**
- * @brief A debug protocol message.
- */
-@interface LDFMessage : NSObject
+#import "LDFProcess.h"
 
-@property (copy) NSNumber *seq;
+@class LDFRequestMessage;
 
-@end
+@interface LDFProcess ()
 
-@interface LDFRequestMessage : LDFMessage
-
-@property (copy) NSString *command;
-@property (copy) NSDictionary *arguments;
-
-@end
-
-@interface LDFResponseMessage : LDFMessage
-
-@property (readonly) NSNumber *requestSeq;
-@property (readonly) LDFMessage *request;
-@property (readonly) NSString *command;
-@property (readonly) NSDictionary *body;
-@property (readonly,getter=isRunning) BOOL running;
-@property (readonly) BOOL success;
-@property (readonly) NSString *errorMessage;
-
-@end
-
-@interface LDFEventMessage : LDFMessage
-
-@property (readonly) NSString *event;
-@property (readonly) NSDictionary *body;
+- (BOOL)sendMessage:(LDFRequestMessage *)message;
 
 @end
