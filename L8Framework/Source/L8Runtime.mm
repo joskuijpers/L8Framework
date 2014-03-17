@@ -89,6 +89,8 @@ using namespace v8;
 
 - (void)dealloc
 {
+	NSLog(@"Dealloc Context");
+
 	Isolate *isolate = _virtualMachine.V8Isolate;
 	HandleScope mainScope(isolate);
 	Local<Context> context = Local<Context>::New(isolate, _v8context);
@@ -211,8 +213,7 @@ using namespace v8;
 
 + (instancetype)currentRuntime
 {
-	Local<Context> context = Isolate::GetCurrent()->GetCurrentContext();
-	return [self runtimeWithV8Context:context];
+	return [self runtimeWithV8Context:Isolate::GetCurrent()->GetCurrentContext()];
 }
 
 + (L8Value *)currentThis
@@ -308,11 +309,6 @@ using namespace v8;
 	@synchronized(_wrapperMap) {
 		return [_wrapperMap ObjCWrapperForValue:value];
 	}
-}
-
-- (void)runGarbageCollector
-{
-	while(!V8::IdleNotification()) {};
 }
 
 #pragma mark Debugging

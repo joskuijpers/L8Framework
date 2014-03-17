@@ -23,6 +23,17 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
+#ifdef DEBUG
+# define L8_AVAILABLE_DEBUG(msg)
+#else
+# define L8_AVAILABLE_DEBUG(msg) __attribute__((unavailable((msg))));
+#endif
+
+/**
+ * @brief JavaScript Virtual Machine.
+ *
+ * A Virtual Machine contains one or more contexts.
+ */
 @interface L8VirtualMachine : NSObject
 
 /**
@@ -51,8 +62,9 @@
 /**
  * Attempt to run the garbage collector.
  *
- * This method is blocking.
+ * @note This method is blocking, and is therefor only
+ * available in DEBUG builds.
  */
-- (void)runGarbageCollector;
+- (void)runGarbageCollector L8_AVAILABLE_DEBUG("Only available in Debug builds.");
 
 @end

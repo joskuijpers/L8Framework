@@ -63,7 +63,7 @@
 {
 	@autoreleasepool {
 		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithObject:@"Hello World"];
+			L8Value *value = [L8Value valueWithObject:@"Hello World" inContext:runtime];
 
 			XCTAssertNotNil(value, "-[valueWithObject:]");
 			XCTAssertEqualObjects([value toObject], @"Hello World", "-[toObject]");
@@ -84,14 +84,16 @@
 {
 	@autoreleasepool {
 		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithBool:YES];
+			L8Value *value = [L8Value valueWithBool:YES inContext:runtime];
 
 			XCTAssertNotNil(value, "-[valueWithBool:]");
 			XCTAssertEqual([value toBool], YES, "-[toBool]");
 			XCTAssertEqualObjects([value toObject], @YES, "-[toObject]");
 			XCTAssertTrue([value isBoolean], "-[isBool]");
 
-			XCTAssertEqual([value toBool], [[L8Value valueWithObject:@YES] toBool], "-[valueWithObject:]");
+			XCTAssertEqual([value toBool],
+						   [[L8Value valueWithObject:@YES inContext:runtime] toBool],
+						   "-[valueWithObject:]");
 		}];
 	}
 }
@@ -100,13 +102,15 @@
 {
 	@autoreleasepool {
 		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithNull];
+			L8Value *value = [L8Value valueWithNullInContext:runtime];
 
 			XCTAssertNotNil(value, "-[valueWithNull]");
 			XCTAssertEqualObjects([value toObject], [NSNull null], "-[toObject]");
 			XCTAssertTrue([value isNull], "-[isNull]");
 
-			XCTAssertEqualObjects([value toObject], [[L8Value valueWithObject:[NSNull null]] toObject], "-[valueWithObject:]");
+			XCTAssertEqualObjects([value toObject],
+								  [[L8Value valueWithObject:[NSNull null] inContext:runtime] toObject],
+								  "-[valueWithObject:]");
 		}];
 	}
 }
@@ -115,15 +119,18 @@
 {
 	@autoreleasepool {
 		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithUndefined];
+			L8Value *value = [L8Value valueWithUndefinedInContext:runtime];
 
 			XCTAssertNotNil(value, "-[valueWithUndefined]");
 			XCTAssertNil([value toObject], "-[toObject]");
 			XCTAssertTrue([value isUndefined], "-[isUndefined]");
 
-			XCTAssertNil([[L8Value valueWithObject:nil] toObject], "-[[valueWithObject:nil] toObject]");
+			XCTAssertNil([[L8Value valueWithObject:nil inContext:runtime] toObject],
+						 "-[[valueWithObject:nil] toObject]");
 
-			XCTAssertEqualObjects([value toObject], [[L8Value valueWithObject:nil] toObject], "-[valueWithObject:]");
+			XCTAssertEqualObjects([value toObject],
+								  [[L8Value valueWithObject:nil inContext:runtime] toObject],
+								  "-[valueWithObject:]");
 		}];
 	}
 }
@@ -133,7 +140,7 @@
 	@autoreleasepool {
 		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
 			NSDate *date = [NSDate date];
-			L8Value *value = [L8Value valueWithObject:date];
+			L8Value *value = [L8Value valueWithObject:date inContext:runtime];
 
 			XCTAssertNotNil(value, "-[valuewithObject:]");
 			XCTAssertEqual((long long)[value toDouble],(long long)[date timeIntervalSince1970],"-[toDouble]");
@@ -147,14 +154,16 @@
 {
 	@autoreleasepool {
 		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithDouble:5.0];
+			L8Value *value = [L8Value valueWithDouble:5.0 inContext:runtime];
 
 			XCTAssertNotNil(value, "-[valueWithDouble:]");
 			XCTAssertEqualObjects([value toNumber], @5.0, "-[toNumber]");
 			XCTAssertEqualObjects([value toObject], @5.0, "-[toObject]");
 			XCTAssertTrue([value isNumber], "-[isNumber]");
 
-			XCTAssertEqualObjects([value toNumber], [[L8Value valueWithObject:@5.0] toNumber], "-[valueWithObject:]");
+			XCTAssertEqualObjects([value toNumber],
+								  [[L8Value valueWithObject:@5.0 inContext:runtime] toNumber],
+								  "-[valueWithObject:]");
 		}];
 	}
 }
@@ -163,14 +172,14 @@
 {
 	@autoreleasepool {
 		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithObject:@[@"a",@"b"]];
+			L8Value *value = [L8Value valueWithObject:@[@"a",@"b"] inContext:runtime];
 
 			XCTAssertNotNil(value, "-[valueWithObject:(NSArray)]");
 			XCTAssertEqualObjects([value toArray], (@[@"a",@"b"]), "-[toArray]");
 			XCTAssertEqualObjects([value toObject], (@[@"a",@"b"]), "-[toObject]");
 			XCTAssertTrue([value isObject], "-[isObject]");
 
-			value = [L8Value valueWithNewArray];
+			value = [L8Value valueWithNewArrayInContext:runtime];
 			XCTAssertNotNil(value, "-[valueWithNewArray]");
 			XCTAssertEqualObjects([value toArray], @[], "-[toArray] (newArray)");
 			XCTAssertEqualObjects([value toObject], @[], "-[toObject] (newArray)");
@@ -183,7 +192,7 @@
 {
 	@autoreleasepool {
 		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithObject:@{@"a":@"1",@"b":@2}];
+			L8Value *value = [L8Value valueWithObject:@{@"a":@"1",@"b":@2} inContext:runtime];
 
 			XCTAssertNotNil(value, "-[valueWithObject:(NSDictionary)]");
 			XCTAssertEqualObjects([value toDictionary], (@{@"a":@"1",@"b":@2}), "-[toArray]");
@@ -197,7 +206,7 @@
 {
 	@autoreleasepool {
 		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithNewObject];
+			L8Value *value = [L8Value valueWithNewObjectInContext:runtime];
 
 			XCTAssertNotNil(value, "-[valueWithNewObject]");
 			XCTAssertNotNil([value toObject], "-[toObject]");
@@ -212,7 +221,7 @@
 	@autoreleasepool {
 		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
 			id object = [[CustomSimpleObject alloc] init];
-			L8Value *value = [L8Value valueWithObject:object];
+			L8Value *value = [L8Value valueWithObject:object inContext:runtime];
 
 			XCTAssertNotNil(value, "-[valueWithObject:(Custom)]");
 			XCTAssertEqual([value toObject], object, "-[toObject]");
@@ -225,7 +234,7 @@
 {
 	@autoreleasepool {
 		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithNewObject];
+			L8Value *value = [L8Value valueWithNewObjectInContext:runtime];
 
 			XCTAssertNotNil(value, "-[valueWithNewObject]");
 
@@ -250,7 +259,7 @@
 {
 	@autoreleasepool {
 		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithNewObject];
+			L8Value *value = [L8Value valueWithNewObjectInContext:runtime];
 
 			XCTAssertNotNil(value, "-[valueWithNewObject]");
 
@@ -266,7 +275,7 @@
 {
 	@autoreleasepool {
 		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithNewArray];
+			L8Value *value = [L8Value valueWithNewArrayInContext:runtime];
 
 			XCTAssertNotNil(value, "-[valueWithNewArray]");
 
@@ -291,7 +300,7 @@
 		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
 			L8Value *retVal;
 			CustomMethodClass *object = [[CustomMethodClass alloc] init];
-			L8Value *value = [L8Value valueWithObject:object];
+			L8Value *value = [L8Value valueWithObject:object inContext:runtime];
 
 			XCTAssertNotNil(value, "-[valueWithObject:(CustomMethodClass)]");
 
@@ -315,7 +324,7 @@
 			CustomPropertiesClass *object = [[CustomPropertiesClass alloc] init];
 			object.stringVal = @"Hello World";
 
-			L8Value *value = [L8Value valueWithObject:object];
+			L8Value *value = [L8Value valueWithObject:object inContext:runtime];
 
 			XCTAssertNotNil(value, "-[valueWithObject:(CustomPropertiesClass)]");
 
@@ -340,7 +349,7 @@
 			CustomPropertiesClassWithAttributes *object;
 
 			object = [[CustomPropertiesClassWithAttributes alloc] init];
-			value = [L8Value valueWithObject:object];
+			value = [L8Value valueWithObject:object inContext:runtime];
 
 			XCTAssertNotNil(value, "-[valueWithObject:(CustomPropertiesClassWithAttributes)]");
 
@@ -363,7 +372,7 @@
 	@autoreleasepool {
 		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
 			Class cls = [CustomClass class];
-			L8Value *value = [L8Value valueWithObject:cls];
+			L8Value *value = [L8Value valueWithObject:cls inContext:runtime];
 
 			XCTAssertNotNil(value, "-[valueWithObject:(Class)]");
 		}];

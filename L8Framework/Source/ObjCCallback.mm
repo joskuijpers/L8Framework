@@ -28,12 +28,13 @@
 #include <string.h>
 #include <objc/runtime.h>
 
+#import "L8VirtualMachine_Private.h"
 #import "L8Runtime_Private.h"
 #import "L8Value_Private.h"
-#import "NSString+L8.h"
-#import "ObjCRuntime+L8.h"
 #import "L8WrapperMap.h"
 #import "L8Exception_Private.h"
+#import "ObjCRuntime+L8.h"
+#import "NSString+L8.h"
 
 #include "v8.h"
 
@@ -82,19 +83,20 @@ SEL selectorFromV8Value(Local<Value> value)
  */
 long strnpos(const char *haystack, const char *needle, long count)
 {
-	const char *p = strnstr(haystack, needle, count);
+	const char *p;
+
+	p = strnstr(haystack, needle, count);
 	if(p)
 		return p - haystack;
+
 	return -1;
 }
 
-void objCSetInvocationArgument(Isolate *isolate, NSInvocation *invocation, int index, L8Value *val)
+void objCSetInvocationArgument(Isolate *isolate, L8Runtime *context, NSInvocation *invocation, int index, L8Value *val)
 {
-	// Discard too many arguments. These can be accessed through +[L8Runtime currentArguments]
-	if(index >= invocation.methodSignature.numberOfArguments)
-		return;
+	const char *type;
 
-	const char *type = [invocation.methodSignature getArgumentTypeAtIndex:index];
+	type = [invocation.methodSignature getArgumentTypeAtIndex:index];
 
 	switch(*type) {
 		case 'c': { // char (8)
@@ -239,26 +241,31 @@ void objCSetInvocationArgument(Isolate *isolate, NSInvocation *invocation, int i
 		}
 
 		case 'f': { // float
+			float value;
+
 			if(![val isNumber])
 				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "The implementation requests a number")));
 
-			float value = [[val toNumber] floatValue];
+			value = [[val toNumber] floatValue];
 			[invocation setArgument:&value
 							atIndex:index];
 			break;
 		}
 		case 'd': { // double
+			double value;
 			if(![val isNumber])
 				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "The implementation requests a number")));
 
-			double value = [[val toNumber] doubleValue];
+			value = [[val toNumber] doubleValue];
 			[invocation setArgument:&value
 							atIndex:index];
 			break;
 		}
 
 		case 'B': { // bool or _Bool
-			bool value = [val toBool];
+			bool value;
+
+			value = [val toBool];
 			[invocation setArgument:&value
 							atIndex:index];
 			break;
@@ -266,16 +273,19 @@ void objCSetInvocationArgument(Isolate *isolate, NSInvocation *invocation, int i
 		case 'v': // void
 			break;
 		case '*': { // char *
+			const char *value;
+
 			if(![val isString])
 				isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "The implementation requests a string")));
 
-			const char *value = [[val toString] UTF8String];
+			value = [[val toString] UTF8String];
 			[invocation setArgument:&value
 							atIndex:index];
 		}
 		case '@': { // object
 			id value;
 			Class objectClass = Nil;
+			L8Runtime *context;
 
 			// Try to find the classname of the object
 			if(*(type+1) == '"') {
@@ -292,15 +302,15 @@ void objCSetInvocationArgument(Isolate *isolate, NSInvocation *invocation, int i
 			if(objectClass == [L8Value class])
 				value = val;
 			else if(objectClass == [NSString class])
-				value = valueToString([L8Runtime currentRuntime], [val V8Value]);
+				value = valueToString(context, val.V8Value);
 			else if(objectClass == [NSNumber class])
-				value = valueToNumber([L8Runtime currentRuntime], [val V8Value]);
+				value = valueToNumber(context, val.V8Value);
 			else if(objectClass == [NSDate class])
-				value = valueToDate([L8Runtime currentRuntime], [val V8Value]);
+				value = valueToDate(context, val.V8Value);
 			else if(objectClass == [NSArray class])
-				value = valueToArray([L8Runtime currentRuntime], [val V8Value]);
+				value = valueToArray(context, val.V8Value);
 			else if(objectClass == [NSDictionary class])
-				value = valueToObject([L8Runtime currentRuntime], [val V8Value]);
+				value = valueToObject(context, val.V8Value);
 			else
 				value = [val toObject];
 
@@ -318,7 +328,7 @@ void objCSetInvocationArgument(Isolate *isolate, NSInvocation *invocation, int i
 	}
 }
 
-Local<Value> handleInvocationException(Isolate *isolate, id exception)
+Local<Value> handleInvocationException(Isolate *isolate, L8Runtime *context, id exception)
 {
 	Local<Value> valueToThrow;
 
@@ -338,12 +348,14 @@ Local<Value> handleInvocationException(Isolate *isolate, id exception)
 		else
 			valueToThrow = Exception::Error(message);
 	} else
-		valueToThrow = [[L8Value valueWithObject:exception] V8Value];
+		valueToThrow = objectToValue(context, exception);
 
 	return isolate->ThrowException(valueToThrow);
 }
 
-Local<Value> objCInvocation(Isolate *isolate, NSInvocation *invocation,
+Local<Value> objCInvocation(Isolate *isolate,
+							L8Runtime *context,
+							NSInvocation *invocation,
 							const char *neededReturnType = NULL)
 {
 	unsigned long retLength;
@@ -354,17 +366,12 @@ Local<Value> objCInvocation(Isolate *isolate, NSInvocation *invocation,
 		@try {
 			[invocation invoke];
 		} @catch(id exception) {
-			return handleInvocationException(isolate,exception);
+			return handleInvocationException(isolate,context,exception);
 		}
 	}
 
 	retLength = invocation.methodSignature.methodReturnLength;
 	returnType = invocation.methodSignature.methodReturnType;
-
-	if(neededReturnType) {
-		assert(*returnType == *neededReturnType);
-		assert(strlen(neededReturnType) == 1 || *neededReturnType == '@');
-	}
 
 	_Static_assert(sizeof(uint8_t) == sizeof(unsigned char), "Sizeof uint32_t and unsigned char");
 	_Static_assert(sizeof(uint16_t) == sizeof(unsigned short), "Sizeof uint32_t and unsigned short");
@@ -378,25 +385,25 @@ Local<Value> objCInvocation(Isolate *isolate, NSInvocation *invocation,
 			assert(retLength == sizeof(int8_t));
 
 			[invocation getReturnValue:&value];
-			result = [L8Value valueWithInt32:value];
-			break;
+			result = [L8Value valueWithInt32:value inContext:context];
 		}
+			break;
 		case 's': { // short (16)
 			int16_t value;
 			assert(retLength == sizeof(int16_t));
 
 			[invocation getReturnValue:&value];
-			result = [L8Value valueWithInt32:value];
-			break;
+			result = [L8Value valueWithInt32:value inContext:context];
 		}
+			break;
 		case 'i': { // int (32)
 			int32_t value;
 			assert(retLength == sizeof(int32_t));
 
 			[invocation getReturnValue:&value];
-			result = [L8Value valueWithInt32:value];
-			break;
+			result = [L8Value valueWithInt32:value inContext:context];
 		}
+			break;
 		case 'l': // long (64)
 		case 'q': { // long long (64)
 			int64_t value;
@@ -404,36 +411,35 @@ Local<Value> objCInvocation(Isolate *isolate, NSInvocation *invocation,
 
 			[invocation getReturnValue:&value];
 			if(value <= INT32_MAX)
-				result = [L8Value valueWithInt32:(int32_t)value];
+				result = [L8Value valueWithInt32:(int32_t)value inContext:context];
 			else
-				result = [L8Value valueWithDouble:value];
-
-			break;
+				result = [L8Value valueWithDouble:value inContext:context];
 		}
+			break;
 		case 'C': { // unsigned char (8)
 			uint8_t value;
 			assert(retLength == sizeof(uint8_t));
 
 			[invocation getReturnValue:&value];
-			result = [L8Value valueWithUInt32:value];
-			break;
+			result = [L8Value valueWithUInt32:value inContext:context];
 		}
+			break;
 		case 'S': { // unsigned short (16)
 			uint16_t value;
 			assert(retLength == sizeof(uint16_t));
 
 			[invocation getReturnValue:&value];
-			result = [L8Value valueWithUInt32:value];
-			break;
+			result = [L8Value valueWithUInt32:value inContext:context];
 		}
+			break;
 		case 'I': { // unsigned int (32)
 			uint32_t value;
 			assert(retLength == sizeof(uint32_t));
 
 			[invocation getReturnValue:&value];
-			result = [L8Value valueWithUInt32:value];
-			break;
+			result = [L8Value valueWithUInt32:value inContext:context];
 		}
+			break;
 		case 'L': // unsigned long (64)
 		case 'Q': { // unsigned long long (64)
 			uint64_t value;
@@ -441,35 +447,34 @@ Local<Value> objCInvocation(Isolate *isolate, NSInvocation *invocation,
 
 			[invocation getReturnValue:&value];
 			if(value <= UINT32_MAX)
-				result = [L8Value valueWithUInt32:(uint32_t)value];
+				result = [L8Value valueWithUInt32:(uint32_t)value inContext:context];
 			else
-				result = [L8Value valueWithDouble:value];
-
-			break;
+				result = [L8Value valueWithDouble:value inContext:context];
 		}
+			break;
 		case 'f': { // float
 			float value;
 			assert(retLength == sizeof(float));
 			[invocation getReturnValue:&value];
-			result = [L8Value valueWithDouble:value];
-			break;
+			result = [L8Value valueWithDouble:value inContext:context];
 		}
+			break;
 		case 'd': { // double
 			double value;
 			assert(retLength == sizeof(double));
 			[invocation getReturnValue:&value];
-			result = [L8Value valueWithDouble:value];
-			break;
+			result = [L8Value valueWithDouble:value inContext:context];
 		}
+			break;
 
 		case 'B': { // bool or _Bool
 			bool value;
 			assert(retLength <= sizeof(bool));
 
 			[invocation getReturnValue:&value];
-			result = [L8Value valueWithBool:value];
-			break;
+			result = [L8Value valueWithBool:value inContext:context];
 		}
+			break;
 		case 'v': // void
 			return Undefined(isolate);
 		case '*': { // char *
@@ -477,14 +482,14 @@ Local<Value> objCInvocation(Isolate *isolate, NSInvocation *invocation,
 			assert(retLength == sizeof(char *));
 
 			[invocation getReturnValue:&string];
-			return objectToValue([L8Runtime currentRuntime],@(string));
+			return objectToValue(context,@(string));
 		}
 		case '@': { // object
 			id __unsafe_unretained object;
 			assert(retLength == sizeof(id));
 
 			[invocation getReturnValue:&object];
-			return objectToValue([L8Runtime currentRuntime], object);
+			return objectToValue(context, object);
 		}
 		case '#': { // Class
 			Class __unsafe_unretained classObject;
@@ -493,10 +498,9 @@ Local<Value> objCInvocation(Isolate *isolate, NSInvocation *invocation,
 
 			// TODO find name of class if available
 
-			result = [L8Value valueWithObject:classObject];
-
-			break;
+			return objectToValue(context, classObject);
 		}
+			break;
 		case ':': // SEL
 			return Undefined(isolate);
 		case '{': // struct, {name=type}
@@ -514,27 +518,31 @@ Local<Value> objCInvocation(Isolate *isolate, NSInvocation *invocation,
 	return [result V8Value];
 }
 
-inline void objCSetInvocationArguments(Isolate *isolate, NSInvocation *invocation,
-									   const FunctionCallbackInfo<Value>& info, int offset)
+inline void objCSetInvocationArguments(Isolate *isolate,
+									   L8Runtime *context,
+									   NSInvocation *invocation,
+									   const FunctionCallbackInfo<Value>& info,
+									   int offset)
 {
-	for(int i = 0; i < invocation.methodSignature.numberOfArguments; i++) {
+	for(int i = offset; i < invocation.methodSignature.numberOfArguments; i++) {
 		L8Value *argument;
 
 		// Arguments that are requested but not supplied: give Undefined
-		if(i < info.Length())
-			argument = [L8Value valueWithV8Value:info[i]];
+		if(i-offset < info.Length())
+			argument = [L8Value valueWithV8Value:info[i-offset] inContext:context];
 		else
-			argument = [L8Value valueWithUndefined];
+			argument = [L8Value valueWithUndefinedInContext:context];
 
-		objCSetInvocationArgument(isolate, invocation, i+offset, argument);
+		objCSetInvocationArgument(isolate, context, invocation, i, argument);
 	}
 }
 
 inline void objCSetContextEmbedderData(const FunctionCallbackInfo<Value>& info)
 {
-	Local<Context> context = [L8Runtime currentRuntime].V8Context;
+	Local<Context> context;
 
-	// Set embedder data
+	context = info.GetIsolate()->GetCurrentContext(); // TODO Verify
+
 	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_THIS, info.This());
 	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_CALLEE, info.Callee());
 	Local<Array> argList = Array::New(info.GetIsolate(), info.Length());
@@ -543,10 +551,12 @@ inline void objCSetContextEmbedderData(const FunctionCallbackInfo<Value>& info)
 	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_ARGS, argList);
 }
 
-inline void objCClearContextEmbedderData(Isolate *isolate) {
-	Local<Context> context = [L8Runtime currentRuntime].V8Context;
+inline void objCClearContextEmbedderData(Isolate *isolate)
+{
+	Local<Context> context;
 
-	// Clear embedder data
+	context = isolate->GetCurrentContext(); // TODO Verify
+
 	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_THIS, Null(isolate));
 	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_CALLEE, Null(isolate));
 	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_ARGS, Null(isolate));
@@ -561,6 +571,7 @@ void ObjCConstructor(const FunctionCallbackInfo<Value>& info)
 	id __unsafe_unretained resultObject;
 	Isolate *isolate = info.GetIsolate();
 	HandleScope localScope(isolate);
+	L8Runtime *context;
 
 	NSMethodSignature *methodSignature;
 	NSInvocation *invocation;
@@ -598,7 +609,9 @@ void ObjCConstructor(const FunctionCallbackInfo<Value>& info)
 	// Set target
 	invocation.target = object;
 
-	objCSetInvocationArguments(isolate, invocation, info, 2);
+	context = [L8Runtime runtimeWithV8Context:isolate->GetCurrentContext()]; // TODO verify
+
+	objCSetInvocationArguments(isolate, context, invocation, info, 2);
 	objCSetContextEmbedderData(info);
 
 	// and initialize
@@ -624,7 +637,7 @@ void ObjCConstructor(const FunctionCallbackInfo<Value>& info)
 			info.This()->SetInternalField(0, makeWrapper([L8Runtime currentRuntime].V8Context, resultObject));
 
 		} @catch (id exception) {
-			info.GetReturnValue().Set(handleInvocationException(isolate,exception));
+			info.GetReturnValue().Set(handleInvocationException(isolate,context,exception));
 			return;
 		} @finally {
 			objCClearContextEmbedderData(isolate);
@@ -645,6 +658,7 @@ void ObjCMethodCall(const FunctionCallbackInfo<Value>& info)
 	Local<Array> extraData;
 	Local<Value> retVal;
 	Isolate *isolate;
+	L8Runtime *context;
 
 	// A constructor call should be with ObjCConstructor
 	assert(info.IsConstructCall() == false);
@@ -672,14 +686,16 @@ void ObjCMethodCall(const FunctionCallbackInfo<Value>& info)
 	invocation.selector = selector;
 	invocation.target = object;
 
+	context = [L8Runtime runtimeWithV8Context:isolate->GetCurrentContext()]; // TODO verify
+
 	// Set the arguments
-	objCSetInvocationArguments(isolate, invocation, info, 2);
+	objCSetInvocationArguments(isolate, context, invocation, info, 2);
 	objCSetContextEmbedderData(info);
 
 	// Retain those
 	[invocation retainArguments];
 
-	retVal = objCInvocation(isolate,invocation);
+	retVal = objCInvocation(isolate, context, invocation);
 
 	objCClearContextEmbedderData(isolate);
 
@@ -693,6 +709,7 @@ void ObjCBlockCall(const FunctionCallbackInfo<Value>& info)
 	const char *signature;
 	Isolate *isolate;
 	id block;
+	L8Runtime *context;
 
 	isolate = info.GetIsolate();
 
@@ -702,8 +719,10 @@ void ObjCBlockCall(const FunctionCallbackInfo<Value>& info)
 	invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
 	invocation.target = block;
 
+	context = [L8Runtime runtimeWithV8Context:isolate->GetCurrentContext()]; // TODO verify
+
 	// Set arguments (+1)
-	objCSetInvocationArguments(info.GetIsolate(), invocation, info, 1);
+	objCSetInvocationArguments(isolate, context, invocation, info, 1);
 
 	[invocation retainArguments];
 
@@ -711,48 +730,73 @@ void ObjCBlockCall(const FunctionCallbackInfo<Value>& info)
 		@try {
 			Local<Value> retVal;
 
-			retVal = objCInvocation(isolate,invocation);
+			retVal = objCInvocation(isolate, context, invocation);
 			info.GetReturnValue().Set(retVal);
 		} @catch (id exception) {
-			info.GetReturnValue().Set(handleInvocationException(isolate,exception));
+			info.GetReturnValue().Set(handleInvocationException(isolate, context, exception));
 		}
 	}
 }
 
 void ObjCNamedPropertySetter(Local<String> property, Local<Value> value, const PropertyCallbackInfo<Value>& info)
 {
-	id object = objectFromWrapper(info.This()->GetInternalField(0));
-	L8Value *setValue = [L8Value valueWithV8Value:value];
+	id object;
+	L8Value *setValue;
+	L8Runtime *runtime;
+
+	object = objectFromWrapper(info.This()->GetInternalField(0));
+
+	runtime = [L8Runtime runtimeWithV8Context:info.GetIsolate()->GetCurrentContext()]; // TODO verify
+
+	setValue = [L8Value valueWithV8Value:value inContext:runtime];
+
 	[object setObject:setValue forKeyedSubscript:[NSString stringWithV8String:property]];
 
-	info.GetReturnValue().Set([setValue V8Value]);
+	info.GetReturnValue().Set(setValue.V8Value);
 }
 
 void ObjCNamedPropertyGetter(Local<String> property, const PropertyCallbackInfo<Value>& info)
 {
-	id object = objectFromWrapper(info.This()->GetInternalField(0));
-	id value = [object objectForKeyedSubscript:[NSString stringWithV8String:property]];
+	id object, value;
+	L8Runtime *runtime;
+
+	object = objectFromWrapper(info.This()->GetInternalField(0));
+	value = [object objectForKeyedSubscript:[NSString stringWithV8String:property]];
+
+	runtime = [L8Runtime runtimeWithV8Context:info.GetIsolate()->GetCurrentContext()]; // TODO verify
 
 	if(value)
-		info.GetReturnValue().Set(objectToValue([L8Runtime currentRuntime], value));
+		info.GetReturnValue().Set(objectToValue(runtime, value));
 }
 
 void ObjCIndexedPropertySetter(uint32_t index, Local<Value> value, const PropertyCallbackInfo<Value>& info)
 {
-	id object = objectFromWrapper(info.This()->GetInternalField(0));
-	L8Value *setValue = [L8Value valueWithV8Value:value];
+	id object;
+	L8Value *setValue;
+	L8Runtime *runtime;
+
+	object = objectFromWrapper(info.This()->GetInternalField(0));
+
+	runtime = [L8Runtime runtimeWithV8Context:info.GetIsolate()->GetCurrentContext()]; // TODO verify
+
+	setValue = [L8Value valueWithV8Value:value inContext:runtime];
 	[object setObject:setValue atIndexedSubscript:index];
 
-	info.GetReturnValue().Set([setValue V8Value]);
+	info.GetReturnValue().Set(setValue.V8Value);
 }
 
 void ObjCIndexedPropertyGetter(uint32_t index, const PropertyCallbackInfo<Value>& info)
 {
-	id object = objectFromWrapper(info.This()->GetInternalField(0));
-	id value = [object objectAtIndexedSubscript:index];
+	id object, value;
+	L8Runtime *runtime;
+
+	object = objectFromWrapper(info.This()->GetInternalField(0));
+	value = [object objectAtIndexedSubscript:index];
+
+	runtime = [L8Runtime runtimeWithV8Context:info.GetIsolate()->GetCurrentContext()]; // TODO verify
 
 	if(value)
-		info.GetReturnValue().Set(objectToValue([L8Runtime currentRuntime], value));
+		info.GetReturnValue().Set(objectToValue(runtime, value));
 }
 
 void ObjCAccessorSetter(Local<String> property, Local<Value> value, const PropertyCallbackInfo<void> &info)
@@ -765,9 +809,13 @@ void ObjCAccessorSetter(Local<String> property, Local<Value> value, const Proper
 	Local<Array> extraData;
 	Local<Value> retVal;
 	L8Value *newValue;
+	Isolate *isolate;
+	L8Runtime *context;
 
+	isolate = info.GetIsolate();
 	object = objectFromWrapper(info.This()->GetInternalField(0));
 	extraData = info.Data().As<Array>();
+	context = [L8Runtime runtimeWithV8Context:isolate->GetCurrentContext()]; // TODO Verify
 
 	// 0 = name, 1 = value type, 2 = getter SEL, 3 = getter types, 4 = setter SEL, 5 = setter types
 	selector = selectorFromV8Value(extraData->Get(4));
@@ -783,10 +831,10 @@ void ObjCAccessorSetter(Local<String> property, Local<Value> value, const Proper
 	assert(invocation.methodSignature.numberOfArguments == 3
 		   && "More parameters than arguments: not a setter called?");
 
-	newValue = [L8Value valueWithV8Value:value];
-	objCSetInvocationArgument(info.GetIsolate(), invocation,2,newValue);
+	newValue = [L8Value valueWithV8Value:value inContext:context];
+	objCSetInvocationArgument(isolate, context, invocation, 2, newValue);
 
-	retVal = objCInvocation(info.GetIsolate(),invocation);
+	retVal = objCInvocation(isolate, context, invocation);
 
 	info.GetReturnValue().Set(retVal);
 }
@@ -800,9 +848,13 @@ void ObjCAccessorGetter(Local<String> property, const PropertyCallbackInfo<Value
 	const char *types, *returnType;
 	Local<Array> extraData;
 	Local<Value> retVal;
+	Isolate *isolate;
+	L8Runtime *context;
 
+	isolate = info.GetIsolate();
 	object = objectFromWrapper(info.This()->GetInternalField(0));
 	extraData = info.Data().As<Array>();
+	context = [L8Runtime runtimeWithV8Context:isolate->GetCurrentContext()]; // TODO Verify
 
 	// 0 = name, 1 = value type, 2 = getter SEL, 3 = getter types, 4 = setter SEL, 5 = setter types
 	returnType = createStringFromV8Value(extraData->Get(1));
@@ -819,7 +871,7 @@ void ObjCAccessorGetter(Local<String> property, const PropertyCallbackInfo<Value
 	assert(invocation.methodSignature.numberOfArguments == 2
 		   && "More parameters than arguments: not a getter called?");
 
-	retVal = objCInvocation(info.GetIsolate(),invocation,returnType);
+	retVal = objCInvocation(isolate, context, invocation, returnType);
 	free((void *)returnType);
 
 	info.GetReturnValue().Set(retVal);

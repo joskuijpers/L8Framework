@@ -27,6 +27,7 @@
 #import "L8Runtime_Private.h"
 #import "L8Value_Private.h"
 #import "L8ManagedValue_Private.h"
+#import "L8WrapperMap.h"
 
 using namespace v8;
 
@@ -44,18 +45,24 @@ using namespace v8;
 {
 	self = [super init];
 	if(self) {
-		// TODO: Dont use get current but create a new one
-		_v8isolate = Isolate::GetCurrent();
+		_v8isolate = Isolate::New();
+		_v8isolate->Enter();
 
 		_managedObjectGraph = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsWeakMemory | NSPointerFunctionsObjectPersonality
 														valueOptions:NSPointerFunctionsStrongMemory | NSPointerFunctionsObjectPersonality
 															capacity:0];
+
+	NSLog(@"NEW isolate %p",_v8isolate);
 	}
 	return self;
 }
 
 - (void)dealloc
 {
+	NSLog(@"Dealloc isolate %p",_v8isolate);
+	if(Isolate::GetCurrent() == _v8isolate)
+	   _v8isolate->Exit();
+
 	_v8isolate->Dispose();
 	_v8isolate = NULL;
 }
@@ -68,16 +75,13 @@ using namespace v8;
 - (id)getInternalObjCObject:(id)object
 {
 	HandleScope localScope(_v8isolate);
-	Local<Context> localContext;
-
-	localContext = Local<Context>::New(_v8isolate, _v8context);
 
 	if([object isKindOfClass:[L8ManagedValue class]]) {
 		id temp;
 		L8Value *value;
 
 		value = [(L8ManagedValue *)object value];
-		temp = unwrapObjcObject(localContext, [value V8Value]);
+		temp = unwrapObjCObject(_v8isolate, value.V8Value);
 
 		if(temp)
 			return temp;
@@ -88,7 +92,7 @@ using namespace v8;
 		L8Value *value;
 
 		value = (L8Value *)object;
-		object = unwrapObjcObject(localContext, [value V8Value]);
+		object = unwrapObjCObject(_v8isolate, value.V8Value);
 	}
 
 	return object;
@@ -154,6 +158,13 @@ using namespace v8;
 
 	if(![objectsOwned count])
 		[_managedObjectGraph removeObjectForKey:owner];
+}
+
+- (void)runGarbageCollector
+{
+#ifdef DEBUG
+	while(!V8::IdleNotification()) {};
+#endif
 }
 
 @end
