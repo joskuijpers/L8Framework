@@ -35,11 +35,16 @@
 #define L8_RUNTIME_EMBEDDER_DATA_CB_ARGS 4
 #define L8_RUNTIME_EMBEDDER_DATA_SKIP_CONSTRUCTING 5
 
+/**
+ * @brief Runtime extension with private methods
+ */
 @interface L8Runtime ()
 
+/// Wrapper map used for wrapping V8 and ObjC objects.
 @property (readonly) L8WrapperMap *wrapperMap;
 
-+ (L8Runtime *)contextWithV8Context:(v8::Local<v8::Context>)v8context;
++ (instancetype)runtimeWithV8Context:(v8::Local<v8::Context>)v8context;
+
 - (v8::Local<v8::Context>)V8Context;
 
 - (L8Value *)wrapperForObjCObject:(id)object;

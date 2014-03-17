@@ -20,21 +20,22 @@
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#import <XCTest/XCTest.h>
-#import "L8Runtime_Debugging.h"
-#import "L8Value.h"
+#import "L8VirtualMachine.h"
+#include "v8.h"
 
+/**
+ * @brief Virtual machine extension with private methods
+ */
+@interface L8VirtualMachine ()
 
-@interface L8DebugTests : XCTestCase @end
-
-@implementation L8DebugTests
-
-- (void)testDebugging
-{
-//	XCTFail("Not implemented");
-}
+/**
+ * Get the Isolate wrapped by this virtual machine.
+ *
+ * @return Pointer to the V8 isolate.
+ */
+- (v8::Isolate *)V8Isolate __attribute__((objc_returns_inner_pointer));
 
 @end

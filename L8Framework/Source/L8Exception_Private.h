@@ -26,6 +26,9 @@
 #import "L8Exception.h"
 #include "v8.h"
 
+/**
+ * @brief Exception extension with private methods
+ */
 @interface L8Exception ()
 
 @property (readonly) id thrownObject;

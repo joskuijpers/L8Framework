@@ -31,6 +31,7 @@
 
 #import "L8WrapperMap.h"
 
+#import "L8VirtualMachine_Private.h"
 #import "L8Runtime_Private.h"
 #import "L8Value_Private.h"
 #import "L8Export.h"
@@ -202,12 +203,13 @@ bool shouldSkipMethodWhenCopying(SEL sel)
  * This method also stores type-information of accessor methods in the given
  * dictionary, if given.
  */
-void copyMethodsToObject(L8WrapperMap *wrapperMap, Protocol *protocol,
+void copyMethodsToObject(L8WrapperMap *wrapperMap,
+						 Protocol *protocol,
 						 BOOL isInstanceMethod,
 						 Local<Template> theTemplate,
 						 NSMutableDictionary *accessorMethods = nil)
 {
-	Isolate *isolate = Isolate::GetCurrent();
+	Isolate *isolate = wrapperMap.runtime.virtualMachine.V8Isolate;
 	NSMutableDictionary *renameMap = createRenameMap(protocol, isInstanceMethod);
 
 	forEachMethodInProtocol(protocol, YES, isInstanceMethod, ^(SEL sel, const char *types) {
@@ -224,7 +226,8 @@ void copyMethodsToObject(L8WrapperMap *wrapperMap, Protocol *protocol,
 		extraTypes = _protocol_getMethodTypeEncoding(protocol, sel, YES, isInstanceMethod);
 
 		if(accessorMethods[rawName]) {
-			accessorMethods[rawName] = [L8Value valueWithV8Value:String::NewFromUtf8(isolate,extraTypes)];
+			accessorMethods[rawName] = [L8Value valueWithV8Value:String::NewFromUtf8(isolate,extraTypes)
+													   inContext:wrapperMap.runtime];
 		} else {
 			NSString *propertyName;
 			Local<String> v8Name;
@@ -240,8 +243,8 @@ void copyMethodsToObject(L8WrapperMap *wrapperMap, Protocol *protocol,
 			function = FunctionTemplate::New(isolate);
 
 			extraData = Array::New(isolate);
-			extraData->Set(0, String::NewFromUtf8(Isolate::GetCurrent(), selName));
-			extraData->Set(1, String::NewFromUtf8(Isolate::GetCurrent(), extraTypes));
+			extraData->Set(0, String::NewFromUtf8(isolate, selName));
+			extraData->Set(1, String::NewFromUtf8(isolate, extraTypes));
 			extraData->Set(2, v8::Boolean::New(isolate,!isInstanceMethod));
 			function->SetCallHandler(ObjCMethodCall,extraData);
 
@@ -294,8 +297,10 @@ void parsePropertyAttributes(objc_property_t property, char *&getterName, char *
  * we first need to find all properties and get their getter (and setter). Then, when copying
  * the methods, we should skip these as they are already covered by the property-accessors
  */
-void copyPrototypeProperties(L8WrapperMap *wrapperMap, Local<ObjectTemplate> prototypeTemplate,
-							 Local<ObjectTemplate> instanceTemplate, Protocol *protocol)
+void copyPrototypeProperties(L8WrapperMap *wrapperMap,
+							 Local<ObjectTemplate> prototypeTemplate,
+							 Local<ObjectTemplate> instanceTemplate,
+							 Protocol *protocol)
 {
 	struct property_t {
 		const char *name;
@@ -304,26 +309,28 @@ void copyPrototypeProperties(L8WrapperMap *wrapperMap, Local<ObjectTemplate> pro
 		char *type;
 		bool readonly;
 	};
-
-	Isolate *isolate = Isolate::GetCurrent();
+	Isolate *isolate = wrapperMap.runtime.virtualMachine.V8Isolate;
 	__block std::vector<property_t> propertyList;
-
-	// Dictionary containing all accessor methods so they can be skipped when copying methods
-	NSMutableDictionary *accessorMethods = [NSMutableDictionary dictionary];
-	L8Value *undefinedValue = [L8Value valueWithUndefined];
+	NSMutableDictionary *accessorMethods;
+	L8Value *undefinedValue;
 
 	// This is not neccesary, just move them inside the block
 	// but it is to avoid analyzer errors: the allocation is in another loop
-	// than the freeing
+	// than the freeing.
 	__block char *getterName = NULL;
 	__block char *setterName = NULL;
 	__block char *type = NULL;
+
+	// Dictionary containing all accessor methods so they can be skipped when copying methods
+	accessorMethods = [NSMutableDictionary dictionary];
+	undefinedValue = [L8Value valueWithUndefinedInContext:wrapperMap.runtime];
 
 	forEachPropertyInProtocol(protocol, ^(objc_property_t property) {
 		getterName = NULL;
 		setterName = NULL;
 		type = NULL;
 		bool readonly = false;
+		property_t prop;
 		const char *propertyName = property_getName(property);
 
 		// Get property information
@@ -341,7 +348,7 @@ void copyPrototypeProperties(L8WrapperMap *wrapperMap, Local<ObjectTemplate> pro
 			accessorMethods[@(setterName)] = undefinedValue;
 		}
 
-		property_t prop = { propertyName, getterName, setterName, type, readonly };
+		prop = { propertyName, getterName, setterName, type, readonly };
 		propertyList.push_back(prop);
 	});
 
@@ -356,12 +363,12 @@ void copyPrototypeProperties(L8WrapperMap *wrapperMap, Local<ObjectTemplate> pro
 		Local<Array> extraData = Array::New(isolate);
 
 		extraData->Set(0, v8PropertyName);
-		extraData->Set(1, String::NewFromUtf8(Isolate::GetCurrent(), property.type)); // value type
-		extraData->Set(2, String::NewFromUtf8(Isolate::GetCurrent(), property.getterName)); // getter SEL
+		extraData->Set(1, String::NewFromUtf8(isolate, property.type)); // value type
+		extraData->Set(2, String::NewFromUtf8(isolate, property.getterName)); // getter SEL
 		extraData->Set(3, [accessorMethods[@(property.getterName)] V8Value]); // getter Types
 
 		if(!property.readonly) {
-			extraData->Set(4, String::NewFromUtf8(Isolate::GetCurrent(), property.setterName)); // setter SEL
+			extraData->Set(4, String::NewFromUtf8(isolate, property.setterName)); // setter SEL
 			extraData->Set(5, [accessorMethods[@(property.setterName)] V8Value]); // setter Types
 		}
 
@@ -409,7 +416,6 @@ SEL initializerSelectorForClass(Class cls)
 }
 
 @implementation L8WrapperMap {
-	L8Runtime * _runtime;
 	std::map<std::string,Eternal<FunctionTemplate>> _classCache;
 }
 
@@ -426,13 +432,15 @@ SEL initializerSelectorForClass(Class cls)
 					 forClass:(Class)cls
 {
 	std::string key(class_getName(cls));
+	Eternal<FunctionTemplate> myEternal;
 
 	assert(_classCache.find(key) == _classCache.end() && "Must only cache once");
 
-	Eternal<FunctionTemplate> myEternal;
 	{
-		HandleScope localScope(Isolate::GetCurrent());
-		myEternal.Set(Isolate::GetCurrent(), funcTemplate);
+		Isolate *isolate = _runtime.virtualMachine.V8Isolate;
+
+		HandleScope localScope(isolate);
+		myEternal.Set(isolate, funcTemplate);
 	}
 
 	_classCache[key] = myEternal;
@@ -442,22 +450,23 @@ SEL initializerSelectorForClass(Class cls)
 {
 	std::string key(class_getName(cls));
 	std::map<std::string,Eternal<FunctionTemplate>>::iterator it;
+	Isolate *isolate = _runtime.virtualMachine.V8Isolate;
 
 	it = _classCache.find(key);
 	if(it != _classCache.end()) {
 		Eternal<FunctionTemplate> eternal;
 
 		eternal = it->second;
-		return eternal.Get(Isolate::GetCurrent());
+		return eternal.Get(isolate);
 	}
 
-	EscapableHandleScope localScope(Isolate::GetCurrent());
+	EscapableHandleScope localScope(isolate);
 	return localScope.Escape(Local<FunctionTemplate>());
 }
 
 - (Local<FunctionTemplate>)functionTemplateForClass:(Class)cls
 {
-	Isolate *isolate = Isolate::GetCurrent();
+	Isolate *isolate = _runtime.virtualMachine.V8Isolate;
 	EscapableHandleScope localScope(isolate);
 	Local<FunctionTemplate> classTemplate;
 	Local<ObjectTemplate> prototypeTemplate, instanceTemplate;
@@ -513,7 +522,7 @@ SEL initializerSelectorForClass(Class cls)
  */
 - (L8Value *)JSWrapperForObjCObject:(id)object
 {
-	Isolate *isolate = Isolate::GetCurrent();
+	Isolate *isolate = _runtime.virtualMachine.V8Isolate;
 	EscapableHandleScope localScope(isolate);
 	Local<FunctionTemplate> classTemplate;
 	Local<Function> function;
@@ -529,15 +538,15 @@ SEL initializerSelectorForClass(Class cls)
 	function = classTemplate->GetFunction();
 
 	if(class_isMetaClass(object_getClass(object))) {
-		return [L8Value valueWithV8Value:localScope.Escape(function)];
+		return [L8Value valueWithV8Value:localScope.Escape(function) inContext:_runtime];
 	} else {
-		[_runtime V8Context]->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SKIP_CONSTRUCTING, True(isolate));
+		_runtime.V8Context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SKIP_CONSTRUCTING, True(isolate));
 		Local<Object> instance = function->NewInstance();
-		[_runtime V8Context]->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SKIP_CONSTRUCTING, False(isolate));
+		_runtime.V8Context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SKIP_CONSTRUCTING, False(isolate));
 
-		instance->SetInternalField(0, makeWrapper([_runtime V8Context], object));
+		instance->SetInternalField(0, makeWrapper(_runtime.V8Context, object));
 
-		return [L8Value valueWithV8Value:localScope.Escape(instance)];
+		return [L8Value valueWithV8Value:localScope.Escape(instance) inContext:_runtime];
 	}
 
 	return nil;
@@ -550,9 +559,9 @@ SEL initializerSelectorForClass(Class cls)
  */
 - (L8Value *)JSWrapperForBlock:(id)object
 {
-	Local<Function> function = wrapBlock(object);
+	Local<Function> function = wrapBlock(_runtime.V8Context,object);
 
-	return [L8Value valueWithV8Value:function];
+	return [[L8Value alloc] initWithV8Value:function inContext:_runtime];
 }
 
 /*!
@@ -580,19 +589,24 @@ SEL initializerSelectorForClass(Class cls)
  */
 - (L8Value *)ObjCWrapperForValue:(Local<Value>)value
 {
-	return [[L8Value alloc] initWithV8Value:value];
+	return [[L8Value alloc] initWithV8Value:value inContext:_runtime];
 }
 
 @end
 
-id unwrapObjcObject(Local<Context> context, Local<Value> value) {
+id unwrapObjCObject(Isolate *isolate, Local<Value> value)
+{
+	Local<Object> object;
+
 	if(!value->IsObject())
 		return nil;
 
-	Local<Object> object = value->ToObject();
+	object = value->ToObject();
 
 	if(object->InternalFieldCount() > 0) { // Instance
-		Local<Value> field = object->GetInternalField(0);
+		Local<Value> field;
+
+		field = object->GetInternalField(0);
 		if(!field.IsEmpty() && field->IsExternal())
 			return (__bridge id)External::Cast(*field)->Value();
 	}
@@ -602,13 +616,13 @@ id unwrapObjcObject(Local<Context> context, Local<Value> value) {
 		bool isBlock;
 		NSString *name;
 
-		isBlockInfo = object->GetHiddenValue(String::NewFromUtf8(Isolate::GetCurrent(), "isBlock"));
+		isBlockInfo = object->GetHiddenValue(String::NewFromUtf8(isolate, "isBlock"));
 		isBlock = !isBlockInfo.IsEmpty() && isBlockInfo->IsTrue();
 
 		name = [NSString stringWithV8Value:object.As<Function>()->GetName()];
 
 		if(isBlock) {
-			if(id target = unwrapBlock(object)) // Block
+			if(id target = unwrapBlock(isolate, object)) // Block
 				return target;
 			return nil;
 		}
@@ -618,35 +632,39 @@ id unwrapObjcObject(Local<Context> context, Local<Value> value) {
 	return nil;
 }
 
-Local<Function> wrapBlock(id object)
+Local<Function> wrapBlock(Local<Context> context, id object)
 {
-	Isolate *isolate = Isolate::GetCurrent();
+	Isolate *isolate = context->GetIsolate();
 	EscapableHandleScope localScope(isolate);
 
 	Local<FunctionTemplate> functionTemplate = FunctionTemplate::New(isolate);
-	functionTemplate->SetCallHandler(ObjCBlockCall, makeWrapper([[L8Runtime currentRuntime] V8Context], object));
+	functionTemplate->SetCallHandler(ObjCBlockCall, makeWrapper(context, object));
 	functionTemplate->PrototypeTemplate()->SetInternalFieldCount(1);
 	functionTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
 	Local<Function> function = functionTemplate->GetFunction();
-	function->SetHiddenValue(String::NewFromUtf8(Isolate::GetCurrent(), "isBlock"),
+	function->SetHiddenValue(String::NewFromUtf8(isolate, "isBlock"),
 							 v8::Boolean::New(isolate,true));
-	function->SetHiddenValue(String::NewFromUtf8(Isolate::GetCurrent(), "cBlock"),
-							 makeWrapper([[L8Runtime currentRuntime] V8Context], object));
+	function->SetHiddenValue(String::NewFromUtf8(isolate, "cBlock"),
+							 makeWrapper(context, object));
 
 	return localScope.Escape(function);
 }
 
-id unwrapBlock(Local<Object> object)
+id unwrapBlock(Isolate *isolate, Local<Object> object)
 {
+	Local<Value> cblock;
+	id blockObject;
+
 	assert(object->IsFunction());
-	if(object->GetHiddenValue(String::NewFromUtf8(Isolate::GetCurrent(), "isBlock"))->IsTrue() == false)
+
+	if(object->GetHiddenValue(String::NewFromUtf8(isolate, "isBlock"))->IsTrue() == false)
 		return nil;
 
-	Local<Value> cblock = object->GetHiddenValue(String::NewFromUtf8(Isolate::GetCurrent(), "cBlock"));
+	cblock = object->GetHiddenValue(String::NewFromUtf8(isolate, "cBlock"));
 	assert(cblock->IsExternal());
 
-	id blockObject = (__bridge id)External::Cast(*cblock)->Value();
+	blockObject = (__bridge id)External::Cast(*cblock)->Value();
 	assert([blockObject isKindOfClass:BlockClass()]);
 
 	return blockObject;

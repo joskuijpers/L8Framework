@@ -44,7 +44,7 @@
  * @param value
  * @result The new JSManagedValue.
  */
-+ (L8ManagedValue *)managedValueWithValue:(L8Value *)value;
++ (instancetype)managedValueWithValue:(L8Value *)value;
 
 /**
  * Create a JSManagedValue from a JSValue and add it to the runtime.
@@ -53,7 +53,7 @@
  * @param owner
  * @result The new JSManagedValue.
  */
-+ (L8ManagedValue *)managedValueWithValue:(L8Value *)value andOwner:(id)owner;
++ (instancetype)managedValueWithValue:(L8Value *)value andOwner:(id)owner;
 
 /**
  * Create a JSManagedValue.
@@ -61,6 +61,6 @@
  * @param value
  * @result The new JSManagedValue.
  */
-- (instancetype)initWithValue:(L8Value *)value;
+- (instancetype)initWithValue:(L8Value *)value __attribute__((objc_designated_initializer));
 
 @end

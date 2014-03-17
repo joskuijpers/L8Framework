@@ -24,12 +24,13 @@
  */
 
 #import "L8Value_Private.h"
-#import "NSString+L8.h"
 #import "L8Runtime_Private.h"
 #import "L8Reporter_Private.h"
+#import "L8ManagedValue_Private.h"
+#import "L8VirtualMachine_Private.h"
 #import "L8Export.h"
 #import "L8WrapperMap.h"
-#import "L8ManagedValue_Private.h"
+#import "NSString+L8.h"
 
 #include "v8.h"
 #import <objc/runtime.h>
@@ -43,42 +44,46 @@ using namespace v8;
 	Local<Value> _v8value;
 }
 
-+ (L8Value *)valueWithObject:(id)value
+#pragma mark Value creations
+
++ (instancetype)valueWithObject:(id)value inContext:(L8Runtime *)context
 {
-	return [self valueWithV8Value:objectToValue([L8Runtime currentRuntime], value)];
+	return [self valueWithV8Value:objectToValue(context, value) inContext:context];
 }
 
-+ (L8Value *)valueWithBool:(BOOL)value
++ (instancetype)valueWithBool:(BOOL)value inContext:(L8Runtime *)context
 {
-	return [self valueWithV8Value:v8::Boolean::New(Isolate::GetCurrent(),value)];
+	return [self valueWithV8Value:v8::Boolean::New(context.virtualMachine.V8Isolate,value) inContext:context];
 }
 
-+ (L8Value *)valueWithDouble:(double)value
++ (instancetype)valueWithDouble:(double)value inContext:(L8Runtime *)context
 {
-	return [self valueWithV8Value:Number::New(Isolate::GetCurrent(),value)];
+	return [self valueWithV8Value:Number::New(context.virtualMachine.V8Isolate,value) inContext:context];
 }
 
-+ (L8Value *)valueWithInt32:(int32_t)value
++ (instancetype)valueWithInt32:(int32_t)value inContext:(L8Runtime *)context
 {
-	return [self valueWithV8Value:Int32::New(Isolate::GetCurrent(),value)];
+	return [self valueWithV8Value:Int32::New(context.virtualMachine.V8Isolate,value) inContext:context];
 }
 
-+ (L8Value *)valueWithUInt32:(uint32_t)value
++ (instancetype)valueWithUInt32:(uint32_t)value inContext:(L8Runtime *)context
 {
-	return [self valueWithV8Value:Uint32::New(Isolate::GetCurrent(),value)];
+	return [self valueWithV8Value:Uint32::New(context.virtualMachine.V8Isolate,value) inContext:context];
 }
 
-+ (L8Value *)valueWithNewObject
++ (instancetype)valueWithNewObjectInContext:(L8Runtime *)context
 {
-	return [self valueWithV8Value:Object::New(Isolate::GetCurrent())];
+	return [self valueWithV8Value:Object::New(context.virtualMachine.V8Isolate) inContext:context];
 }
 
-+ (L8Value *)valueWithNewArray
++ (instancetype)valueWithNewArrayInContext:(L8Runtime *)context
 {
-	return [self valueWithV8Value:Array::New(Isolate::GetCurrent())];
+	return [self valueWithV8Value:Array::New(context.virtualMachine.V8Isolate) inContext:context];
 }
 
-+ (L8Value *)valueWithNewRegularExpressionFromPattern:(NSString *)pattern flags:(NSString *)flags
++ (instancetype)valueWithNewRegularExpressionFromPattern:(NSString *)pattern
+												   flags:(NSString *)flags
+											   inContext:(L8Runtime *)context
 {
 	int iFlags = RegExp::Flags::kNone;
 
@@ -89,24 +94,28 @@ using namespace v8;
 	if([flags rangeOfString:@"m"].location != NSNotFound)
 		iFlags |= RegExp::Flags::kMultiline;
 
-	return [self valueWithV8Value:RegExp::New([pattern V8String], (RegExp::Flags)iFlags)];
+	return [self valueWithV8Value:RegExp::New([pattern V8String], (RegExp::Flags)iFlags)
+						inContext:context];
 }
 
-+ (L8Value *)valueWithNewErrorFromMessage:(NSString *)message
++ (instancetype)valueWithNewErrorFromMessage:(NSString *)message
+								   inContext:(L8Runtime *)context
 {
 	Local<Value> error = Exception::Error([message V8String]);
-	return [self valueWithV8Value:error];
+	return [self valueWithV8Value:error inContext:context];
 }
 
-+ (L8Value *)valueWithNull
++ (instancetype)valueWithNullInContext:(L8Runtime *)context
 {
-	return [self valueWithV8Value:Null(Isolate::GetCurrent())];
+	return [self valueWithV8Value:Null(context.virtualMachine.V8Isolate) inContext:context];
 }
 
-+ (L8Value *)valueWithUndefined
++ (instancetype)valueWithUndefinedInContext:(L8Runtime *)context
 {
-	return [self valueWithV8Value:Undefined(Isolate::GetCurrent())];
+	return [self valueWithV8Value:Undefined(context.virtualMachine.V8Isolate) inContext:context];
 }
+
+#pragma mark Object conversions
 
 - (id)toObject
 {
@@ -129,11 +138,11 @@ using namespace v8;
 
 	function = _v8value.As<Function>();
 
-	isBlock = function->GetHiddenValue(String::NewFromUtf8(Isolate::GetCurrent(), "isBlock"));
+	isBlock = function->GetHiddenValue(String::NewFromUtf8(_runtime.virtualMachine.V8Isolate, "isBlock"));
 	if(!isBlock.IsEmpty() && isBlock->IsTrue()) {
 		id block;
 
-		block = unwrapBlock(function);
+		block = unwrapBlock(_runtime.virtualMachine.V8Isolate,function);
 
 		return block;
 	}
@@ -186,13 +195,18 @@ using namespace v8;
 	return valueToDictionary(_runtime, _v8value);
 }
 
+#pragma mark Setting and getting properties
+
 - (L8Value *)valueForProperty:(NSString *)property
 {
-	EscapableHandleScope localScope(Isolate::GetCurrent());
+	EscapableHandleScope localScope(_runtime.virtualMachine.V8Isolate);
+	Local<Object> object;
+	Local<Value> value;
 
-	Local<Object> object = _v8value->ToObject();
-	Local<Value> v = object->Get([property V8String]);
-	return [L8Value valueWithV8Value:localScope.Escape(v)];
+	object = _v8value->ToObject();
+	value = object->Get([property V8String]);
+
+	return [L8Value valueWithV8Value:localScope.Escape(value) inContext:_runtime];
 }
 
 - (void)setValue:(id)value forProperty:(NSString *)property
@@ -215,20 +229,32 @@ using namespace v8;
 
 - (L8Value *)valueAtIndex:(NSUInteger)index
 {
-	if(index != (uint32_t)index)
-		return [self valueForProperty:[[L8Value valueWithDouble:index] toString]];
+	Local<Object> object;
 
-	Local<Object> object = _v8value->ToObject();
+	if(index != (uint32_t)index) {
+		NSString *propertyName;
 
-	return [L8Value valueWithV8Value:object->Get((uint32_t)index)];
+		propertyName = [[L8Value valueWithDouble:index inContext:_runtime] toString];
+		return [self valueForProperty:propertyName];
+	}
+
+	object = _v8value->ToObject();
+
+	return [L8Value valueWithV8Value:object->Get((uint32_t)index) inContext:_runtime];
 }
 
 - (void)setValue:(id)value atIndex:(NSUInteger)index
 {
-	if(index != (uint32_t)index)
-		return [self setValue:value forProperty:[[L8Value valueWithDouble:index] toString]];
+	Local<Object> object;
 
-	Local<Object> object = _v8value->ToObject();
+	if(index != (uint32_t)index) {
+		NSString *propertyName;
+
+		propertyName = [[L8Value valueWithDouble:index inContext:_runtime] toString];
+		return [self setValue:value forProperty:propertyName];
+	}
+
+	object = _v8value->ToObject();
 	object->Set((uint32_t)index, objectToValue(_runtime,value));
 }
 
@@ -237,6 +263,8 @@ using namespace v8;
 	[_runtime.globalObject[@"Object"] invokeMethod:@"defineProperty"
 									 withArguments:@[self, property, descriptor]];
 }
+
+#pragma mark Type discovery
 
 - (BOOL)isUndefined
 {
@@ -297,7 +325,7 @@ using namespace v8;
 {
 	Class cls = Nil;
 	L8WrapperMap *map;
-	Isolate *isolate = Isolate::GetCurrent();
+	Isolate *isolate = _runtime.virtualMachine.V8Isolate;
 	HandleScope localScope(isolate);
 	Local<FunctionTemplate> funcTemplate;
 
@@ -306,7 +334,7 @@ using namespace v8;
 	else
 		cls = [value class];
 
-	map = [[L8Runtime currentRuntime] wrapperMap];
+	map = [_runtime wrapperMap];
 	funcTemplate = [map getCachedFunctionTemplateForClass:cls];
 	if(funcTemplate.IsEmpty())
 		return NO;
@@ -314,20 +342,24 @@ using namespace v8;
 	return funcTemplate->HasInstance(_v8value);
 }
 
+#pragma mark Throwing exceptions
+
 - (void)throwValue
 {
-	Isolate::GetCurrent()->ThrowException(_v8value);
+	_runtime.virtualMachine.V8Isolate->ThrowException(_v8value);
 }
+
+#pragma mark Invoking methods and constructors
 
 - (L8Value *)callWithArguments:(NSArray *)arguments
 {
-	Isolate *isolate = Isolate::GetCurrent();
+	Isolate *isolate = _runtime.virtualMachine.V8Isolate;
 	EscapableHandleScope localScope(isolate);
 	Local<Value> *argv, result;
 	Local<Object> function;
 
 	if(!_v8value->IsFunction())
-		return [L8Value valueWithUndefined];
+		return [L8Value valueWithUndefinedInContext:_runtime];
 
 	argv = (Local<Value> *)calloc(arguments.count,sizeof(Local<Value>));
 	[arguments enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
@@ -343,17 +375,17 @@ using namespace v8;
 		free((void *)argv);
 
 		if(tryCatch.HasCaught()) {
-			[L8Reporter reportTryCatch:&tryCatch inIsolate:isolate];
+			[L8Reporter reportTryCatch:&tryCatch inContext:_runtime];
 			return nil;
 		}
 	}
 
-	return [L8Value valueWithV8Value:localScope.Escape(result)];
+	return [L8Value valueWithV8Value:localScope.Escape(result) inContext:_runtime];
 }
 
 - (L8Value *)constructWithArguments:(NSArray *)arguments
 {
-	Isolate *isolate = Isolate::GetCurrent();
+	Isolate *isolate = _runtime.virtualMachine.V8Isolate;
 	EscapableHandleScope localScope(isolate);
 	Local<Function> function;
 	Local<Value> *argv, result;
@@ -361,7 +393,7 @@ using namespace v8;
 	// Just like ObjC, we want no need to check the validity of
 	// self when invoking this method.
 	if(!_v8value->IsFunction())
-		return [L8Value valueWithUndefined];
+		return [L8Value valueWithUndefinedInContext:_runtime];
 
 	function = _v8value.As<Function>();
 
@@ -377,17 +409,17 @@ using namespace v8;
 		free((void *)argv);
 
 		if(tryCatch.HasCaught()) {
-			[L8Reporter reportTryCatch:&tryCatch inIsolate:isolate];
+			[L8Reporter reportTryCatch:&tryCatch inContext:_runtime];
 			return nil;
 		}
 	}
 
-	return [L8Value valueWithV8Value:localScope.Escape(result)];
+	return [L8Value valueWithV8Value:localScope.Escape(result) inContext:_runtime];
 }
 
 - (L8Value *)invokeMethod:(NSString *)method withArguments:(NSArray *)arguments
 {
-	Isolate *isolate = Isolate::GetCurrent();
+	Isolate *isolate = _runtime.virtualMachine.V8Isolate;
 	EscapableHandleScope localScope(isolate);
 	L8Value *function;
 	Local<Value> v8value, result, *argv;
@@ -396,11 +428,11 @@ using namespace v8;
 	// Just like ObjC, we want no need to check the validity of
 	// self when invoking this method.
 	if(_v8value->IsUndefined() || _v8value->IsNull())
-		return [L8Value valueWithUndefined];
+		return [L8Value valueWithUndefinedInContext:_runtime];
 
 	function = self[method];
 	if(!function || function->_v8value->IsUndefined())
-		return [L8Value valueWithUndefined];
+		return [L8Value valueWithUndefinedInContext:_runtime];
 
 	v8value = function->_v8value;
 	v8function = v8value.As<Function>();
@@ -417,35 +449,29 @@ using namespace v8;
 		free((void *)argv);
 
 		if(tryCatch.HasCaught()) {
-			[L8Reporter reportTryCatch:&tryCatch
-							 inIsolate:isolate];
+			[L8Reporter reportTryCatch:&tryCatch inContext:_runtime];
 			return nil;
 		}
 	}
 
-	return [L8Value valueWithV8Value:localScope.Escape(result)];
+	return [L8Value valueWithV8Value:localScope.Escape(result) inContext:_runtime];
 }
 
 - (NSString *)description
 {
-	if(id wrapped = unwrapObjcObject([_runtime V8Context], _v8value))
+	if(id wrapped = unwrapObjCObject(_runtime.virtualMachine.V8Isolate, _v8value))
 			return [wrapped description];
 	return [self toString];
 }
 
 #pragma mark - Private
 
-+ (L8Value *)valueWithV8Value:(Local<Value>)value
++ (instancetype)valueWithV8Value:(Local<Value>)value inContext:(L8Runtime *)context
 {
-	return [[L8Runtime currentRuntime] wrapperForJSObject:value];
+	return [context wrapperForJSObject:value];
 }
 
-- (L8Value *)init
-{
-	return nil;
-}
-
-- (L8Value *)initWithV8Value:(Local<Value>)value
+- (instancetype)initWithV8Value:(Local<Value>)value inContext:(L8Runtime *)context
 {
 	if(value.IsEmpty())
 		return nil;
@@ -453,7 +479,7 @@ using namespace v8;
 	self = [super init];
 	if(self) {
 		_v8value = value;
-		_runtime = [L8Runtime currentRuntime];
+		_runtime = context;
 	}
 	return self;
 }
@@ -532,6 +558,8 @@ JavaScriptContainerConverter::Job JavaScriptContainerConverter::take()
 
 static JavaScriptContainerConverter::Job valueToObjectWithoutCopy(Local<Context> context, Local<Value> value)
 {
+	Local<Object> object;
+
 	if(!value->IsObject()) {
 		id primitive;
 
@@ -550,8 +578,8 @@ static JavaScriptContainerConverter::Job valueToObjectWithoutCopy(Local<Context>
 		return (JavaScriptContainerConverter::Job){ value, primitive, COLLECTION_NONE };
 	}
 
-	Local<Object> object = value->ToObject();
-	if(id wrapped = unwrapObjcObject(context, value))
+	object = value->ToObject();
+	if(id wrapped = unwrapObjCObject(context->GetIsolate(), value))
 		return (JavaScriptContainerConverter::Job){ object, wrapped, COLLECTION_NONE };
 
 	if(object->IsDate())
@@ -605,15 +633,15 @@ static id containerValueToObject(Local<Context> context, JavaScriptContainerConv
 
 id valueToObject(L8Runtime *runtime, Local<Value> value)
 {
-	JavaScriptContainerConverter::Job job = valueToObjectWithoutCopy([runtime V8Context], value);
+	JavaScriptContainerConverter::Job job = valueToObjectWithoutCopy(runtime.V8Context, value);
 	if(job.type == COLLECTION_NONE)
 		return job.object;
-	return containerValueToObject([runtime V8Context], job);
+	return containerValueToObject(runtime.V8Context, job);
 }
 
 NSNumber *valueToNumber(L8Runtime *runtime, Local<Value> value)
 {
-	id wrapped = unwrapObjcObject([runtime V8Context], value);
+	id wrapped = unwrapObjCObject(runtime.virtualMachine.V8Isolate, value);
 	if(wrapped && [wrapped isKindOfClass:[NSNumber class]]) {
 		return wrapped;
 	}
@@ -627,7 +655,7 @@ NSNumber *valueToNumber(L8Runtime *runtime, Local<Value> value)
 
 NSString *valueToString(L8Runtime *runtime, Local<Value> value)
 {
-	id wrapped = unwrapObjcObject([runtime V8Context], value);
+	id wrapped = unwrapObjCObject(runtime.virtualMachine.V8Isolate, value);
 	if(wrapped && [wrapped isKindOfClass:[NSString class]]) {
 		return wrapped;
 	}
@@ -640,7 +668,7 @@ NSString *valueToString(L8Runtime *runtime, Local<Value> value)
 
 NSDate *valueToDate(L8Runtime *runtime, Local<Value> value)
 {
-	id wrapped = unwrapObjcObject([runtime V8Context], value);
+	id wrapped = unwrapObjCObject(runtime.virtualMachine.V8Isolate, value);
 	if(wrapped && [wrapped isKindOfClass:[NSDate class]]) {
 		return wrapped;
 	}
@@ -650,13 +678,13 @@ NSDate *valueToDate(L8Runtime *runtime, Local<Value> value)
 
 NSArray *valueToArray(L8Runtime *runtime, Local<Value> value)
 {
-	id wrapped = unwrapObjcObject([runtime V8Context], value);
+	id wrapped = unwrapObjCObject(runtime.virtualMachine.V8Isolate, value);
 	if(wrapped && [wrapped isKindOfClass:[NSArray class]]) {
 		return wrapped;
 	}
 
 	if(value->IsArray())
-		return containerValueToObject([runtime V8Context], (JavaScriptContainerConverter::Job){value, [NSMutableArray array], COLLECTION_ARRAY});
+		return containerValueToObject(runtime.V8Context, (JavaScriptContainerConverter::Job){value, [NSMutableArray array], COLLECTION_ARRAY});
 
 	if(!value->IsNull() && value->IsUndefined())
 		@throw [NSException exceptionWithName:@"TypeErrror"
@@ -667,13 +695,13 @@ NSArray *valueToArray(L8Runtime *runtime, Local<Value> value)
 
 NSDictionary *valueToDictionary(L8Runtime *runtime, Local<Value> value)
 {
-	id wrapped = unwrapObjcObject([runtime V8Context], value);
+	id wrapped = unwrapObjCObject(runtime.virtualMachine.V8Isolate, value);
 	if(wrapped && [wrapped isKindOfClass:[NSDictionary class]]) {
 		return wrapped;
 	}
 
 	if(value->IsObject())
-		return containerValueToObject([runtime V8Context], (JavaScriptContainerConverter::Job){ value, [NSMutableDictionary dictionary], COLLECTION_DICTIONARY} );
+		return containerValueToObject(runtime.V8Context, (JavaScriptContainerConverter::Job){ value, [NSMutableDictionary dictionary], COLLECTION_DICTIONARY} );
 
 	if(!value->IsNull() && value->IsUndefined())
 		@throw [NSException exceptionWithName:@"TypeErrror"
@@ -735,7 +763,7 @@ ObjCContainerConverter::Job ObjCContainerConverter::take()
 
 static ObjCContainerConverter::Job objectToValueWithoutCopy(L8Runtime *runtime, id object)
 {
-	Isolate *isolate = Isolate::GetCurrent();
+	Isolate *isolate = runtime.virtualMachine.V8Isolate;
 	if(!object)
 		return (ObjCContainerConverter::Job){object, Undefined(isolate), COLLECTION_NONE};
 
@@ -786,8 +814,7 @@ static ObjCContainerConverter::Job objectToValueWithoutCopy(L8Runtime *runtime, 
 
 Local<Value> objectToValue(L8Runtime *runtime, id object)
 {
-	Local<Context> context = [runtime V8Context];
-	Isolate *isolate = context->GetIsolate();
+	Isolate *isolate = runtime.virtualMachine.V8Isolate;
 	EscapableHandleScope handleScope(isolate);
 
 	if(object == nil)
@@ -833,7 +860,7 @@ Local<Value> objectToValue(L8Runtime *runtime, id object)
 - (L8Value *)objectForKeyedSubscript:(id)key
 {
 	if(![key isKindOfClass:[NSString class]])
-		key = [[L8Value valueWithObject:key] toString];
+		key = [[L8Value valueWithObject:key inContext:_runtime] toString];
 
 	return [self valueForProperty:(NSString *)key];
 }
@@ -846,7 +873,7 @@ Local<Value> objectToValue(L8Runtime *runtime, id object)
 - (void)setObject:(id)object forKeyedSubscript:(NSObject <NSCopying> *)key
 {
 	if(![key isKindOfClass:[NSString class]])
-		key = [[L8Value valueWithObject:key] toString];
+		key = [[L8Value valueWithObject:key inContext:_runtime] toString];
 	[self setValue:object forProperty:(NSString *)key];
 }
 

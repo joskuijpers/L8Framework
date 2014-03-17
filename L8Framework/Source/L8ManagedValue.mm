@@ -26,6 +26,7 @@
 #import "L8ManagedValue.h"
 #import "L8Value_Private.h"
 #import "L8Runtime_Private.h"
+#import "L8VirtualMachine_Private.h"
 
 #include "v8.h"
 
@@ -40,19 +41,20 @@ static void L8ManagedValueWeakReferenceCallback(const WeakCallbackData<Value, vo
 @implementation L8ManagedValue {
 	Persistent<Value> _persist;
 	NSMapTable *_owners;
+	L8Runtime *_runtime;
 }
 
-+ (L8ManagedValue *)managedValueWithValue:(L8Value *)value
++ (instancetype)managedValueWithValue:(L8Value *)value
 {
 	return [[self alloc] initWithValue:value];
 }
 
-+ (L8ManagedValue *)managedValueWithValue:(L8Value *)value andOwner:(id)owner
++ (instancetype)managedValueWithValue:(L8Value *)value andOwner:(id)owner
 {
 	L8ManagedValue *mValue;
 
 	mValue = [[self alloc] initWithValue:value];
-	[[L8Runtime currentRuntime] addManagedReference:mValue withOwner:owner];
+	[value.runtime.virtualMachine addManagedReference:mValue withOwner:owner];
 
 	return mValue;
 }
@@ -69,11 +71,13 @@ static void L8ManagedValueWeakReferenceCallback(const WeakCallbackData<Value, vo
 		if(!value)
 			return self;
 
+		_runtime = value.runtime;
+
 		_owners = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsWeakMemory | NSPointerFunctionsObjectPersonality
 											valueOptions:NSPointerFunctionsOpaqueMemory | NSPointerFunctionsIntegerPersonality
 												capacity:1];
 
-		_persist.Reset(Isolate::GetCurrent(), [value V8Value]);
+		_persist.Reset(value.runtime.virtualMachine.V8Isolate, value.V8Value);
 		void *p = (__bridge void *)self;
 		_persist.SetWeak(p, L8ManagedValueWeakReferenceCallback);
 	}
@@ -82,13 +86,7 @@ static void L8ManagedValueWeakReferenceCallback(const WeakCallbackData<Value, vo
 
 - (void)dealloc
 {
-	Isolate *isolate;
-	L8Runtime *runtime;
-
-	isolate = Isolate::GetCurrent();
-	runtime = [L8Runtime currentRuntime];
-
-	if(isolate != NULL) {
+	if(Isolate::GetCurrent() != NULL) {
 		NSMapTable *owners = [_owners copy];
 		for(id owner in owners) {
 			const void *key;
@@ -98,7 +96,7 @@ static void L8ManagedValueWeakReferenceCallback(const WeakCallbackData<Value, vo
 			count = reinterpret_cast<size_t>(NSMapGet(_owners, key));
 
 			while(count--)
-				[runtime removeManagedReference:self withOwner:owner];
+				[_runtime.virtualMachine removeManagedReference:self withOwner:owner];
 		}
 	}
 
@@ -108,14 +106,14 @@ static void L8ManagedValueWeakReferenceCallback(const WeakCallbackData<Value, vo
 - (void)didAddOwner:(id)owner
 {
 	const void *key = (__bridge void *)owner;
-	size_t count = reinterpret_cast<size_t>(NSMapGet(_owners, key));
-	NSMapInsert(_owners, key, reinterpret_cast<void *>(count + 1));
+	size_t count = (size_t)NSMapGet(_owners, key);
+	NSMapInsert(_owners, key, (void *)(count + 1));
 }
 
 - (void)didRemoveOwner:(id)owner
 {
 	const void *key = (__bridge void *)owner;
-	size_t count = reinterpret_cast<size_t>(NSMapGet(_owners, key));
+	size_t count = (size_t)NSMapGet(_owners, key);
 
 	if(count == 0)
 		return;
@@ -125,7 +123,7 @@ static void L8ManagedValueWeakReferenceCallback(const WeakCallbackData<Value, vo
 		return;
 	}
 
-	NSMapInsert(_owners, key, reinterpret_cast<void *>(count - 1));
+	NSMapInsert(_owners, key, (void *)(count - 1));
 }
 
 - (L8Value *)value
@@ -135,9 +133,9 @@ static void L8ManagedValueWeakReferenceCallback(const WeakCallbackData<Value, vo
 	if(_persist.IsEmpty())
 		return nil;
 
-	v = Local<Value>::New(Isolate::GetCurrent(), _persist);
+	v = Local<Value>::New(_runtime.virtualMachine.V8Isolate, _persist);
 
-	return [L8Value valueWithV8Value:v];
+	return [L8Value valueWithV8Value:v inContext:_runtime];
 }
 
 - (void)removeValue

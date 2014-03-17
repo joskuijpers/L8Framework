@@ -532,7 +532,7 @@ inline void objCSetInvocationArguments(Isolate *isolate, NSInvocation *invocatio
 
 inline void objCSetContextEmbedderData(const FunctionCallbackInfo<Value>& info)
 {
-	Local<Context> context = [[L8Runtime currentRuntime] V8Context];
+	Local<Context> context = [L8Runtime currentRuntime].V8Context;
 
 	// Set embedder data
 	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_THIS, info.This());
@@ -544,7 +544,7 @@ inline void objCSetContextEmbedderData(const FunctionCallbackInfo<Value>& info)
 }
 
 inline void objCClearContextEmbedderData(Isolate *isolate) {
-	Local<Context> context = [[L8Runtime currentRuntime] V8Context];
+	Local<Context> context = [L8Runtime currentRuntime].V8Context;
 
 	// Clear embedder data
 	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_THIS, Null(isolate));
@@ -621,7 +621,7 @@ void ObjCConstructor(const FunctionCallbackInfo<Value>& info)
 				CFRelease((void *)object);
 
 			// Set our self to, ourself
-			info.This()->SetInternalField(0, makeWrapper([[L8Runtime currentRuntime] V8Context], resultObject));
+			info.This()->SetInternalField(0, makeWrapper([L8Runtime currentRuntime].V8Context, resultObject));
 
 		} @catch (id exception) {
 			info.GetReturnValue().Set(handleInvocationException(isolate,exception));

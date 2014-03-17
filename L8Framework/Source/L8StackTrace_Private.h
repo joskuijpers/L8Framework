@@ -26,14 +26,20 @@
 #import "L8StackTrace.h"
 #include "v8.h"
 
+/**
+ * @brief Stacktrace extension with private methods.
+ */
 @interface L8StackTrace ()
 
-- (id)initWithV8StackTrace:(v8::Local<v8::StackTrace>)v8stackTrace;
+- (instancetype)initWithV8StackTrace:(v8::Local<v8::StackTrace>)v8stackTrace;
 
 @end
 
+/**
+ * @brief Stack frame extension with private methods.
+ */
 @interface L8StackFrame ()
 
-- (id)initWithV8StackFrame:(v8::Local<v8::StackFrame>)v8stackFrame;
+- (instancetype)initWithV8StackFrame:(v8::Local<v8::StackFrame>)v8stackFrame;
 
 @end

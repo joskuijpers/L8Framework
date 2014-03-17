@@ -24,11 +24,13 @@
  */
 
 #import "L8Reporter_Private.h"
-#import "NSString+L8.h"
 #import "L8StackTrace_Private.h"
 #import "L8Exception_Private.h"
+#import "L8VirtualMachine_Private.h"
+#import "L8Runtime_Private.h"
 #import "L8Value_Private.h"
 #import "L8NativeException.h"
+#import "NSString+L8.h"
 #import "config.h"
 
 #include "v8.h"
@@ -44,7 +46,7 @@ static L8Reporter *g_sharedReporter = nil;
 
 @implementation L8Reporter
 
-+ (L8Reporter *)sharedReporter
++ (instancetype)sharedReporter
 {
 	if(g_sharedReporter == nil) {
 		@synchronized(self) {
@@ -66,12 +68,12 @@ static L8Reporter *g_sharedReporter = nil;
 	return self;
 }
 
-+ (void)reportTryCatch:(TryCatch *)tryCatch inIsolate:(Isolate *)isolate
++ (void)reportTryCatch:(TryCatch *)tryCatch inContext:(L8Runtime *)context
 {
 	L8Exception *exception;
 
 	exception = [self objcExceptionForTryCatch:tryCatch
-									 inIsolate:isolate];
+									 inContext:context];
 
 #ifndef L8_TRANSFER_JS_EXCEPTIONS
 	[[self sharedReporter] exceptionHandler](exception);
@@ -80,12 +82,12 @@ static L8Reporter *g_sharedReporter = nil;
 #endif
 }
 
-+ (L8Exception *)objcExceptionForTryCatch:(TryCatch *)tryCatch inIsolate:(Isolate *)isolate
++ (L8Exception *)objcExceptionForTryCatch:(TryCatch *)tryCatch inContext:(L8Runtime *)context
 {
 	if(!tryCatch->HasCaught())
 		return nil;
 
-	HandleScope localScope(isolate);
+	HandleScope localScope(context.virtualMachine.V8Isolate);
 	L8Exception *exception;
 	id ball;
 	Class exceptionClass = [L8Exception class];
@@ -93,7 +95,7 @@ static L8Reporter *g_sharedReporter = nil;
 	@try {
 		NSRange strRange;
 
-		ball = [L8Value valueWithV8Value:tryCatch->Exception()];
+		ball = [L8Value valueWithV8Value:tryCatch->Exception() inContext:context];
 
 		// If the exception is a JS native error, find the specific type
 		if([(L8Value *)ball isNativeError]) {

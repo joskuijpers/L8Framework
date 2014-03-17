@@ -20,21 +20,39 @@
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#import <XCTest/XCTest.h>
-#import "L8Runtime_Debugging.h"
-#import "L8Value.h"
+@interface L8VirtualMachine : NSObject
 
+/**
+ * Initialize a new virtual machine.
+ *
+ * @return self.
+ */
+- (instancetype)init __attribute__((objc_designated_initializer));
 
-@interface L8DebugTests : XCTestCase @end
+/**
+ * Notify the JSVirtualMachine of an external object relationship.
+ *
+ * @param object Referenced object
+ * @param owner Owner of the reference
+ */
+- (void)addManagedReference:(id)object withOwner:(id)owner;
 
-@implementation L8DebugTests
+/**
+ * Notify the JSVirtualMachine that a previous object relationship no longer exists.
+ *
+ * @param object Referenced object
+ * @param owner Owner of the reference
+ */
+- (void)removeManagedReference:(id)object withOwner:(id)owner;
 
-- (void)testDebugging
-{
-//	XCTFail("Not implemented");
-}
+/**
+ * Attempt to run the garbage collector.
+ *
+ * This method is blocking.
+ */
+- (void)runGarbageCollector;
 
 @end

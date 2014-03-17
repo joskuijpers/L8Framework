@@ -27,6 +27,7 @@
 
 #import "L8Runtime_Private.h"
 #import "L8Runtime_Debugging.h"
+#import "L8VirtualMachine_Private.h"
 #import "L8Value_Private.h"
 #import "L8Reporter_Private.h"
 #import "L8WrapperMap.h"
@@ -45,15 +46,9 @@ using namespace v8;
 
 @implementation L8Runtime {
 	Persistent<Context> _v8context;
-	NSMapTable *_managedObjectGraph;
 }
 
-+ (void)initialize
-{
-	V8::SetCaptureStackTraceForUncaughtExceptions(true);
-}
-
-+ (L8Runtime *)contextWithV8Context:(Local<Context>)v8context;
++ (instancetype)runtimeWithV8Context:(Local<Context>)v8context;
 {
 	if(v8context.IsEmpty())
 		return nil;
@@ -64,12 +59,19 @@ using namespace v8;
 	return context;
 }
 
-- (id)init
+- (instancetype)init
+{
+	return [self initWithVirtualMachine:[[L8VirtualMachine alloc] init]];
+}
+
+- (instancetype)initWithVirtualMachine:(L8VirtualMachine *)virtualMachine
 {
 	self = [super init];
 	if(self) {
-		Isolate *isolate = Isolate::GetCurrent();
+		Isolate *isolate = virtualMachine.V8Isolate;
 		HandleScope mainScope(isolate);
+
+		_virtualMachine = virtualMachine;
 
 		// Create the context
 		Local<Context> context = Context::New(isolate);
@@ -81,17 +83,13 @@ using namespace v8;
 
 		// Create the wrappermap for the context
 		_wrapperMap = [[L8WrapperMap alloc] initWithRuntime:self];
-
-		_managedObjectGraph = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsWeakMemory | NSPointerFunctionsObjectPersonality
-														valueOptions:NSPointerFunctionsStrongMemory | NSPointerFunctionsObjectPersonality
-															capacity:0];
 	}
 	return self;
 }
 
 - (void)dealloc
 {
-	Isolate *isolate = Isolate::GetCurrent();
+	Isolate *isolate = _virtualMachine.V8Isolate;
 	HandleScope mainScope(isolate);
 	Local<Context> context = Local<Context>::New(isolate, _v8context);
 	Context::Scope contextScope(context);
@@ -102,12 +100,11 @@ using namespace v8;
 	}
 
 	_v8context.ClearAndLeak();
-	isolate->Dispose();
 }
 
 - (void)executeBlockInRuntime:(void(^)(L8Runtime *runtime))block
 {
-	Isolate *isolate = Isolate::GetCurrent();
+	Isolate *isolate = _virtualMachine.V8Isolate;
 	HandleScope localScope(isolate);
 	Context::Scope contextScope(Local<Context>::New(isolate,_v8context));
 
@@ -116,7 +113,7 @@ using namespace v8;
 	block(self);
 
 	if(tryCatch.HasCaught()) {
-		[L8Reporter reportTryCatch:&tryCatch inIsolate:isolate];
+		[L8Reporter reportTryCatch:&tryCatch inContext:self];
 	}
 }
 
@@ -137,7 +134,7 @@ using namespace v8;
 	if(scriptData == nil)
 		return NO;
 
-	Isolate *isolate = Isolate::GetCurrent();
+	Isolate *isolate = _virtualMachine.V8Isolate;
 	HandleScope localScope(isolate);
 	ScriptOrigin scriptOrigin = ScriptOrigin([name V8String]);
 
@@ -147,7 +144,7 @@ using namespace v8;
 
 		script = Script::Compile([scriptData V8String], &scriptOrigin);
 		if(script.IsEmpty()) {
-			[L8Reporter reportTryCatch:&tryCatch inIsolate:isolate];
+			[L8Reporter reportTryCatch:&tryCatch inContext:self];
 			return NO;
 		}
 	}
@@ -157,7 +154,7 @@ using namespace v8;
 		script->Run();
 
 		if(tryCatch.HasCaught()) {
-			[L8Reporter reportTryCatch:&tryCatch inIsolate:isolate];
+			[L8Reporter reportTryCatch:&tryCatch inContext:self];
 			return NO;
 		}
 	}
@@ -175,7 +172,7 @@ using namespace v8;
 	if(scriptData == nil)
 		return nil;
 
-	Isolate *isolate = Isolate::GetCurrent();
+	Isolate *isolate = _virtualMachine.V8Isolate;
 	EscapableHandleScope localScope(isolate);
 	ScriptOrigin scriptOrigin = ScriptOrigin([name V8String]);
 
@@ -185,7 +182,7 @@ using namespace v8;
 
 		script = Script::Compile([scriptData V8String], &scriptOrigin);
 		if(script.IsEmpty()) {
-			[L8Reporter reportTryCatch:&tryCatch inIsolate:isolate];
+			[L8Reporter reportTryCatch:&tryCatch inContext:self];
 			return nil;
 		}
 	}
@@ -195,11 +192,11 @@ using namespace v8;
 		Local<Value> retVal = script->Run();
 
 		if(tryCatch.HasCaught()) {
-			[L8Reporter reportTryCatch:&tryCatch inIsolate:isolate];
+			[L8Reporter reportTryCatch:&tryCatch inContext:self];
 			return nil;
 		}
 
-		return [L8Value valueWithV8Value:localScope.Escape(retVal)];
+		return [L8Value valueWithV8Value:localScope.Escape(retVal) inContext:self];
 	}
 
 	return nil;
@@ -207,20 +204,22 @@ using namespace v8;
 
 - (L8Value *)globalObject
 {
-	Local<Context> localContext = Local<Context>::New(Isolate::GetCurrent(),_v8context);
-	return [L8Value valueWithV8Value:localContext->Global()];
+	Isolate *isolate = _virtualMachine.V8Isolate;
+	Local<Context> localContext = Local<Context>::New(isolate,_v8context);
+	return [L8Value valueWithV8Value:localContext->Global() inContext:self];
 }
 
-+ (L8Runtime *)currentRuntime
++ (instancetype)currentRuntime
 {
 	Local<Context> context = Isolate::GetCurrent()->GetCurrentContext();
-	return [self contextWithV8Context:context];
+	return [self runtimeWithV8Context:context];
 }
 
 + (L8Value *)currentThis
 {
 	Local<Value> thisObject;
 	Local<Context> context;
+	L8Runtime *runtime;
 
 	context = Isolate::GetCurrent()->GetCurrentContext();
 	if(context.IsEmpty())
@@ -231,15 +230,18 @@ using namespace v8;
 	if(thisObject.IsEmpty() || thisObject->IsNull())
 		return nil;
 
+	runtime = [self runtimeWithV8Context:context];
+
 	assert(thisObject->IsObject());
 
-	return [L8Value valueWithV8Value:thisObject];
+	return [L8Value valueWithV8Value:thisObject inContext:runtime];
 }
 
 + (L8Value *)currentCallee
 {
 	Local<Value> thisObject;
 	Local<Context> context;
+	L8Runtime *runtime;
 
 	context = Isolate::GetCurrent()->GetCurrentContext();
 	if(context.IsEmpty())
@@ -250,10 +252,12 @@ using namespace v8;
 	if(thisObject.IsEmpty() || thisObject->IsNull())
 		return nil;
 
+	runtime = [self runtimeWithV8Context:context];
+
 	// Callee should be a function
 	assert(thisObject->IsFunction());
 
-	return [L8Value valueWithV8Value:thisObject];
+	return [L8Value valueWithV8Value:thisObject inContext:runtime];
 }
 
 + (NSArray *)currentArguments
@@ -262,15 +266,17 @@ using namespace v8;
 	Local<Context> context;
 	Local<Array> argArray;
 	NSMutableArray *arguments;
+	L8Runtime *runtime;
 
 	context = Isolate::GetCurrent()->GetCurrentContext();
 	if(context.IsEmpty())
 		return nil;
 
-	// Retrieve the function from the store
 	thisObject = context->GetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_ARGS);
 	if(thisObject.IsEmpty() || thisObject->IsNull())
 		return nil;
+
+	runtime = [self runtimeWithV8Context:context];
 
 	// Callee should be an array
 	assert(thisObject->IsArray());
@@ -279,14 +285,15 @@ using namespace v8;
 	arguments = [[NSMutableArray alloc] init];
 
 	for(int i = 0; i < argArray->Length(); ++i)
-		arguments[i] = [L8Value valueWithV8Value:argArray->Get(i)];
+		arguments[i] = [L8Value valueWithV8Value:argArray->Get(i) inContext:runtime];
 
 	return arguments;
 }
 
 - (Local<Context>)V8Context
 {
-	return Local<Context>::New(Isolate::GetCurrent(), _v8context);
+	Isolate *isolate = _virtualMachine.V8Isolate;
+	return Local<Context>::New(isolate, _v8context);
 }
 
 - (L8Value *)wrapperForObjCObject:(id)object
@@ -303,6 +310,13 @@ using namespace v8;
 	}
 }
 
+- (void)runGarbageCollector
+{
+	while(!V8::IdleNotification()) {};
+}
+
+#pragma mark Debugging
+
 void L8RuntimeDebugMessageDispatchHandler()
 {
 	dispatch_async(dispatch_get_main_queue(), ^{
@@ -312,7 +326,7 @@ void L8RuntimeDebugMessageDispatchHandler()
 		Local<Context> debugContext = Debug::GetDebugContext();
 		L8Runtime *runtime = (__bridge L8Runtime *)debugContext->GetEmbedderData(1).As<External>()->Value();
 
-		Local<Context> context = Local<Context>::New(isolate, [runtime V8Context]);
+		Local<Context> context = runtime.V8Context; // if fails, use New(isolate,context) instead.
 		Context::Scope contextScope(context);
 
 		Debug::ProcessDebugMessages();
@@ -321,7 +335,7 @@ void L8RuntimeDebugMessageDispatchHandler()
 
 - (void)enableDebugging
 {
-	Isolate *isolate = Isolate::GetCurrent();
+	Isolate *isolate = _virtualMachine.V8Isolate;
 	HandleScope localScope(isolate);
 
 	if(_debuggerPort == 0) {
@@ -337,103 +351,6 @@ void L8RuntimeDebugMessageDispatchHandler()
 - (void)disableDebugging
 {
 	Debug::DisableAgent();
-}
-
-- (id)getInternalObjCObject:(id)object
-{
-	Isolate *isolate = Isolate::GetCurrent();
-	HandleScope localScope(isolate);
-	Local<Context> localContext;
-
-	localContext = Local<Context>::New(isolate, _v8context);
-
-	if([object isKindOfClass:[L8ManagedValue class]]) {
-		id temp;
-		L8Value *value;
-
-		value = [(L8ManagedValue *)object value];
-		temp = unwrapObjcObject(localContext, [value V8Value]);
-
-		if(temp)
-			return temp;
-		return object;
-	}
-
-	if([object isKindOfClass:[L8Value class]]) {
-		L8Value *value;
-
-		value = (L8Value *)object;
-		object = unwrapObjcObject(localContext, [value V8Value]);
-	}
-
-	return object;
-}
-
-- (void)addManagedReference:(id)object withOwner:(id)owner
-{
-	NSMapTable *objectsOwned;
-	const void *key;
-	size_t count;
-
-	if([object isKindOfClass:[L8ManagedValue class]])
-		[object didAddOwner:owner];
-
-	object = [self getInternalObjCObject:object];
-	owner = [self getInternalObjCObject:owner];
-
-	if(object == nil || owner == nil)
-		return;
-
-	objectsOwned = [_managedObjectGraph objectForKey:object];
-	if(!objectsOwned) {
-		objectsOwned = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsWeakMemory | NSPointerFunctionsObjectPersonality
-												 valueOptions:NSPointerFunctionsOpaqueMemory | NSPointerFunctionsIntegerPersonality
-													 capacity:1];
-
-		[_managedObjectGraph setObject:objectsOwned forKey:owner];
-	}
-
-	key = (__bridge void *)object;
-	count = reinterpret_cast<size_t>(NSMapGet(objectsOwned, key));
-	NSMapInsert(objectsOwned, key, reinterpret_cast<void *>(count + 1));
-}
-
-- (void)removeManagedReference:(id)object withOwner:(id)owner
-{
-	NSMapTable *objectsOwned;
-	const void *key;
-	size_t count;
-
-	if([object isKindOfClass:[L8ManagedValue class]])
-		[object didRemoveOwner:owner];
-
-	object = [self getInternalObjCObject:object];
-	owner = [self getInternalObjCObject:owner];
-
-	if(object == nil || owner == nil)
-		return;
-
-	objectsOwned = [_managedObjectGraph objectForKey:object];
-	if(!objectsOwned)
-		return;
-
-	key = (__bridge void *)object;
-	count = reinterpret_cast<size_t>(NSMapGet(objectsOwned, key));
-	if(count > 1) {
-		NSMapInsert(objectsOwned, key, reinterpret_cast<void *>(count - 1));
-		return;
-	}
-
-	if(count == 1)
-		NSMapRemove(objectsOwned, key);
-
-	if(![objectsOwned count])
-		[_managedObjectGraph removeObjectForKey:owner];
-}
-
-- (void)runGarbageCollector
-{
-	while(!V8::IdleNotification()) {};
 }
 
 @end

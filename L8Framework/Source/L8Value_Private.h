@@ -26,13 +26,19 @@
 #import "L8Value.h"
 #include "v8.h"
 
+/**
+ * @brief Value extension with private methods
+ */
 @interface L8Value ()
 
-+ (L8Value *)valueWithV8Value:(v8::Local<v8::Value>)value;
-- (v8::Local<v8::Value>)V8Value;
++ (instancetype)valueWithV8Value:(v8::Local<v8::Value>)value __attribute__((unavailable("Use valueWithV8Value:inContext: instead.")));;
++ (instancetype)valueWithV8Value:(v8::Local<v8::Value>)value inContext:(L8Runtime *)context;
 
-- (L8Value *)init;
-- (L8Value *)initWithV8Value:(v8::Local<v8::Value>)value;
+- (instancetype)init __attribute__((unavailable));
+- (instancetype)initWithV8Value:(v8::Local<v8::Value>)value __attribute__((unavailable("Use initWithV8Value:inContext: instead.")));
+- (instancetype)initWithV8Value:(v8::Local<v8::Value>)value inContext:(L8Runtime *)context;
+
+- (v8::Local<v8::Value>)V8Value;
 
 @end
 

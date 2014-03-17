@@ -38,7 +38,7 @@
  *
  * @return default L8Reporter instance
  */
-+ (L8Reporter *)sharedReporter;
++ (instancetype)sharedReporter __attribute__((const));
 
 /**
  * Prints an exception with nice formatting.

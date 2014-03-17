@@ -48,9 +48,11 @@
  * The resulting L8Value retains the Objective-C object.
  *
  * @param value The Objective-C object to be converted.
+ * @param context The context to create the value in.
  * @return The new L8Value
  */
-+ (L8Value *)valueWithObject:(id)value;
++ (instancetype)valueWithObject:(id)value inContext:(L8Runtime *)context;
++ (instancetype)valueWithObject:(id)value __attribute__((unavailable("Use valueWithObject:inContext: instead.")));
 
 /**
  * Create a L8Value from a BOOL primitive.
@@ -58,7 +60,8 @@
  * @param value The BOOL primitive
  * @return The new L8Value representing the equivalent boolean value.
  */
-+ (L8Value *)valueWithBool:(BOOL)value;
++ (instancetype)valueWithBool:(BOOL)value inContext:(L8Runtime *)context;
++ (instancetype)valueWithBool:(BOOL)value __attribute__((unavailable("Use valueWithBool:inContext: instead.")));
 
 /**
  * Create a L8Value from a double primitive.
@@ -66,7 +69,8 @@
  * @param value The double primitive
  * @return The new L8Value representing the equivalent double value.
  */
-+ (L8Value *)valueWithDouble:(double)value;
++ (instancetype)valueWithDouble:(double)value inContext:(L8Runtime *)context;
++ (instancetype)valueWithDouble:(double)value __attribute__((unavailable("Use valueWithDouble:inContext: instead.")));
 
 /**
  * Create a L8Value from an integer primitive.
@@ -74,7 +78,8 @@
  * @param value The integer primitive
  * @return The new L8Value representing the equivalent integer value.
  */
-+ (L8Value *)valueWithInt32:(int32_t)value;
++ (instancetype)valueWithInt32:(int32_t)value inContext:(L8Runtime *)context;
++ (instancetype)valueWithInt32:(int32_t)value __attribute__((unavailable("Use valueWithInt32:inContext: instead.")));
 
 /**
  * Create a L8Value from an unsigned integer primitive.
@@ -83,21 +88,24 @@
  * @return The new L8Value representing the 
  * equivalent unsigned integer value.
  */
-+ (L8Value *)valueWithUInt32:(uint32_t)value;
++ (instancetype)valueWithUInt32:(uint32_t)value inContext:(L8Runtime *)context;
++ (instancetype)valueWithUInt32:(uint32_t)value __attribute__((unavailable("Use valueWithUInt32:inContext: instead.")));
 
 /**
  * Create a new, empty JavaScript object.
  *
  * @return The new JavaScript object.
  */
-+ (L8Value *)valueWithNewObject;
++ (instancetype)valueWithNewObjectInContext:(L8Runtime *)context;
++ (instancetype)valueWithNewObject __attribute__((unavailable("Use valueWithNewObjectInContext: instead.")));
 
 /**
  * Create a new, empty JavaScript array.
  *
  * @return The new JavaScript array.
  */
-+ (L8Value *)valueWithNewArray;
++ (instancetype)valueWithNewArrayInContext:(L8Runtime *)context;
++ (instancetype)valueWithNewArray __attribute__((unavailable("Use valueWithNewArrayInContext: instead.")));
 
 /**
  * Create a new JavaScript regular expression object.
@@ -106,8 +114,11 @@
  * @param flags The regular expression flags.
  * @return The new JavaScript regular expression object.
  */
-+ (L8Value *)valueWithNewRegularExpressionFromPattern:(NSString *)pattern
-												flags:(NSString *)flags;
++ (instancetype)valueWithNewRegularExpressionFromPattern:(NSString *)pattern
+												   flags:(NSString *)flags
+											   inContext:(L8Runtime *)context;
++ (instancetype)valueWithNewRegularExpressionFromPattern:(NSString *)pattern
+												   flags:(NSString *)flags __attribute__((unavailable("Use valueWithnewRegularExpressionFromPattern:flags:inContext: instead.")));
 
 /**
  * Create a new JavaScript error object.
@@ -115,21 +126,24 @@
  * @param message The error message
  * @return The new JavaScript error object.
  */
-+ (L8Value *)valueWithNewErrorFromMessage:(NSString *)message;
++ (instancetype)valueWithNewErrorFromMessage:(NSString *)message inContext:(L8Runtime *)context;
++ (instancetype)valueWithNewErrorFromMessage:(NSString *)message __attribute__((unavailable("Use valueWithNewErrorFromMessage:inContext: instead.")));
 
 /**
  * Create a new JavaScript value <code>null</code>.
  *
  * @return The new JavaScript <code>null</code> value.
  */
-+ (L8Value *)valueWithNull;
++ (instancetype)valueWithNullInContext:(L8Runtime *)context;
++ (instancetype)valueWithNull __attribute__((unavailable("Use valueWithNullInContext: instead.")));
 
 /**
  * Create a new JavaScript value <code>undefined</code>.
  *
  * @return The new JavaScript <code>undefined</code> value.
  */
-+ (L8Value *)valueWithUndefined;
++ (instancetype)valueWithUndefinedInContext:(L8Runtime *)context;
++ (instancetype)valueWithUndefined __attribute__((unavailable("Use valueWithUndefinedInContext: instead.")));
 
 /**
  * @page convertingtypes Converting to Objective-C Types

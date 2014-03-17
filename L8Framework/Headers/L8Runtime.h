@@ -23,12 +23,31 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-@class L8Value;
+@class L8VirtualMachine, L8Value;
 
 /**
  * @brief The JavaScript runtime
  */
 @interface L8Runtime : NSObject
+
+/// The virtual machine containing this context.
+@property (readonly) L8VirtualMachine *virtualMachine;
+
+/**
+ * Initialize a new context in a new virtual machine.
+ *
+ * @return self.
+ */
+- (instancetype)init;
+
+/**
+ * Initialize a new context in a specific, existing, virtual machine.
+ *
+ * @param virtualMachine The virtual machine.
+ * @return self.
+ */
+- (instancetype)initWithVirtualMachine:(L8VirtualMachine *)virtualMachine
+__attribute__((objc_designated_initializer));
 
 /**
  * Executes a block in the runtime.
@@ -89,7 +108,7 @@
  *
  * @return L8Runtime of the current runtime
  */
-+ (L8Runtime *)currentRuntime;
++ (instancetype)currentRuntime;
 
 /**
  * Returns the current <code>this</code> object.
@@ -118,29 +137,6 @@
  * @return An NSArray of JSValue objects, one for each argument
  */
 + (NSArray *)currentArguments; // L8Value
-
-/**
- * Notify the JSVirtualMachine of an external object relationship.
- *
- * @param object Referenced object
- * @param owner Owner of the reference
- */
-- (void)addManagedReference:(id)object withOwner:(id)owner;
-
-/**
- * Notify the JSVirtualMachine that a previous object relationship no longer exists.
- *
- * @param object Referenced object
- * @param owner Owner of the reference
- */
-- (void)removeManagedReference:(id)object withOwner:(id)owner;
-
-/**
- * Attempt to run the garbage collector.
- *
- * This method is blocking.
- */
-- (void)runGarbageCollector;
 
 @end
 

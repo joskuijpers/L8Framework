@@ -50,7 +50,7 @@
  *
  * @return An L8StackTrace
  */
-+ (L8StackTrace *)currentStackTrace;
++ (instancetype)currentStackTrace;
 
 @end
 

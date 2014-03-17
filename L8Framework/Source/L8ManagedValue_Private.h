@@ -25,6 +25,9 @@
 
 #import "L8ManagedValue.h"
 
+/**
+ * @brief Managed value extension with private methods
+ */
 @interface L8ManagedValue ()
 
 /**
