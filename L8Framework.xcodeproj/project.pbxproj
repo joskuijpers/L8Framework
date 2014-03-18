@@ -71,6 +71,8 @@
 		80477BB718D11B0000B16692 /* config.h in Headers */ = {isa = PBXBuildFile; fileRef = 80477BB618D11B0000B16692 /* config.h */; };
 		80477BC118D11BFC00B16692 /* L8ContextTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 80477BBD18D11BFC00B16692 /* L8ContextTests.m */; };
 		80477BC218D11BFC00B16692 /* L8ValueTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 80477BBE18D11BFC00B16692 /* L8ValueTests.m */; };
+		80B682AB18D7FAF200445BF9 /* L8Export_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 80B682A918D7FAF200445BF9 /* L8Export_Private.h */; };
+		80B682AC18D7FAF200445BF9 /* L8Export.m in Sources */ = {isa = PBXBuildFile; fileRef = 80B682AA18D7FAF200445BF9 /* L8Export.m */; };
 		80E5142018D678ED007B436E /* L8VirtualMachine.h in Headers */ = {isa = PBXBuildFile; fileRef = 80E5141E18D678ED007B436E /* L8VirtualMachine.h */; };
 		80E5142118D678ED007B436E /* L8VirtualMachine.mm in Sources */ = {isa = PBXBuildFile; fileRef = 80E5141F18D678ED007B436E /* L8VirtualMachine.mm */; };
 /* End PBXBuildFile section */
@@ -197,6 +199,8 @@
 		8060610618D223D4003CC846 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		8060610718D223D4003CC846 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
 		8060610818D223D4003CC846 /* v8_build.patch */ = {isa = PBXFileReference; lastKnownFileType = text; path = v8_build.patch; sourceTree = "<group>"; };
+		80B682A918D7FAF200445BF9 /* L8Export_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = L8Export_Private.h; sourceTree = "<group>"; };
+		80B682AA18D7FAF200445BF9 /* L8Export.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = L8Export.m; sourceTree = "<group>"; };
 		80E5141E18D678ED007B436E /* L8VirtualMachine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = L8VirtualMachine.h; path = Headers/L8VirtualMachine.h; sourceTree = "<group>"; };
 		80E5141F18D678ED007B436E /* L8VirtualMachine.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = L8VirtualMachine.mm; path = Source/L8VirtualMachine.mm; sourceTree = "<group>"; };
 		80E5142218D67954007B436E /* L8VirtualMachine_Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = L8VirtualMachine_Private.h; sourceTree = "<group>"; };
@@ -511,6 +515,8 @@
 				80477B9A18D11AB600B16692 /* L8WrapperMap.mm */,
 				80477B9B18D11AB600B16692 /* ObjCCallback.h */,
 				80477B9C18D11AB600B16692 /* ObjCCallback.mm */,
+				80B682A918D7FAF200445BF9 /* L8Export_Private.h */,
+				80B682AA18D7FAF200445BF9 /* L8Export.m */,
 			);
 			name = Private;
 			path = Source;
@@ -611,6 +617,7 @@
 				80477BB418D11AD700B16692 /* ObjCRuntime+L8.h in Headers */,
 				80477BB718D11B0000B16692 /* config.h in Headers */,
 				80477BA618D11AB600B16692 /* L8StackTrace_Private.h in Headers */,
+				80B682AB18D7FAF200445BF9 /* L8Export_Private.h in Headers */,
 				80477B6618D11A5100B16692 /* v8-testing.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -817,6 +824,7 @@
 				80477BB518D11AD700B16692 /* ObjCRuntime+L8.mm in Sources */,
 				80477BA918D11AB600B16692 /* L8Value.mm in Sources */,
 				80477BA718D11AB600B16692 /* L8StackTrace.mm in Sources */,
+				80B682AC18D7FAF200445BF9 /* L8Export.m in Sources */,
 				80477BA018D11AB600B16692 /* L8ManagedValue.mm in Sources */,
 				80477BA118D11AB600B16692 /* L8NativeException.mm in Sources */,
 				80477BB318D11AD700B16692 /* NSString+L8.mm in Sources */,
