@@ -24,7 +24,7 @@
  */
 
 #ifdef __OBJC__
-# import "config.h"
+# import "l8-defs.h"
 # ifdef L8_OBJC_OBJFW
 #  import <ObjFW/ObjFW.h>
 # else

@@ -31,7 +31,6 @@
 #import "L8Value_Private.h"
 #import "L8NativeException.h"
 #import "NSString+L8.h"
-#import "config.h"
 
 #include "v8.h"
 

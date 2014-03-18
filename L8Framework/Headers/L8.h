@@ -23,6 +23,7 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#import "macros.h"
 #import "L8Context.h"
 #import "L8Context_Debugging.h"
 #import "L8Export.h"

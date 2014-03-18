@@ -68,11 +68,12 @@
 		80477BB318D11AD700B16692 /* NSString+L8.mm in Sources */ = {isa = PBXBuildFile; fileRef = 80477BAF18D11AD700B16692 /* NSString+L8.mm */; };
 		80477BB418D11AD700B16692 /* ObjCRuntime+L8.h in Headers */ = {isa = PBXBuildFile; fileRef = 80477BB018D11AD700B16692 /* ObjCRuntime+L8.h */; };
 		80477BB518D11AD700B16692 /* ObjCRuntime+L8.mm in Sources */ = {isa = PBXBuildFile; fileRef = 80477BB118D11AD700B16692 /* ObjCRuntime+L8.mm */; };
-		80477BB718D11B0000B16692 /* config.h in Headers */ = {isa = PBXBuildFile; fileRef = 80477BB618D11B0000B16692 /* config.h */; };
+		80477BB718D11B0000B16692 /* l8-defs.h in Headers */ = {isa = PBXBuildFile; fileRef = 80477BB618D11B0000B16692 /* l8-defs.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		80477BC118D11BFC00B16692 /* L8ContextTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 80477BBD18D11BFC00B16692 /* L8ContextTests.m */; };
 		80477BC218D11BFC00B16692 /* L8ValueTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 80477BBE18D11BFC00B16692 /* L8ValueTests.m */; };
 		80B682AB18D7FAF200445BF9 /* L8Export_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 80B682A918D7FAF200445BF9 /* L8Export_Private.h */; };
 		80B682AC18D7FAF200445BF9 /* L8Export.m in Sources */ = {isa = PBXBuildFile; fileRef = 80B682AA18D7FAF200445BF9 /* L8Export.m */; };
+		80B682B018D9001300445BF9 /* macros.h in Headers */ = {isa = PBXBuildFile; fileRef = 80B682AD18D8C8A500445BF9 /* macros.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		80E5142018D678ED007B436E /* L8VirtualMachine.h in Headers */ = {isa = PBXBuildFile; fileRef = 80E5141E18D678ED007B436E /* L8VirtualMachine.h */; };
 		80E5142118D678ED007B436E /* L8VirtualMachine.mm in Sources */ = {isa = PBXBuildFile; fileRef = 80E5141F18D678ED007B436E /* L8VirtualMachine.mm */; };
 /* End PBXBuildFile section */
@@ -191,7 +192,7 @@
 		80477BAF18D11AD700B16692 /* NSString+L8.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = "NSString+L8.mm"; sourceTree = "<group>"; };
 		80477BB018D11AD700B16692 /* ObjCRuntime+L8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ObjCRuntime+L8.h"; sourceTree = "<group>"; };
 		80477BB118D11AD700B16692 /* ObjCRuntime+L8.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = "ObjCRuntime+L8.mm"; sourceTree = "<group>"; };
-		80477BB618D11B0000B16692 /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
+		80477BB618D11B0000B16692 /* l8-defs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "l8-defs.h"; sourceTree = "<group>"; };
 		80477BB818D11B0700B16692 /* Doxyfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Doxyfile; sourceTree = "<group>"; };
 		80477BBD18D11BFC00B16692 /* L8ContextTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = L8ContextTests.m; path = Source/L8ContextTests.m; sourceTree = "<group>"; };
 		80477BBE18D11BFC00B16692 /* L8ValueTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = L8ValueTests.m; path = Source/L8ValueTests.m; sourceTree = "<group>"; };
@@ -470,7 +471,7 @@
 				80477B9618D11AB600B16692 /* L8StackTrace.mm */,
 				80477B9818D11AB600B16692 /* L8Value.mm */,
 				80E5141F18D678ED007B436E /* L8VirtualMachine.mm */,
-				80477BB618D11B0000B16692 /* config.h */,
+				80477BB618D11B0000B16692 /* l8-defs.h */,
 				80B682AD18D8C8A500445BF9 /* macros.h */,
 			);
 			name = L8;
@@ -601,6 +602,8 @@
 				80477B8A18D11AA700B16692 /* L8StackTrace.h in Headers */,
 				80477B8618D11AA700B16692 /* L8NativeException.h in Headers */,
 				80477B8718D11AA700B16692 /* L8Reporter.h in Headers */,
+				80B682B018D9001300445BF9 /* macros.h in Headers */,
+				80477BB718D11B0000B16692 /* l8-defs.h in Headers */,
 				80477B6518D11A5100B16692 /* v8-profiler.h in Headers */,
 				80477BA418D11AB600B16692 /* L8Context_Private.h in Headers */,
 				80477BA818D11AB600B16692 /* L8Value_Private.h in Headers */,
@@ -617,7 +620,6 @@
 				80477B6918D11A5100B16692 /* v8stdint.h in Headers */,
 				80477BAA18D11AB600B16692 /* L8WrapperMap.h in Headers */,
 				80477BB418D11AD700B16692 /* ObjCRuntime+L8.h in Headers */,
-				80477BB718D11B0000B16692 /* config.h in Headers */,
 				80477BA618D11AB600B16692 /* L8StackTrace_Private.h in Headers */,
 				80B682AB18D7FAF200445BF9 /* L8Export_Private.h in Headers */,
 				80477B6618D11A5100B16692 /* v8-testing.h in Headers */,
