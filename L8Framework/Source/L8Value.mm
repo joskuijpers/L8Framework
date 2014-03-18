@@ -88,11 +88,11 @@ using namespace v8;
 	int iFlags = RegExp::Flags::kNone;
 	Isolate *isolate = context.virtualMachine.V8Isolate;
 
-	if([flags rangeOfString:@"g"].location != NSNotFound)
+	if([flags rangeOfString:@"g"].location != L8_NOT_FOUND)
 		iFlags |= RegExp::Flags::kGlobal;
-	if([flags rangeOfString:@"i"].location != NSNotFound)
+	if([flags rangeOfString:@"i"].location != L8_NOT_FOUND)
 		iFlags |= RegExp::Flags::kIgnoreCase;
-	if([flags rangeOfString:@"m"].location != NSNotFound)
+	if([flags rangeOfString:@"m"].location != L8_NOT_FOUND)
 		iFlags |= RegExp::Flags::kMultiline;
 
 	return [self valueWithV8Value:RegExp::New([pattern V8StringInIsolate:isolate],

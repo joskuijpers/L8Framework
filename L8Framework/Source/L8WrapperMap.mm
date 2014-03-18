@@ -130,7 +130,7 @@ static NSMutableDictionary *createRenameMap(Protocol *protocol, BOOL isInstanceM
 	{
 		L8_STRING_CLASS *rename = @(sel_getName(sel));
 		L8_RANGE_TYPE range = [rename rangeOfString:@"__L8_EXPORT_AS__"];
-		if(range.location == NSNotFound)
+		if(range.location == L8_NOT_FOUND)
 			return;
 
 		L8_STRING_CLASS *selector = [rename substringToIndex:range.location];

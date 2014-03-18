@@ -105,13 +105,13 @@ static L8Reporter *g_sharedReporter = nil;
 			ball = [L8_STRING_CLASS stringWithV8Value:tryCatch->Exception() inIsolate:isolate];
 
 			// Find prefix
-			if((strRange = [ball rangeOfString:@"SyntaxError: "]).location != NSNotFound)
+			if((strRange = [ball rangeOfString:@"SyntaxError: "]).location != L8_NOT_FOUND)
 				exceptionClass = [L8SyntaxErrorException class];
-			else if((strRange = [ball rangeOfString:@"TypeError: "]).location != NSNotFound)
+			else if((strRange = [ball rangeOfString:@"TypeError: "]).location != L8_NOT_FOUND)
 				exceptionClass = [L8TypeErrorException class];
 
 			// Remove prefix
-			if(strRange.location != NSNotFound) {
+			if(strRange.location != L8_NOT_FOUND) {
 				ball = [ball stringByReplacingCharactersInRange:strRange
 													 withString:@""];
 			}

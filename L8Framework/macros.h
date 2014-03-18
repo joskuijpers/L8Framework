@@ -102,9 +102,11 @@
 #ifdef L8_OBJC_OBJFW
 #define L8_CLASS_PREFIX OF
 # define L8_RANGE_TYPE of_range_r
+# define L8_NOT_FOUND OF_NOT_FOUND
 #else
 #define L8_CLASS_PREFIX NS
 # define L8_RANGE_TYPE NSRange
+# define L8_NOT_FOUND NSNotFound
 #endif
 
 #define CONCAT2(prefix,suffix) prefix ## suffix
