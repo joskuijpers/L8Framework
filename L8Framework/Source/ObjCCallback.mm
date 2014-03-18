@@ -339,7 +339,7 @@ Local<Value> handleInvocationException(Isolate *isolate, L8Context *context, id 
 		Local<String> message;
 
 		message = [[NSString stringWithFormat:@"%@ exception from native code: %@",
-					nsException.name,nsException.reason] V8String];
+					nsException.name,nsException.reason] V8StringInIsolate:isolate];
 
 		if([nsException.name isEqualToString:NSRangeException])
 			valueToThrow = Exception::RangeError(message);

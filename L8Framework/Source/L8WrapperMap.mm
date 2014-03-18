@@ -238,7 +238,7 @@ void copyMethodsToObject(L8WrapperMap *wrapperMap,
 			if(propertyName == nil)
 				propertyName = selectorToPropertyName(selName,isInstanceMethod);
 
-			v8Name = [propertyName V8String];
+			v8Name = [propertyName V8StringInIsolate:isolate];
 
 			function = FunctionTemplate::New(isolate);
 
@@ -359,7 +359,7 @@ void copyPrototypeProperties(L8WrapperMap *wrapperMap,
 	for(int i = 0; i < propertyList.size(); i++) {
 		property_t& property = propertyList[i];
 
-		Local<String> v8PropertyName = [@(property.name) V8String];
+		Local<String> v8PropertyName = [@(property.name) V8StringInIsolate:isolate];
 		Local<Array> extraData = Array::New(isolate);
 
 		extraData->Set(0, v8PropertyName);
@@ -492,7 +492,7 @@ SEL initializerSelectorForClass(Class cls)
 
 	initSelector = initializerSelectorForClass(cls);
 
-	classTemplate->SetClassName([className V8String]);
+	classTemplate->SetClassName([className V8StringInIsolate:isolate]);
 
 	prototypeTemplate = classTemplate->PrototypeTemplate();
 	instanceTemplate = classTemplate->InstanceTemplate();
@@ -620,7 +620,7 @@ id unwrapObjCObject(Isolate *isolate, Local<Value> value)
 		isBlockInfo = object->GetHiddenValue(String::NewFromUtf8(isolate, "isBlock"));
 		isBlock = !isBlockInfo.IsEmpty() && isBlockInfo->IsTrue();
 
-		name = [NSString stringWithV8Value:object.As<Function>()->GetName()];
+		name = [NSString stringWithV8Value:object.As<Function>()->GetName() inIsolate:isolate];
 
 		if(isBlock) {
 			if(id target = unwrapBlock(isolate, object)) // Block

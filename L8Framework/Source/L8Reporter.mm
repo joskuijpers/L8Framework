@@ -87,7 +87,8 @@ static L8Reporter *g_sharedReporter = nil;
 	if(!tryCatch->HasCaught())
 		return nil;
 
-	HandleScope localScope(context.virtualMachine.V8Isolate);
+	Isolate *isolate = context.virtualMachine.V8Isolate;
+	HandleScope localScope(isolate);
 	L8Exception *exception;
 	id ball;
 	Class exceptionClass = [L8Exception class];
@@ -101,7 +102,7 @@ static L8Reporter *g_sharedReporter = nil;
 		if([(L8Value *)ball isNativeError]) {
 
 			// Is some internal v8 object. Only thing we can do is make it a string
-			ball = [NSString stringWithV8Value:tryCatch->Exception()];
+			ball = [NSString stringWithV8Value:tryCatch->Exception() inIsolate:isolate];
 
 			// Find prefix
 			if((strRange = [ball rangeOfString:@"SyntaxError: "]).location != NSNotFound)
@@ -121,7 +122,8 @@ static L8Reporter *g_sharedReporter = nil;
 
 	// Make an objc exception
 	exception = [exceptionClass exceptionWithV8Message:tryCatch->Message()
-									thrownObject:ball];
+										  thrownObject:ball
+											   isolate:isolate];
 
 	return exception;
 }

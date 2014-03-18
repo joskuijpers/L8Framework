@@ -27,20 +27,22 @@
 #import "NSString+L8.h"
 #include "v8.h"
 
-using v8::Local;
-using v8::Value;
-using v8::Exception;
+using namespace v8;
 
 @implementation L8SyntaxErrorException
 
 + (Local<Value>)v8exceptionWithMessage:(NSString *)message
 {
-	return Exception::SyntaxError([(message == nil?@"":message) V8String]);
+	Local<String> msg;
+	msg = [(message == nil?@"":message) V8StringInIsolate:Isolate::GetCurrent()];
+	return Exception::SyntaxError(msg);
 }
 
 - (Local<Value>)v8exception
 {
-	return Exception::SyntaxError([(self.message == nil?@"":self.message) V8String]);
+	Local<String> msg;
+	msg = [(self.message == nil?@"":self.message) V8StringInIsolate:Isolate::GetCurrent()];
+	return Exception::SyntaxError(msg);
 }
 
 @end
@@ -49,12 +51,16 @@ using v8::Exception;
 
 + (Local<Value>)v8exceptionWithMessage:(NSString *)message
 {
-	return Exception::TypeError([(message == nil?@"":message) V8String]);
+	Local<String> msg;
+	msg = [(message == nil?@"":message) V8StringInIsolate:Isolate::GetCurrent()];
+	return Exception::TypeError(msg);
 }
 
 - (Local<Value>)v8exception
 {
-	return Exception::TypeError([(self.message == nil?@"":self.message) V8String]);
+	Local<String> msg;
+	msg = [(self.message == nil?@"":self.message) V8StringInIsolate:Isolate::GetCurrent()];
+	return Exception::TypeError(msg);
 }
 
 @end
@@ -63,12 +69,16 @@ using v8::Exception;
 
 + (Local<Value>)v8exceptionWithMessage:(NSString *)message
 {
-	return Exception::ReferenceError([(message == nil?@"":message) V8String]);
+	Local<String> msg;
+	msg = [(message == nil?@"":message) V8StringInIsolate:Isolate::GetCurrent()];
+	return Exception::ReferenceError(msg);
 }
 
 - (Local<Value>)v8exception
 {
-	return Exception::ReferenceError([(self.message == nil?@"":self.message) V8String]);
+	Local<String> msg;
+	msg = [(self.message == nil?@"":self.message) V8StringInIsolate:Isolate::GetCurrent()];
+	return Exception::ReferenceError(msg);
 }
 
 @end
@@ -77,12 +87,16 @@ using v8::Exception;
 
 + (Local<Value>)v8exceptionWithMessage:(NSString *)message
 {
-	return Exception::RangeError([(message == nil?@"":message) V8String]);
+	Local<String> msg;
+	msg = [(message == nil?@"":message) V8StringInIsolate:Isolate::GetCurrent()];
+	return Exception::RangeError(msg);
 }
 
 - (Local<Value>)v8exception
 {
-	return Exception::RangeError([(self.message == nil?@"":self.message) V8String]);
+	Local<String> msg;
+	msg = [(self.message == nil?@"":self.message) V8StringInIsolate:Isolate::GetCurrent()];
+	return Exception::RangeError(msg);
 }
 
 @end

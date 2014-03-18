@@ -28,13 +28,11 @@
 #import "L8StackTrace_Private.h"
 #include "v8.h"
 
-using v8::Local;
-using v8::Value;
-using v8::Message;
-using v8::Exception;
+using namespace v8;
 
 @implementation L8Exception {
 	L8StackTrace *_backtrace;
+	Isolate *_v8isolate;
 }
 
 + (instancetype)exception
@@ -49,9 +47,11 @@ using v8::Exception;
 
 + (instancetype)exceptionWithV8Message:(Local<Message>)message
 						  thrownObject:(__weak id)object
+							   isolate:(Isolate *)isolate
 {
 	return [[self alloc] initWithV8Message:message
-							  thrownObject:object];
+							  thrownObject:object
+								   isolate:isolate];
 }
 
 - (instancetype)initWithMessage:(NSString *)message
@@ -65,9 +65,12 @@ using v8::Exception;
 
 - (instancetype)initWithV8Message:(Local<Message>)message
 					 thrownObject:(__weak id)object
+						  isolate:(Isolate *)isolate
 {
 	self = [super init];
 	if(self) {
+		_v8isolate = isolate;
+
 		_backtrace = [[L8StackTrace alloc] initWithV8StackTrace:message->GetStackTrace()];
 
 		_startColumn = message->GetStartColumn();
@@ -76,7 +79,8 @@ using v8::Exception;
 		// start pos, end pos
 
 		_sourceLine = [NSString stringWithV8String:message->GetSourceLine()];
-		_resourceName = [NSString stringWithV8Value:message->GetScriptResourceName()];
+		_resourceName = [NSString stringWithV8Value:message->GetScriptResourceName()
+											inIsolate:isolate];
 
 		_thrownObject = object;
 		_message = [_thrownObject description];
@@ -86,12 +90,12 @@ using v8::Exception;
 
 - (Local<Value>)v8exception
 {
-	return Exception::Error([(_message == nil?@"":_message) V8String]);
+	return Exception::Error([(_message == nil?@"":_message) V8StringInIsolate:_v8isolate]);
 }
 
-+ (Local<Value>)v8exceptionWithMessage:(NSString *)message
++ (Local<Value>)v8exceptionWithMessage:(NSString *)message inIsolate:(Isolate *)isolate
 {
-	return Exception::Error([(message == nil?@"":message) V8String]);
+	return Exception::Error([(message == nil?@"":message) V8StringInIsolate:isolate]);
 }
 
 - (NSString *)description

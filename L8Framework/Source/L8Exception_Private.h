@@ -34,9 +34,11 @@
 @property (readonly) id thrownObject;
 
 + (instancetype)exceptionWithV8Message:(v8::Local<v8::Message>)message
-						  thrownObject:(__weak id)object;
+						  thrownObject:(__weak id)object
+							   isolate:(v8::Isolate *)isolate;
 
 - (v8::Local<v8::Value>)v8exception;
-+ (v8::Local<v8::Value>)v8exceptionWithMessage:(NSString *)message;
++ (v8::Local<v8::Value>)v8exceptionWithMessage:(NSString *)message
+inIsolate:(v8::Isolate *)isolate;
 
 @end

@@ -25,14 +25,35 @@
 
 #include "v8.h"
 
+/**
+ * @brief Converting between NSStrings and v8::Values.
+ */
 @interface NSString (L8)
 
+/**
+ * Get an NSString from a v8::String.
+ *
+ * @param v8string The v8::String.
+ * @return An NSString with the same string as v8string.
+ */
 + (NSString *)stringWithV8String:(v8::Local<v8::String>)v8string;
 
-+ (NSString *)stringWithV8Value:(v8::Local<v8::Value>)v8value withIsolate:(v8::Isolate *)isolate;
-+ (NSString *)stringWithV8Value:(v8::Local<v8::Value>)v8value;
+/**
+ * Get an NSString from a v8::Value.
+ *
+ * @param v8string The v8::Value.
+ * @param isolate Isolate to work in.
+ * @return An NSString with the same string as v8string.
+ */
++ (NSString *)stringWithV8Value:(v8::Local<v8::Value>)v8value
+					  inIsolate:(v8::Isolate *)isolate;
 
-- (v8::Local<v8::String>)V8StringWithIsolate:(v8::Isolate *)isolate;
-- (v8::Local<v8::String>)V8String;
+/**
+ * Get a v8::String from an NSString.
+ *
+ * @param isolate The isolate to store the object into.
+ * @return A v8::String with the same string as the receiver.
+ */
+- (v8::Local<v8::String>)V8StringInIsolate:(v8::Isolate *)isolate;
 
 @end

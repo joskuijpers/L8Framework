@@ -86,6 +86,7 @@ using namespace v8;
 											   inContext:(L8Context *)context
 {
 	int iFlags = RegExp::Flags::kNone;
+	Isolate *isolate = context.virtualMachine.V8Isolate;
 
 	if([flags rangeOfString:@"g"].location != NSNotFound)
 		iFlags |= RegExp::Flags::kGlobal;
@@ -94,14 +95,16 @@ using namespace v8;
 	if([flags rangeOfString:@"m"].location != NSNotFound)
 		iFlags |= RegExp::Flags::kMultiline;
 
-	return [self valueWithV8Value:RegExp::New([pattern V8String], (RegExp::Flags)iFlags)
+	return [self valueWithV8Value:RegExp::New([pattern V8StringInIsolate:isolate],
+											  (RegExp::Flags)iFlags)
 						inContext:context];
 }
 
 + (instancetype)valueWithNewErrorFromMessage:(NSString *)message
 								   inContext:(L8Context *)context
 {
-	Local<Value> error = Exception::Error([message V8String]);
+	Local<String> msg = [message V8StringInIsolate:context.virtualMachine.V8Isolate];
+	Local<Value> error = Exception::Error(msg);
 	return [self valueWithV8Value:error inContext:context];
 }
 
@@ -199,32 +202,36 @@ using namespace v8;
 
 - (L8Value *)valueForProperty:(NSString *)property
 {
-	EscapableHandleScope localScope(_context.virtualMachine.V8Isolate);
+	Isolate *isolate = _context.virtualMachine.V8Isolate;
+	EscapableHandleScope localScope(isolate);
 	Local<Object> object;
 	Local<Value> value;
 
 	object = _v8value->ToObject();
-	value = object->Get([property V8String]);
+	value = object->Get([property V8StringInIsolate:isolate]);
 
 	return [L8Value valueWithV8Value:localScope.Escape(value) inContext:_context];
 }
 
 - (void)setValue:(id)value forProperty:(NSString *)property
 {
+	Isolate *isolate = _context.virtualMachine.V8Isolate;
 	Local<Object> object = _v8value->ToObject();
-	object->Set([property V8String],objectToValue(_context,value));
+	object->Set([property V8StringInIsolate:isolate],objectToValue(_context,value));
 }
 
 - (BOOL)deleteProperty:(NSString *)property
 {
+	Isolate *isolate = _context.virtualMachine.V8Isolate;
 	Local<Object> object = _v8value->ToObject();
-	return object->Delete([property V8String]);
+	return object->Delete([property V8StringInIsolate:isolate]);
 }
 
 - (BOOL)hasProperty:(NSString *)property
 {
+	Isolate *isolate = _context.virtualMachine.V8Isolate;
 	Local<Object> object = _v8value->ToObject();
-	return object->Has([property V8String]);
+	return object->Has([property V8StringInIsolate:isolate]);
 }
 
 - (L8Value *)valueAtIndex:(NSUInteger)index
@@ -556,7 +563,7 @@ JavaScriptContainerConverter::Job JavaScriptContainerConverter::take()
 	return last;
 }
 
-static JavaScriptContainerConverter::Job valueToObjectWithoutCopy(Local<Context> context, Local<Value> value)
+static JavaScriptContainerConverter::Job valueToObjectWithoutCopy(Local<Context> v8context, Local<Value> value)
 {
 	Local<Object> object;
 
@@ -568,7 +575,7 @@ static JavaScriptContainerConverter::Job valueToObjectWithoutCopy(Local<Context>
 		else if(value->IsNumber())
 			primitive = [NSNumber numberWithDouble:value->ToNumber()->Value()];
 		else if(value->IsString())
-			primitive = [NSString stringWithV8Value:value];
+			primitive = [NSString stringWithV8Value:value inIsolate:v8context->GetIsolate()];
 		else if(value->IsNull())
 			primitive = [NSNull null];
 		else {
@@ -579,7 +586,7 @@ static JavaScriptContainerConverter::Job valueToObjectWithoutCopy(Local<Context>
 	}
 
 	object = value->ToObject();
-	if(id wrapped = unwrapObjCObject(context->GetIsolate(), value))
+	if(id wrapped = unwrapObjCObject(v8context->GetIsolate(), value))
 		return (JavaScriptContainerConverter::Job){ object, wrapped, COLLECTION_NONE };
 
 	if(object->IsDate())
@@ -591,10 +598,12 @@ static JavaScriptContainerConverter::Job valueToObjectWithoutCopy(Local<Context>
 	return (JavaScriptContainerConverter::Job){ object, [NSMutableDictionary dictionary], COLLECTION_DICTIONARY };
 }
 
-static id containerValueToObject(Local<Context> context, JavaScriptContainerConverter::Job job)
+static id containerValueToObject(Local<Context> v8context, JavaScriptContainerConverter::Job job)
 {
+	Isolate *isolate = v8context->GetIsolate();
+
 	assert(job.type != COLLECTION_NONE);
-	JavaScriptContainerConverter converter(context);
+	JavaScriptContainerConverter converter(v8context);
 	converter.add(job);
 
 	do {
@@ -605,7 +614,7 @@ static id containerValueToObject(Local<Context> context, JavaScriptContainerConv
 		if(currentJob.type == COLLECTION_ARRAY) {
 			NSMutableArray *array = currentJob.object;
 
-			uint32_t length = value->Get([@"length" V8String])->Uint32Value();
+			uint32_t length = value->Get([@"length" V8StringInIsolate:isolate])->Uint32Value();
 
 			for(uint32_t i = 0; i < length; i++) {
 				id object = converter.convert(value->Get(i));
@@ -622,7 +631,7 @@ static id containerValueToObject(Local<Context> context, JavaScriptContainerConv
 				Local<Value> key = propertyNames->Get(i);
 				id object = converter.convert(value->Get(key));
 				if(object)
-					dictionary[[NSString stringWithV8Value:key]] = object;
+					dictionary[[NSString stringWithV8Value:key inIsolate:isolate]] = object;
 			}
 		}
 
@@ -781,8 +790,13 @@ static ObjCContainerConverter::Job objectToValueWithoutCopy(L8Context *context, 
 		if([object isKindOfClass:[L8Value class]])
 			return (ObjCContainerConverter::Job){object, ((L8Value *)object)->_v8value, COLLECTION_NONE};
 
-		if([object isKindOfClass:[NSString class]])
-			return (ObjCContainerConverter::Job){object, [(NSString *)object V8String], COLLECTION_NONE};
+		if([object isKindOfClass:[NSString class]]) {
+			return (ObjCContainerConverter::Job) {
+				object,
+				[(NSString *)object V8StringInIsolate:isolate],
+				COLLECTION_NONE
+			};
+		}
 
 		if([object isKindOfClass:[NSNumber class]]) {
 			assert([@YES class] == [@NO class]);
@@ -842,7 +856,7 @@ Local<Value> objectToValue(L8Context *context, id object)
 
 			[dictionary enumerateKeysAndObjectsUsingBlock:^(NSString *key, id obj, BOOL *stop) {
 				if([key isKindOfClass:[NSString class]]) { // Only string key are allowed in JS
-					value->Set([key V8String],
+					value->Set([key V8StringInIsolate:isolate],
 							   converter.convert(obj));
 				}
 			}];

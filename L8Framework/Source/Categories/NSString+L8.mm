@@ -50,13 +50,7 @@ using namespace v8;
 }
 
 + (NSString *)stringWithV8Value:(Local<Value>)v8value
-{
-	return [NSString stringWithV8Value:v8value
-						   withIsolate:Isolate::GetCurrent()];
-}
-
-+ (NSString *)stringWithV8Value:(Local<Value>)v8value
-					withIsolate:(Isolate *)isolate
+						inIsolate:(Isolate *)isolate
 {
 	if(v8value.IsEmpty())
 		return nil;
@@ -67,12 +61,7 @@ using namespace v8;
 	return [NSString stringWithV8String:string];
 }
 
-- (Local<String>)V8String
-{
-	return [self V8StringWithIsolate:Isolate::GetCurrent()];
-}
-
-- (Local<String>)V8StringWithIsolate:(Isolate *)isolate
+- (Local<String>)V8StringInIsolate:(Isolate *)isolate
 {
 	EscapableHandleScope scope(isolate);
 

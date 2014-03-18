@@ -131,13 +131,13 @@ using namespace v8;
 
 	Isolate *isolate = _virtualMachine.V8Isolate;
 	HandleScope localScope(isolate);
-	ScriptOrigin scriptOrigin = ScriptOrigin([name V8String]);
+	ScriptOrigin scriptOrigin = ScriptOrigin([name V8StringInIsolate:isolate]);
 
 	Local<Script> script;
 	{
 		TryCatch tryCatch;
 
-		script = Script::Compile([scriptData V8String], &scriptOrigin);
+		script = Script::Compile([scriptData V8StringInIsolate:isolate], &scriptOrigin);
 		if(script.IsEmpty()) {
 			[L8Reporter reportTryCatch:&tryCatch inContext:self];
 			return NO;
@@ -169,13 +169,13 @@ using namespace v8;
 
 	Isolate *isolate = _virtualMachine.V8Isolate;
 	EscapableHandleScope localScope(isolate);
-	ScriptOrigin scriptOrigin = ScriptOrigin([name V8String]);
+	ScriptOrigin scriptOrigin = ScriptOrigin([name V8StringInIsolate:isolate]);
 
 	Local<Script> script;
 	{
 		TryCatch tryCatch;
 
-		script = Script::Compile([scriptData V8String], &scriptOrigin);
+		script = Script::Compile([scriptData V8StringInIsolate:isolate], &scriptOrigin);
 		if(script.IsEmpty()) {
 			[L8Reporter reportTryCatch:&tryCatch inContext:self];
 			return nil;
