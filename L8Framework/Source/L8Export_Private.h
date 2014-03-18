@@ -20,44 +20,19 @@
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
+#import "L8Export.h"
+
 /**
- * @brief Export protocol for L8.
+ * @brief An empty implementation of L8Export.
+ *
+ * The Objective-C runtime might not load the L8Export protocol
+ * if it is not used by any protocol or class. Because L8WrapperMap
+ * uses the protocol declaration in its code, it crashes when
+ * L8Export protocol is never used. This is to make sure the
+ * runtime loads the protocol.
  */
-@protocol L8Export
+__attribute__((objc_root_class)) @interface L8Export <L8Export>
 @end
-
-/**
- * A name-changer for exported methods in L8 exports.
- *
- * Note that the JSExport macro may only be applied to a selector that takes one
- * or more argument.
- */
-#define L8ExportAs(PropertyName, Selector) \
-	@optional Selector __L8_EXPORT_AS__##PropertyName:(id)argument; @required Selector
-
-/**
- * @page exportas L8ExportAs: renaming of exported selectors
- *
- * A selector that will be exported to JavaScript can be renamed
- * using the L8ExportAs() macro.
- *
- *
- * @code
- * @protocol MyClass <JSExport>
- * L8ExportAs(foo,
- * - (void)doFoo:(id)foo withBar:(id)bar
- * );
- * @end
- * @endcode
- *
- * Note that this can only be used for selectors with one or more arguments.
- *
- * @code
- * #define L8ExportAs(PropertyName, Selector) \
- *   @optional Selector __L8_EXPORT_AS__##PropertyName:(id)argument; @required Selector
- * @endcode
- *
- */
