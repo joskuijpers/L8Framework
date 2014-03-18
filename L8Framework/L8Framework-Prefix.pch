@@ -24,5 +24,11 @@
  */
 
 #ifdef __OBJC__
-	#import <Foundation/Foundation.h>
+# import "config.h"
+# ifdef L8_OBJC_OBJFW
+#  import <ObjFW/ObjFW.h>
+# else
+#  import <Foundation/Foundation.h>
+# endif
+# import "macros.h"
 #endif

@@ -31,3 +31,11 @@
  * L8Reporter is called instead.
  */
 #define L8_TRANSFER_JS_EXCEPTIONS
+
+//#define L8_OBJC_OBJFW
+
+#pragma mark Definitions dependent on configuration
+
+#ifndef L8_OBJC_OBJFW
+# define L8_OBJC_FOUNDATION
+#endif

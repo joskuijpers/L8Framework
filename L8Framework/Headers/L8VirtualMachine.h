@@ -23,12 +23,6 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#ifdef DEBUG
-# define L8_AVAILABLE_DEBUG(msg)
-#else
-# define L8_AVAILABLE_DEBUG(msg) __attribute__((unavailable((msg))));
-#endif
-
 /**
  * @brief JavaScript Virtual Machine.
  *
@@ -41,7 +35,7 @@
  *
  * @return self.
  */
-- (instancetype)init __attribute__((objc_designated_initializer));
+- (instancetype)init L8_DESIGNATED_INITIALIZER;
 
 /**
  * Notify the JSVirtualMachine of an external object relationship.
@@ -62,9 +56,9 @@
 /**
  * Attempt to run the garbage collector.
  *
- * @note This method is blocking, and is therefor only
- * available in DEBUG builds.
+ * @note This method is blocking and should only be used in
+ * debug builds.
  */
-- (void)runGarbageCollector L8_AVAILABLE_DEBUG("Only available in Debug builds.");
+- (void)runGarbageCollector;
 
 @end

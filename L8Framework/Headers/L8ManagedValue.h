@@ -61,6 +61,6 @@
  * @param value
  * @result The new JSManagedValue.
  */
-- (instancetype)initWithValue:(L8Value *)value __attribute__((objc_designated_initializer));
+- (instancetype)initWithValue:(L8Value *)value L8_DESIGNATED_INITIALIZER;
 
 @end

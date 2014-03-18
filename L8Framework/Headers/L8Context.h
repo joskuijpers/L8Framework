@@ -46,8 +46,7 @@
  * @param virtualMachine The virtual machine.
  * @return self.
  */
-- (instancetype)initWithVirtualMachine:(L8VirtualMachine *)virtualMachine
-__attribute__((objc_designated_initializer));
+- (instancetype)initWithVirtualMachine:(L8VirtualMachine *)virtualMachine L8_DESIGNATED_INITIALIZER;
 
 /**
  * Executes a block in the context.
@@ -58,7 +57,7 @@ __attribute__((objc_designated_initializer));
  * @param block Block to execute within handlescope of V8
  */
 - (void)executeBlockInContext:(void(^)(L8Context *context))block;
-//	__attribute__((deprecated("No need to use this construct anymore.")));
+//	L8_DEPRECATED("No need to use this construct anymore.");
 
 /**
  * Loads a script at given path into the system by evaluating it.

@@ -34,5 +34,5 @@
  * L8Export protocol is never used. This is to make sure the
  * runtime loads the protocol.
  */
-__attribute__((objc_root_class)) @interface L8Export <L8Export>
+L8_ROOT_CLASS @interface L8Export <L8Export>
 @end
