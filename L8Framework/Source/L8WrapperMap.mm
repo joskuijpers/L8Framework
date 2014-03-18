@@ -417,6 +417,7 @@ SEL initializerSelectorForClass(Class cls)
 
 @implementation L8WrapperMap {
 	std::map<std::string,Eternal<FunctionTemplate>> _classCache;
+	__weak L8Runtime *_runtime;
 }
 
 - (id)initWithRuntime:(L8Runtime *)runtime

@@ -52,14 +52,12 @@ using namespace v8;
 														valueOptions:NSPointerFunctionsStrongMemory | NSPointerFunctionsObjectPersonality
 															capacity:0];
 
-	NSLog(@"NEW isolate %p",_v8isolate);
 	}
 	return self;
 }
 
 - (void)dealloc
 {
-	NSLog(@"Dealloc isolate %p",_v8isolate);
 	if(Isolate::GetCurrent() == _v8isolate)
 	   _v8isolate->Exit();
 

@@ -75,7 +75,7 @@ using namespace v8;
 
 		// Create the context
 		Local<Context> context = Context::New(isolate);
-		context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SELF, External::New(isolate,(void *)CFBridgingRetain(self)));
+		context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SELF, External::New(isolate,(__bridge void *)self));
 		_v8context.Reset(isolate, context);
 
 		// Start the context scope
@@ -89,17 +89,10 @@ using namespace v8;
 
 - (void)dealloc
 {
-	NSLog(@"Dealloc Context");
-
 	Isolate *isolate = _virtualMachine.V8Isolate;
 	HandleScope mainScope(isolate);
 	Local<Context> context = Local<Context>::New(isolate, _v8context);
 	Context::Scope contextScope(context);
-
-	Local<External> selfStored = context->GetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SELF).As<External>();
-	if(!selfStored.IsEmpty()) {
-		CFRelease(selfStored->Value());
-	}
 
 	_v8context.ClearAndLeak();
 }

@@ -541,7 +541,7 @@ inline void objCSetContextEmbedderData(const FunctionCallbackInfo<Value>& info)
 {
 	Local<Context> context;
 
-	context = info.GetIsolate()->GetCurrentContext(); // TODO Verify
+	context = info.GetIsolate()->GetCurrentContext();
 
 	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_THIS, info.This());
 	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_CALLEE, info.Callee());
@@ -555,7 +555,7 @@ inline void objCClearContextEmbedderData(Isolate *isolate)
 {
 	Local<Context> context;
 
-	context = isolate->GetCurrentContext(); // TODO Verify
+	context = isolate->GetCurrentContext();
 
 	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_THIS, Null(isolate));
 	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_CALLEE, Null(isolate));
@@ -609,7 +609,7 @@ void ObjCConstructor(const FunctionCallbackInfo<Value>& info)
 	// Set target
 	invocation.target = object;
 
-	context = [L8Runtime runtimeWithV8Context:isolate->GetCurrentContext()]; // TODO verify
+	context = [L8Runtime runtimeWithV8Context:isolate->GetCurrentContext()];
 
 	objCSetInvocationArguments(isolate, context, invocation, info, 2);
 	objCSetContextEmbedderData(info);
@@ -686,7 +686,7 @@ void ObjCMethodCall(const FunctionCallbackInfo<Value>& info)
 	invocation.selector = selector;
 	invocation.target = object;
 
-	context = [L8Runtime runtimeWithV8Context:isolate->GetCurrentContext()]; // TODO verify
+	context = [L8Runtime runtimeWithV8Context:isolate->GetCurrentContext()];
 
 	// Set the arguments
 	objCSetInvocationArguments(isolate, context, invocation, info, 2);
@@ -719,7 +719,7 @@ void ObjCBlockCall(const FunctionCallbackInfo<Value>& info)
 	invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
 	invocation.target = block;
 
-	context = [L8Runtime runtimeWithV8Context:isolate->GetCurrentContext()]; // TODO verify
+	context = [L8Runtime runtimeWithV8Context:isolate->GetCurrentContext()];
 
 	// Set arguments (+1)
 	objCSetInvocationArguments(isolate, context, invocation, info, 1);
@@ -745,8 +745,7 @@ void ObjCNamedPropertySetter(Local<String> property, Local<Value> value, const P
 	L8Runtime *runtime;
 
 	object = objectFromWrapper(info.This()->GetInternalField(0));
-
-	runtime = [L8Runtime runtimeWithV8Context:info.GetIsolate()->GetCurrentContext()]; // TODO verify
+	runtime = [L8Runtime runtimeWithV8Context:info.GetIsolate()->GetCurrentContext()];
 
 	setValue = [L8Value valueWithV8Value:value inContext:runtime];
 
@@ -763,7 +762,7 @@ void ObjCNamedPropertyGetter(Local<String> property, const PropertyCallbackInfo<
 	object = objectFromWrapper(info.This()->GetInternalField(0));
 	value = [object objectForKeyedSubscript:[NSString stringWithV8String:property]];
 
-	runtime = [L8Runtime runtimeWithV8Context:info.GetIsolate()->GetCurrentContext()]; // TODO verify
+	runtime = [L8Runtime runtimeWithV8Context:info.GetIsolate()->GetCurrentContext()];
 
 	if(value)
 		info.GetReturnValue().Set(objectToValue(runtime, value));
@@ -777,7 +776,7 @@ void ObjCIndexedPropertySetter(uint32_t index, Local<Value> value, const Propert
 
 	object = objectFromWrapper(info.This()->GetInternalField(0));
 
-	runtime = [L8Runtime runtimeWithV8Context:info.GetIsolate()->GetCurrentContext()]; // TODO verify
+	runtime = [L8Runtime runtimeWithV8Context:info.GetIsolate()->GetCurrentContext()];
 
 	setValue = [L8Value valueWithV8Value:value inContext:runtime];
 	[object setObject:setValue atIndexedSubscript:index];
@@ -793,7 +792,7 @@ void ObjCIndexedPropertyGetter(uint32_t index, const PropertyCallbackInfo<Value>
 	object = objectFromWrapper(info.This()->GetInternalField(0));
 	value = [object objectAtIndexedSubscript:index];
 
-	runtime = [L8Runtime runtimeWithV8Context:info.GetIsolate()->GetCurrentContext()]; // TODO verify
+	runtime = [L8Runtime runtimeWithV8Context:info.GetIsolate()->GetCurrentContext()];
 
 	if(value)
 		info.GetReturnValue().Set(objectToValue(runtime, value));
@@ -815,7 +814,7 @@ void ObjCAccessorSetter(Local<String> property, Local<Value> value, const Proper
 	isolate = info.GetIsolate();
 	object = objectFromWrapper(info.This()->GetInternalField(0));
 	extraData = info.Data().As<Array>();
-	context = [L8Runtime runtimeWithV8Context:isolate->GetCurrentContext()]; // TODO Verify
+	context = [L8Runtime runtimeWithV8Context:isolate->GetCurrentContext()];
 
 	// 0 = name, 1 = value type, 2 = getter SEL, 3 = getter types, 4 = setter SEL, 5 = setter types
 	selector = selectorFromV8Value(extraData->Get(4));
@@ -854,7 +853,7 @@ void ObjCAccessorGetter(Local<String> property, const PropertyCallbackInfo<Value
 	isolate = info.GetIsolate();
 	object = objectFromWrapper(info.This()->GetInternalField(0));
 	extraData = info.Data().As<Array>();
-	context = [L8Runtime runtimeWithV8Context:isolate->GetCurrentContext()]; // TODO Verify
+	context = [L8Runtime runtimeWithV8Context:isolate->GetCurrentContext()];
 
 	// 0 = name, 1 = value type, 2 = getter SEL, 3 = getter types, 4 = setter SEL, 5 = setter types
 	returnType = createStringFromV8Value(extraData->Get(1));
