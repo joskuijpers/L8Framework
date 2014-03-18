@@ -28,7 +28,7 @@
  *
  * A Virtual Machine contains one or more contexts.
  */
-@interface L8VirtualMachine : NSObject
+@interface L8VirtualMachine : L8_OBJECT_CLASS
 
 /**
  * Initialize a new virtual machine.

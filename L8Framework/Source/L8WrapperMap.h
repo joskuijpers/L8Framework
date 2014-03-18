@@ -27,7 +27,7 @@
 
 @class L8Context, L8Value;
 
-@interface L8WrapperMap : NSObject
+@interface L8WrapperMap : L8_OBJECT_CLASS
 
 /**
  * Context using this wrapper map

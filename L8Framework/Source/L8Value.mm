@@ -81,8 +81,8 @@ using namespace v8;
 	return [self valueWithV8Value:Array::New(context.virtualMachine.V8Isolate) inContext:context];
 }
 
-+ (instancetype)valueWithNewRegularExpressionFromPattern:(NSString *)pattern
-												   flags:(NSString *)flags
++ (instancetype)valueWithNewRegularExpressionFromPattern:(L8_STRING_CLASS *)pattern
+												   flags:(L8_STRING_CLASS *)flags
 											   inContext:(L8Context *)context
 {
 	int iFlags = RegExp::Flags::kNone;
@@ -100,7 +100,7 @@ using namespace v8;
 						inContext:context];
 }
 
-+ (instancetype)valueWithNewErrorFromMessage:(NSString *)message
++ (instancetype)valueWithNewErrorFromMessage:(L8_STRING_CLASS *)message
 								   inContext:(L8Context *)context
 {
 	Local<String> msg = [message V8StringInIsolate:context.virtualMachine.V8Isolate];
@@ -173,22 +173,22 @@ using namespace v8;
 	return _v8value->Uint32Value();
 }
 
-- (NSNumber *)toNumber
+- (L8_NUMBER_CLASS *)toNumber
 {
 	return valueToNumber(_context, _v8value);
 }
 
-- (NSString *)toString
+- (L8_STRING_CLASS *)toString
 {
 	return valueToString(_context, _v8value);
 }
 
-- (NSDate *)toDate
+- (L8_DATE_CLASS *)toDate
 {
 	return valueToDate(_context, _v8value);
 }
 
-- (NSArray *)toArray
+- (L8_ARRAY_CLASS *)toArray
 {
 	return valueToArray(_context, _v8value);
 }
@@ -200,7 +200,7 @@ using namespace v8;
 
 #pragma mark Setting and getting properties
 
-- (L8Value *)valueForProperty:(NSString *)property
+- (L8Value *)valueForProperty:(L8_STRING_CLASS *)property
 {
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
 	EscapableHandleScope localScope(isolate);
@@ -213,21 +213,21 @@ using namespace v8;
 	return [L8Value valueWithV8Value:localScope.Escape(value) inContext:_context];
 }
 
-- (void)setValue:(id)value forProperty:(NSString *)property
+- (void)setValue:(id)value forProperty:(L8_STRING_CLASS *)property
 {
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
 	Local<Object> object = _v8value->ToObject();
 	object->Set([property V8StringInIsolate:isolate],objectToValue(_context,value));
 }
 
-- (BOOL)deleteProperty:(NSString *)property
+- (BOOL)deleteProperty:(L8_STRING_CLASS *)property
 {
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
 	Local<Object> object = _v8value->ToObject();
 	return object->Delete([property V8StringInIsolate:isolate]);
 }
 
-- (BOOL)hasProperty:(NSString *)property
+- (BOOL)hasProperty:(L8_STRING_CLASS *)property
 {
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
 	Local<Object> object = _v8value->ToObject();
@@ -239,7 +239,7 @@ using namespace v8;
 	Local<Object> object;
 
 	if(index != (uint32_t)index) {
-		NSString *propertyName;
+		L8_STRING_CLASS *propertyName;
 
 		propertyName = [[L8Value valueWithDouble:index inContext:_context] toString];
 		return [self valueForProperty:propertyName];
@@ -255,7 +255,7 @@ using namespace v8;
 	Local<Object> object;
 
 	if(index != (uint32_t)index) {
-		NSString *propertyName;
+		L8_STRING_CLASS *propertyName;
 
 		propertyName = [[L8Value valueWithDouble:index inContext:_context] toString];
 		return [self setValue:value forProperty:propertyName];
@@ -265,7 +265,7 @@ using namespace v8;
 	object->Set((uint32_t)index, objectToValue(_context,value));
 }
 
-- (void)defineProperty:(NSString *)property descriptor:(id)descriptor
+- (void)defineProperty:(L8_STRING_CLASS *)property descriptor:(id)descriptor
 {
 	[_context.globalObject[@"Object"] invokeMethod:@"defineProperty"
 									 withArguments:@[self, property, descriptor]];
@@ -358,7 +358,7 @@ using namespace v8;
 
 #pragma mark Invoking methods and constructors
 
-- (L8Value *)callWithArguments:(NSArray *)arguments
+- (L8Value *)callWithArguments:(L8_ARRAY_CLASS *)arguments
 {
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
 	EscapableHandleScope localScope(isolate);
@@ -390,7 +390,7 @@ using namespace v8;
 	return [L8Value valueWithV8Value:localScope.Escape(result) inContext:_context];
 }
 
-- (L8Value *)constructWithArguments:(NSArray *)arguments
+- (L8Value *)constructWithArguments:(L8_ARRAY_CLASS *)arguments
 {
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
 	EscapableHandleScope localScope(isolate);
@@ -424,7 +424,7 @@ using namespace v8;
 	return [L8Value valueWithV8Value:localScope.Escape(result) inContext:_context];
 }
 
-- (L8Value *)invokeMethod:(NSString *)method withArguments:(NSArray *)arguments
+- (L8Value *)invokeMethod:(L8_STRING_CLASS *)method withArguments:(L8_ARRAY_CLASS *)arguments
 {
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
 	EscapableHandleScope localScope(isolate);
@@ -464,7 +464,7 @@ using namespace v8;
 	return [L8Value valueWithV8Value:localScope.Escape(result) inContext:_context];
 }
 
-- (NSString *)description
+- (L8_STRING_CLASS *)description
 {
 	if(id wrapped = unwrapObjCObject(_context.virtualMachine.V8Isolate, _v8value))
 			return [wrapped description];
@@ -571,11 +571,11 @@ static JavaScriptContainerConverter::Job valueToObjectWithoutCopy(Local<Context>
 		id primitive;
 
 		if(value->IsBoolean())
-			primitive = [NSNumber numberWithBool:value->BooleanValue()];
+			primitive = [L8_NUMBER_CLASS numberWithBool:value->BooleanValue()];
 		else if(value->IsNumber())
-			primitive = [NSNumber numberWithDouble:value->ToNumber()->Value()];
+			primitive = [L8_NUMBER_CLASS numberWithDouble:value->ToNumber()->Value()];
 		else if(value->IsString())
-			primitive = [NSString stringWithV8Value:value inIsolate:v8context->GetIsolate()];
+			primitive = [L8_STRING_CLASS stringWithV8Value:value inIsolate:v8context->GetIsolate()];
 		else if(value->IsNull())
 			primitive = [NSNull null];
 		else {
@@ -590,7 +590,7 @@ static JavaScriptContainerConverter::Job valueToObjectWithoutCopy(Local<Context>
 		return (JavaScriptContainerConverter::Job){ object, wrapped, COLLECTION_NONE };
 
 	if(object->IsDate())
-		return (JavaScriptContainerConverter::Job){ object, [NSDate dateWithTimeIntervalSince1970:object->ToNumber()->Value()], COLLECTION_NONE };
+		return (JavaScriptContainerConverter::Job){ object, [L8_DATE_CLASS dateWithTimeIntervalSince1970:object->ToNumber()->Value()], COLLECTION_NONE };
 
 	if(object->IsArray())
 		return (JavaScriptContainerConverter::Job){ object, [NSMutableArray array], COLLECTION_ARRAY };
@@ -631,7 +631,7 @@ static id containerValueToObject(Local<Context> v8context, JavaScriptContainerCo
 				Local<Value> key = propertyNames->Get(i);
 				id object = converter.convert(value->Get(key));
 				if(object)
-					dictionary[[NSString stringWithV8Value:key inIsolate:isolate]] = object;
+					dictionary[[L8_STRING_CLASS stringWithV8Value:key inIsolate:isolate]] = object;
 			}
 		}
 
@@ -648,47 +648,47 @@ id valueToObject(L8Context *context, Local<Value> value)
 	return containerValueToObject(context.V8Context, job);
 }
 
-NSNumber *valueToNumber(L8Context *context, Local<Value> value)
+L8_NUMBER_CLASS *valueToNumber(L8Context *context, Local<Value> value)
 {
 	id wrapped = unwrapObjCObject(context.virtualMachine.V8Isolate, value);
-	if(wrapped && [wrapped isKindOfClass:[NSNumber class]]) {
+	if(wrapped && [wrapped isKindOfClass:[L8_NUMBER_CLASS class]]) {
 		return wrapped;
 	}
 
 	if(value->IsInt32())
-		return [NSNumber numberWithInteger:value->Int32Value()];
+		return [L8_NUMBER_CLASS numberWithInteger:value->Int32Value()];
 	else if(value->IsUint32())
-		return [NSNumber numberWithUnsignedInteger:value->Uint32Value()];
-	return [NSNumber numberWithDouble:value->NumberValue()];
+		return [L8_NUMBER_CLASS numberWithUnsignedInteger:value->Uint32Value()];
+	return [L8_NUMBER_CLASS numberWithDouble:value->NumberValue()];
 }
 
-NSString *valueToString(L8Context *context, Local<Value> value)
+L8_STRING_CLASS *valueToString(L8Context *context, Local<Value> value)
 {
 	id wrapped = unwrapObjCObject(context.virtualMachine.V8Isolate, value);
-	if(wrapped && [wrapped isKindOfClass:[NSString class]]) {
+	if(wrapped && [wrapped isKindOfClass:[L8_STRING_CLASS class]]) {
 		return wrapped;
 	}
 
 	if(value.IsEmpty())
 		return nil;
 
-	return [NSString stringWithV8String:value->ToString()];
+	return [L8_STRING_CLASS stringWithV8String:value->ToString()];
 }
 
-NSDate *valueToDate(L8Context *context, Local<Value> value)
+L8_DATE_CLASS *valueToDate(L8Context *context, Local<Value> value)
 {
 	id wrapped = unwrapObjCObject(context.virtualMachine.V8Isolate, value);
-	if(wrapped && [wrapped isKindOfClass:[NSDate class]]) {
+	if(wrapped && [wrapped isKindOfClass:[L8_DATE_CLASS class]]) {
 		return wrapped;
 	}
 
-	return [NSDate dateWithTimeIntervalSince1970:value->NumberValue()];
+	return [L8_DATE_CLASS dateWithTimeIntervalSince1970:value->NumberValue()];
 }
 
-NSArray *valueToArray(L8Context *context, Local<Value> value)
+L8_ARRAY_CLASS *valueToArray(L8Context *context, Local<Value> value)
 {
 	id wrapped = unwrapObjCObject(context.virtualMachine.V8Isolate, value);
-	if(wrapped && [wrapped isKindOfClass:[NSArray class]]) {
+	if(wrapped && [wrapped isKindOfClass:[L8_ARRAY_CLASS class]]) {
 		return wrapped;
 	}
 
@@ -778,7 +778,7 @@ static ObjCContainerConverter::Job objectToValueWithoutCopy(L8Context *context, 
 
 	if(![object conformsToProtocol:@protocol(L8Export)]) {
 
-		if([object isKindOfClass:[NSArray class]])
+		if([object isKindOfClass:[L8_ARRAY_CLASS class]])
 			return (ObjCContainerConverter::Job){object, Array::New(isolate), COLLECTION_ARRAY};
 
 		if([object isKindOfClass:[NSDictionary class]])
@@ -790,24 +790,24 @@ static ObjCContainerConverter::Job objectToValueWithoutCopy(L8Context *context, 
 		if([object isKindOfClass:[L8Value class]])
 			return (ObjCContainerConverter::Job){object, ((L8Value *)object)->_v8value, COLLECTION_NONE};
 
-		if([object isKindOfClass:[NSString class]]) {
+		if([object isKindOfClass:[L8_STRING_CLASS class]]) {
 			return (ObjCContainerConverter::Job) {
 				object,
-				[(NSString *)object V8StringInIsolate:isolate],
+				[(L8_STRING_CLASS *)object V8StringInIsolate:isolate],
 				COLLECTION_NONE
 			};
 		}
 
-		if([object isKindOfClass:[NSNumber class]]) {
+		if([object isKindOfClass:[L8_NUMBER_CLASS class]]) {
 			assert([@YES class] == [@NO class]);
-			assert([@YES class] != [NSNumber class]);
-			assert([[@YES class] isSubclassOfClass:[NSNumber class]]);
+			assert([@YES class] != [L8_NUMBER_CLASS class]);
+			assert([[@YES class] isSubclassOfClass:[L8_NUMBER_CLASS class]]);
 			if([object isKindOfClass:[@YES class]]) // Pretty much a hack: assumes Boolean class cluster
 				return (ObjCContainerConverter::Job){object, v8::Boolean::New(isolate,[object boolValue]), COLLECTION_NONE};
 			return (ObjCContainerConverter::Job){object, Number::New(isolate,[object doubleValue]), COLLECTION_NONE};
 		}
 
-		if([object isKindOfClass:[NSDate class]])
+		if([object isKindOfClass:[L8_DATE_CLASS class]])
 			return (ObjCContainerConverter::Job){object, Date::New(isolate,[object timeIntervalSince1970]), COLLECTION_NONE};
 
 		if([object isKindOfClass:BlockClass()])
@@ -847,15 +847,15 @@ Local<Value> objectToValue(L8Context *context, id object)
 		Local<Object> value = currentJob.value->ToObject();
 
 		if(currentJob.type == COLLECTION_ARRAY) {
-			NSArray *array = currentJob.object;
+			L8_ARRAY_CLASS *array = currentJob.object;
 
 			for(NSUInteger i = 0; i < [array count]; i++)
 				value->Set((uint32_t)i, converter.convert(array[i]));
 		} else {
 			NSDictionary *dictionary = currentJob.object;
 
-			[dictionary enumerateKeysAndObjectsUsingBlock:^(NSString *key, id obj, BOOL *stop) {
-				if([key isKindOfClass:[NSString class]]) { // Only string key are allowed in JS
+			[dictionary enumerateKeysAndObjectsUsingBlock:^(L8_STRING_CLASS *key, id obj, BOOL *stop) {
+				if([key isKindOfClass:[L8_STRING_CLASS class]]) { // Only string key are allowed in JS
 					value->Set([key V8StringInIsolate:isolate],
 							   converter.convert(obj));
 				}
@@ -873,10 +873,10 @@ Local<Value> objectToValue(L8Context *context, id object)
 
 - (L8Value *)objectForKeyedSubscript:(id)key
 {
-	if(![key isKindOfClass:[NSString class]])
+	if(![key isKindOfClass:[L8_STRING_CLASS class]])
 		key = [[L8Value valueWithObject:key inContext:_context] toString];
 
-	return [self valueForProperty:(NSString *)key];
+	return [self valueForProperty:(L8_STRING_CLASS *)key];
 }
 
 - (L8Value *)objectAtIndexedSubscript:(NSUInteger)index
@@ -884,11 +884,11 @@ Local<Value> objectToValue(L8Context *context, id object)
 	return [self valueAtIndex:index];
 }
 
-- (void)setObject:(id)object forKeyedSubscript:(NSObject <NSCopying> *)key
+- (void)setObject:(id)object forKeyedSubscript:(L8_OBJECT_CLASS <L8_COPYING_PROTOCOL> *)key
 {
-	if(![key isKindOfClass:[NSString class]])
+	if(![key isKindOfClass:[L8_STRING_CLASS class]])
 		key = [[L8Value valueWithObject:key inContext:_context] toString];
-	[self setValue:object forProperty:(NSString *)key];
+	[self setValue:object forProperty:(L8_STRING_CLASS *)key];
 }
 
 - (void)setObject:(id)object atIndexedSubscript:(NSUInteger)index

@@ -28,7 +28,7 @@
 /**
  * @brief The JavaScript context
  */
-@interface L8Context : NSObject
+@interface L8Context : L8_OBJECT_CLASS
 
 /// The virtual machine containing this context.
 @property (nonatomic,readonly) L8VirtualMachine *virtualMachine;
@@ -65,7 +65,7 @@
  * @param filePath path of the script file
  * @return YES on success, NO otherwise
  */
-- (BOOL)loadScriptAtPath:(NSString *)filePath;
+- (BOOL)loadScriptAtPath:(L8_STRING_CLASS *)filePath;
 
 /**
  * Loads given script with given name into the context.
@@ -74,7 +74,7 @@
  * @param name name of the script. Used in stacktraces and errors.
  * @return YES on success, NO otherwise
  */
-- (BOOL)loadScript:(NSString *)scriptData withName:(NSString *)name;
+- (BOOL)loadScript:(L8_STRING_CLASS *)scriptData withName:(L8_STRING_CLASS *)name;
 
 /**
  * Evaluate given script in the context.
@@ -82,7 +82,7 @@
  * @param scriptData the script contents
  * @return the scripts return value
  */
-- (L8Value *)evaluateScript:(NSString *)scriptData;
+- (L8Value *)evaluateScript:(L8_STRING_CLASS *)scriptData;
 
 /**
  * Evaluate given script in the context.
@@ -91,7 +91,7 @@
  * @param name name used in stacktraces and errors
  * @return the scripts return value
  */
-- (L8Value *)evaluateScript:(NSString *)scriptData withName:(NSString *)name;
+- (L8Value *)evaluateScript:(L8_STRING_CLASS *)scriptData withName:(L8_STRING_CLASS *)name;
 
 /**
  * Returns the object depicting the global object.
@@ -134,9 +134,9 @@
  *
  * This returns <code>nil</code> when the caller is not in a callback.
  *
- * @return An NSArray of JSValue objects, one for each argument
+ * @return An L8_ARRAY_CLASS of JSValue objects, one for each argument
  */
-+ (NSArray *)currentArguments; // L8Value
++ (L8_ARRAY_CLASS *)currentArguments; // L8Value
 
 @end
 
@@ -160,6 +160,6 @@
  * @param object The value of the property.
  * @param key The name of the property.
  */
-- (void)setObject:(id)object forKeyedSubscript:(NSObject <NSCopying> *)key;
+- (void)setObject:(id)object forKeyedSubscript:(L8_OBJECT_CLASS <L8_COPYING_PROTOCOL> *)key;
 
 @end

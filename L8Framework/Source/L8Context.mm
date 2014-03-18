@@ -112,19 +112,27 @@ using namespace v8;
 	}
 }
 
-- (BOOL)loadScriptAtPath:(NSString *)filePath
+- (BOOL)loadScriptAtPath:(L8_STRING_CLASS *)filePath
 {
+	L8_STRING_CLASS *data;
+
+#ifdef L8_OBJC_OBJFW
+	data = [OFString stringWithContentsOfFile:filePath
+									 encoding:OF_STRING_ENCODING_UTF_8];
+#else
 	NSError *error;
-	NSString *data = [NSString stringWithContentsOfFile:filePath
-											   encoding:NSUTF8StringEncoding
-												  error:&error];
+
+	data = [NSString stringWithContentsOfFile:filePath
+											encoding:NSUTF8StringEncoding
+											   error:&error];
 	if(error != NULL)
 		return NO;
+#endif
 
 	return [self loadScript:data withName:filePath];
 }
 
-- (BOOL)loadScript:(NSString *)scriptData withName:(NSString *)name
+- (BOOL)loadScript:(L8_STRING_CLASS *)scriptData withName:(L8_STRING_CLASS *)name
 {
 	if(scriptData == nil)
 		return NO;
@@ -157,12 +165,12 @@ using namespace v8;
 	return YES;
 }
 
-- (L8Value *)evaluateScript:(NSString *)scriptData
+- (L8Value *)evaluateScript:(L8_STRING_CLASS *)scriptData
 {
 	return [self evaluateScript:scriptData withName:@""];
 }
 
-- (L8Value *)evaluateScript:(NSString *)scriptData withName:(NSString *)name
+- (L8Value *)evaluateScript:(L8_STRING_CLASS *)scriptData withName:(L8_STRING_CLASS *)name
 {
 	if(scriptData == nil)
 		return nil;
@@ -254,12 +262,12 @@ using namespace v8;
 	return [L8Value valueWithV8Value:thisObject inContext:context];
 }
 
-+ (NSArray *)currentArguments
++ (L8_ARRAY_CLASS *)currentArguments
 {
 	Local<Value> thisObject;
 	Local<Context> v8context;
 	Local<Array> argArray;
-	NSMutableArray *arguments;
+	L8_MUTABLE_ARRAY_CLASS *arguments;
 	L8Context *context;
 
 	v8context = Isolate::GetCurrent()->GetCurrentContext();
@@ -353,7 +361,7 @@ void L8ContextDebugMessageDispatchHandler()
 	return [self globalObject][key];
 }
 
-- (void)setObject:(id)object forKeyedSubscript:(NSObject <NSCopying> *)key
+- (void)setObject:(id)object forKeyedSubscript:(L8_OBJECT_CLASS <L8_COPYING_PROTOCOL> *)key
 {
 	[self globalObject][key] = object;
 }

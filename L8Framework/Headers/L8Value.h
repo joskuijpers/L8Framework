@@ -35,7 +35,7 @@
  * Use L8ManagedValue instead.
  *
  */
-@interface L8Value : NSObject
+@interface L8Value : L8_OBJECT_CLASS
 
 /**
  * The L8Context that this value originated from.
@@ -114,8 +114,8 @@
  * @param context The context to create the value in.
  * @return The new JavaScript regular expression object.
  */
-+ (instancetype)valueWithNewRegularExpressionFromPattern:(NSString *)pattern
-												   flags:(NSString *)flags
++ (instancetype)valueWithNewRegularExpressionFromPattern:(L8_STRING_CLASS *)pattern
+												   flags:(L8_STRING_CLASS *)flags
 											   inContext:(L8Context *)context;
 
 /**
@@ -125,7 +125,7 @@
  * @param context The context to create the value in.
  * @return The new JavaScript error object.
  */
-+ (instancetype)valueWithNewErrorFromMessage:(NSString *)message inContext:(L8Context *)context;
++ (instancetype)valueWithNewErrorFromMessage:(L8_STRING_CLASS *)message inContext:(L8Context *)context;
 
 /**
  * Create a new JavaScript value <code>null</code>.
@@ -157,11 +157,11 @@
  * ------------------+---------------------
  * nil               |     undefined
  * NSNull            |        null
- * NSString          |       string
- * NSNumber          |   number, boolean
+ * L8_STRING_CLASS          |       string
+ * L8_NUMBER_CLASS          |   number, boolean
  * NSDictionary      |   Object object
- * NSArray           |    Array object
- * NSDate            |     Date object
+ * L8_ARRAY_CLASS           |    Array object
+ * L8_DATE_CLASS            |     Date object
  * NSBlock *         |   Function object *
  * id **             |   Wrapper object **
  * Class ***         | Constructor object ***
@@ -260,50 +260,50 @@
 - (uint32_t)toUInt32;
 
 /**
- * Convert a L8Value to a NSNumber.
+ * Convert a L8Value to a L8_NUMBER_CLASS.
  *
- * If the L8Value represents a boolean, a NSNumber value of YES or NO
+ * If the L8Value represents a boolean, a L8_NUMBER_CLASS value of YES or NO
  * will be returned. For all other types the value will be converted to a number according
  * to the rules specified by the JavaScript language.
  *
- * @return The NSNumber result of the conversion.
+ * @return The L8_NUMBER_CLASS result of the conversion.
  */
-- (NSNumber *)toNumber;
+- (L8_NUMBER_CLASS *)toNumber;
 
 /**
- * Convert a L8Value to a NSString.
+ * Convert a L8Value to a L8_STRING_CLASS.
  *
  * The L8Value is converted to a string according to the rules specified
  * by the JavaScript language.
  *
- * @return The NSString containing the result of the conversion.
+ * @return The L8_STRING_CLASS containing the result of the conversion.
  */
-- (NSString *)toString;
+- (L8_STRING_CLASS *)toString;
 
 /**
- * Convert a L8Value to a NSDate.
+ * Convert a L8Value to a L8_DATE_CLASS.
  *
  * The value is converted to a number representing a time interval
- * since 1970 which is then used to create a new NSDate instance.
+ * since 1970 which is then used to create a new L8_DATE_CLASS instance.
  *
- * @return The NSDate created using the converted time interval.
+ * @return The L8_DATE_CLASS created using the converted time interval.
  */
-- (NSDate *)toDate;
+- (L8_DATE_CLASS *)toDate;
 
 /**
- * Convert a L8Value to a NSArray.
+ * Convert a L8Value to a L8_ARRAY_CLASS.
  *
  * If the value is <code>null</code> or <code>undefined</code> then <code>nil</code> is returned.
  * If the value is not an object then a JavaScript TypeError will be thrown.
  * The property <code>length</code> is read from the object, converted to an unsigned
- * integer, and an NSArray of this size is allocated. Properties corresponding
+ * integer, and an L8_ARRAY_CLASS of this size is allocated. Properties corresponding
  * to indicies within the array bounds will be copied to the array, with
  * L8Values converted to equivalent Objective-C objects as specified.
  *
- * @return The NSArray containing the recursively converted contents of the
+ * @return The L8_ARRAY_CLASS containing the recursively converted contents of the
  * converted JavaScript array.
  */
-- (NSArray *)toArray;
+- (L8_ARRAY_CLASS *)toArray;
 
 /**
  * Convert a L8Value to a NSDictionary.
@@ -325,7 +325,7 @@
  * @return The L8Value for the requested property or the L8Value <code>undefined</code>
  * if the property does not exist.
  */
-- (L8Value *)valueForProperty:(NSString *)property;
+- (L8Value *)valueForProperty:(L8_STRING_CLASS *)property;
 
 /**
  * Set a property on a L8Value.
@@ -333,14 +333,14 @@
  * @param value The value of the property.
  * @param property The name of the property.
  */
-- (void)setValue:(id)value forProperty:(NSString *)property;
+- (void)setValue:(id)value forProperty:(L8_STRING_CLASS *)property;
 
 /**
  * Delete a property from a L8Value.
  *
  * @return YES if deletion is successful, NO otherwise.
  */
-- (BOOL)deleteProperty:(NSString *)property;
+- (BOOL)deleteProperty:(L8_STRING_CLASS *)property;
 
 /**
  * Check if a L8Value has a property.
@@ -350,7 +350,7 @@
  * @param property The name of the property.
  * @return Returns YES if property is present on the value.
  */
-- (BOOL)hasProperty:(NSString *)property;
+- (BOOL)hasProperty:(L8_STRING_CLASS *)property;
 
 /**
  * Access an indexed (numerical) property on a L8Value.
@@ -383,7 +383,7 @@
  * @param property The name of the property
  * @param descriptor The property descriptor
  */
-- (void)defineProperty:(NSString *)property descriptor:(id)descriptor;
+- (void)defineProperty:(L8_STRING_CLASS *)property descriptor:(id)descriptor;
 
 /**
  * Check if a L8Value corresponds to the JavaScript value <code>undefined</code>.
@@ -494,7 +494,7 @@
  * @param arguments The arguments to pass to the function.
  * @return The return value of the function call.
  */
-- (L8Value *)callWithArguments:(NSArray *)arguments;
+- (L8Value *)callWithArguments:(L8_ARRAY_CLASS *)arguments;
 
 /**
  * Invoke a L8Value as a constructor.
@@ -504,7 +504,7 @@
  * @param arguments The arguments to pass to the constructor.
  * @return The return value of the constructor call.
  */
-- (L8Value *)constructWithArguments:(NSArray *)arguments;
+- (L8Value *)constructWithArguments:(L8_ARRAY_CLASS *)arguments;
 
 /**
  * Invoke a method on a L8Value.
@@ -517,7 +517,7 @@
  * @param arguments The arguments to pass to the method.
  * @return The return value of the method call.
  */
-- (L8Value *)invokeMethod:(NSString *)method withArguments:(NSArray *)arguments;
+- (L8Value *)invokeMethod:(L8_STRING_CLASS *)method withArguments:(L8_ARRAY_CLASS *)arguments;
 
 @end
 
@@ -551,7 +551,7 @@
  * @param object The value of the property.
  * @param key The name of the property.
  */
-- (void)setObject:(id)object forKeyedSubscript:(NSObject <NSCopying> *)key;
+- (void)setObject:(id)object forKeyedSubscript:(L8_OBJECT_CLASS <L8_COPYING_PROTOCOL> *)key;
 
 /**
  * Set an indexed (numerical) property on a L8Value.

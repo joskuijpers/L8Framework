@@ -31,7 +31,7 @@ using namespace v8;
 
 @implementation L8SyntaxErrorException
 
-+ (Local<Value>)v8exceptionWithMessage:(NSString *)message
++ (Local<Value>)v8exceptionWithMessage:(L8_STRING_CLASS *)message
 {
 	Local<String> msg;
 	msg = [(message == nil?@"":message) V8StringInIsolate:Isolate::GetCurrent()];
@@ -49,7 +49,7 @@ using namespace v8;
 
 @implementation L8TypeErrorException
 
-+ (Local<Value>)v8exceptionWithMessage:(NSString *)message
++ (Local<Value>)v8exceptionWithMessage:(L8_STRING_CLASS *)message
 {
 	Local<String> msg;
 	msg = [(message == nil?@"":message) V8StringInIsolate:Isolate::GetCurrent()];
@@ -67,7 +67,7 @@ using namespace v8;
 
 @implementation L8ReferenceErrorException
 
-+ (Local<Value>)v8exceptionWithMessage:(NSString *)message
++ (Local<Value>)v8exceptionWithMessage:(L8_STRING_CLASS *)message
 {
 	Local<String> msg;
 	msg = [(message == nil?@"":message) V8StringInIsolate:Isolate::GetCurrent()];
@@ -85,7 +85,7 @@ using namespace v8;
 
 @implementation L8RangeErrorException
 
-+ (Local<Value>)v8exceptionWithMessage:(NSString *)message
++ (Local<Value>)v8exceptionWithMessage:(L8_STRING_CLASS *)message
 {
 	Local<String> msg;
 	msg = [(message == nil?@"":message) V8StringInIsolate:Isolate::GetCurrent()];

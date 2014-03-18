@@ -28,12 +28,12 @@
 
 using namespace v8;
 
-@implementation NSString (L8)
+@implementation L8_STRING_CLASS (L8)
 
-+ (NSString *)stringWithV8String:(Local<String>)v8string
++ (instancetype)stringWithV8String:(Local<String>)v8string
 {
 	char *buffer;
-	NSString *ret;
+	L8_STRING_CLASS *ret;
 
 	if(v8string.IsEmpty())
 		return nil;
@@ -43,13 +43,13 @@ using namespace v8;
 		return nil;
 
 	v8string->WriteUtf8(buffer);
-	ret = [NSString stringWithCString:buffer encoding:NSUTF8StringEncoding];
+	ret = [L8_STRING_CLASS stringWithCString:buffer encoding:NSUTF8StringEncoding];
 	free(buffer);
 
 	return ret;
 }
 
-+ (NSString *)stringWithV8Value:(Local<Value>)v8value
++ (instancetype)stringWithV8Value:(Local<Value>)v8value
 						inIsolate:(Isolate *)isolate
 {
 	if(v8value.IsEmpty())
@@ -58,7 +58,7 @@ using namespace v8;
 	HandleScope handleScope(isolate);
 	Local<String> string = v8value->ToString();
 
-	return [NSString stringWithV8String:string];
+	return [L8_STRING_CLASS stringWithV8String:string];
 }
 
 - (Local<String>)V8StringInIsolate:(Isolate *)isolate

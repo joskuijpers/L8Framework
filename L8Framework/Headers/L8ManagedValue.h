@@ -28,7 +28,7 @@
 /**
  * @brief Value store with garbage collection handling
  */
-@interface L8ManagedValue : NSObject
+@interface L8ManagedValue : L8_OBJECT_CLASS
 
 /**
  * Get the JSValue from the JSManagedValue.

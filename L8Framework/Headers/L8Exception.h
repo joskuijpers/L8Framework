@@ -28,7 +28,7 @@
 /**
  * @brief An JavaScript exception
  */
-@interface L8Exception : NSObject
+@interface L8Exception : L8_OBJECT_CLASS
 
 /// Column where the appointed problem starts
 @property (nonatomic,readonly) int startColumn;
@@ -37,16 +37,16 @@
 @property (nonatomic,readonly) int endColumn;
 
 /// Line of code from source code
-@property (nonatomic,readonly) NSString *sourceLine;
+@property (nonatomic,readonly) L8_STRING_CLASS *sourceLine;
 
 /// Number of the line in the source
 @property (nonatomic,readonly) int lineNumber;
 
 /// Name of the script
-@property (nonatomic,readonly) NSString *resourceName;
+@property (nonatomic,readonly) L8_STRING_CLASS *resourceName;
 
 /// Message of the exception
-@property (nonatomic,readonly) NSString *message;
+@property (nonatomic,readonly) L8_STRING_CLASS *message;
 
 /**
  * Create a new, empty exception.
@@ -61,7 +61,7 @@
  * @param message The message of the exception.
  * @return A new exception.
  */
-+ (instancetype)exceptionWithMessage:(NSString *)message;
++ (instancetype)exceptionWithMessage:(L8_STRING_CLASS *)message;
 
 /**
  * Get the backtrace of the exception.

@@ -28,7 +28,7 @@
 /**
  * @brief Error and exception reporter
  */
-@interface L8Reporter : NSObject
+@interface L8Reporter : L8_OBJECT_CLASS
 
 /// Default exception handling block
 @property (nonatomic,copy) void (^exceptionHandler)(L8Exception *);

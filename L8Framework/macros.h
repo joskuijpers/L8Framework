@@ -69,6 +69,12 @@
 # define L8_ROOT_CLASS
 #endif
 
+#if __has_attribute(objc_requires_super)
+# define L8_REQUIRES_SUPER __attribute__((objc_requires_super))
+#else
+# define L8_REQUIRES_SUPER
+#endif
+
 #if __has_attribute(const)
 # define L8_CONST __attribute__((const))
 #else
@@ -90,3 +96,26 @@
 #else
 # define L8_APPLE_RUNTIME
 #endif
+
+#pragma mark Class names
+
+#ifdef L8_OBJC_OBJFW
+#define L8_CLASS_PREFIX OF
+# define L8_RANGE_TYPE of_range_r
+#else
+#define L8_CLASS_PREFIX NS
+# define L8_RANGE_TYPE NSRange
+#endif
+
+#define CONCAT2(prefix,suffix) prefix ## suffix
+#define CONCAT(prefix,suffix) CONCAT2(prefix,suffix)
+
+# define L8_OBJECT_CLASS			CONCAT(L8_CLASS_PREFIX,Object)
+# define L8_NUMBER_CLASS			CONCAT(L8_CLASS_PREFIX,Number)
+# define L8_ARRAY_CLASS				CONCAT(L8_CLASS_PREFIX,Array)
+# define L8_MUTABLE_ARRAY_CLASS		CONCAT(L8_CLASS_PREFIX,MutableArray)
+# define L8_STRING_CLASS			CONCAT(L8_CLASS_PREFIX,String)
+# define L8_MUTABLE_STRING_CLASS	CONCAT(L8_CLASS_PREFIX,MutableString)
+# define L8_DATE_CLASS				CONCAT(L8_CLASS_PREFIX,Date)
+
+# define L8_COPYING_PROTOCOL		CONCAT(L8_CLASS_PREFIX,Copying)

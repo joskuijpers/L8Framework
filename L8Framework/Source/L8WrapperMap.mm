@@ -49,16 +49,16 @@ using namespace v8;
  *
  * Removes ':' and makes every letter following such colon uppercase. For example,
  * 'initWithName:surname:' becomes 'initWithNameSurname'. Return value is stored in
- * an NSString due to the locally allocated buffer.
+ * an L8_STRING_CLASS due to the locally allocated buffer.
  *
- * @return An NSString containing the property name
+ * @return An L8_STRING_CLASS containing the property name
  */
-static NSString *selectorToPropertyName(const char *start, bool instanceMethod = true)
+static L8_STRING_CLASS *selectorToPropertyName(const char *start, bool instanceMethod = true)
 {
 	// Find the first semicolon
 	const char *firstColon = index(start, ':');
 	if(!firstColon)
-		return [NSString stringWithUTF8String:start];
+		return [L8_STRING_CLASS stringWithUTF8String:start];
 
 	size_t header = firstColon - start;
 	char *buffer = (char *)malloc(header + strlen(firstColon + 1) + 1);
@@ -85,7 +85,7 @@ static NSString *selectorToPropertyName(const char *start, bool instanceMethod =
 	}
 
 done:
-	NSString *result = [NSString stringWithUTF8String:buffer];
+	L8_STRING_CLASS *result = [L8_STRING_CLASS stringWithUTF8String:buffer];
 	free(buffer);
 
 	return result;
@@ -128,15 +128,15 @@ static NSMutableDictionary *createRenameMap(Protocol *protocol, BOOL isInstanceM
 
 	forEachMethodInProtocol(protocol, NO, isInstanceMethod, ^(SEL sel, const char *types)
 	{
-		NSString *rename = @(sel_getName(sel));
-		NSRange range = [rename rangeOfString:@"__L8_EXPORT_AS__"];
+		L8_STRING_CLASS *rename = @(sel_getName(sel));
+		L8_RANGE_TYPE range = [rename rangeOfString:@"__L8_EXPORT_AS__"];
 		if(range.location == NSNotFound)
 			return;
 
-		NSString *selector = [rename substringToIndex:range.location];
+		L8_STRING_CLASS *selector = [rename substringToIndex:range.location];
 		NSUInteger begin = range.location + range.length;
 		NSUInteger length = [rename length] - begin - 1;
-		NSString *name = [rename substringWithRange:(NSRange){ begin, length }];
+		L8_STRING_CLASS *name = [rename substringWithRange:(L8_RANGE_TYPE){ begin, length }];
 		renameMap[selector] = name;
 	});
 
@@ -214,7 +214,7 @@ void copyMethodsToObject(L8WrapperMap *wrapperMap,
 
 	forEachMethodInProtocol(protocol, YES, isInstanceMethod, ^(SEL sel, const char *types) {
 		const char *selName;
-		NSString *rawName;
+		L8_STRING_CLASS *rawName;
 		const char *extraTypes;
 
 		if(shouldSkipMethodWhenCopying(sel))
@@ -229,7 +229,7 @@ void copyMethodsToObject(L8WrapperMap *wrapperMap,
 			accessorMethods[rawName] = [L8Value valueWithV8Value:String::NewFromUtf8(isolate,extraTypes)
 													   inContext:wrapperMap.context];
 		} else {
-			NSString *propertyName;
+			L8_STRING_CLASS *propertyName;
 			Local<String> v8Name;
 			Local<FunctionTemplate> function;
 			Local<Array> extraData;
@@ -472,7 +472,7 @@ SEL initializerSelectorForClass(Class cls)
 	Local<FunctionTemplate> classTemplate;
 	Local<ObjectTemplate> prototypeTemplate, instanceTemplate;
 	Local<Array> extraClassData;
-	NSString *className;
+	L8_STRING_CLASS *className;
 	Class parentClass;
 	SEL initSelector;
 
@@ -615,12 +615,12 @@ id unwrapObjCObject(Isolate *isolate, Local<Value> value)
 	if(object->IsFunction()) { // Class (arguments.callee), or block
 		Local<Value> isBlockInfo;
 		bool isBlock;
-		NSString *name;
+		L8_STRING_CLASS *name;
 
 		isBlockInfo = object->GetHiddenValue(String::NewFromUtf8(isolate, "isBlock"));
 		isBlock = !isBlockInfo.IsEmpty() && isBlockInfo->IsTrue();
 
-		name = [NSString stringWithV8Value:object.As<Function>()->GetName() inIsolate:isolate];
+		name = [L8_STRING_CLASS stringWithV8Value:object.As<Function>()->GetName() inIsolate:isolate];
 
 		if(isBlock) {
 			if(id target = unwrapBlock(isolate, object)) // Block
@@ -673,6 +673,10 @@ id unwrapBlock(Isolate *isolate, Local<Object> object)
 
 Class BlockClass()
 {
+#ifdef L8_OBJC_OBJW
+	static Class cls = [OFBlock class];
+#else
 	static Class cls = objc_getClass("NSBlock");
+#endif
 	return cls;
 }

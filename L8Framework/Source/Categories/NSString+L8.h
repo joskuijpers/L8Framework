@@ -26,30 +26,30 @@
 #include "v8.h"
 
 /**
- * @brief Converting between NSStrings and v8::Values.
+ * @brief Converting between L8_STRING_CLASSs and v8::Values.
  */
-@interface NSString (L8)
+@interface L8_STRING_CLASS (L8)
 
 /**
- * Get an NSString from a v8::String.
+ * Get an L8_STRING_CLASS from a v8::String.
  *
  * @param v8string The v8::String.
- * @return An NSString with the same string as v8string.
+ * @return An L8_STRING_CLASS with the same string as v8string.
  */
-+ (NSString *)stringWithV8String:(v8::Local<v8::String>)v8string;
++ (instancetype)stringWithV8String:(v8::Local<v8::String>)v8string;
 
 /**
- * Get an NSString from a v8::Value.
+ * Get an L8_STRING_CLASS from a v8::Value.
  *
  * @param v8string The v8::Value.
  * @param isolate Isolate to work in.
- * @return An NSString with the same string as v8string.
+ * @return An L8_STRING_CLASS with the same string as v8string.
  */
-+ (NSString *)stringWithV8Value:(v8::Local<v8::Value>)v8value
-					  inIsolate:(v8::Isolate *)isolate;
++ (instancetype)stringWithV8Value:(v8::Local<v8::Value>)v8value
+						inIsolate:(v8::Isolate *)isolate;
 
 /**
- * Get a v8::String from an NSString.
+ * Get a v8::String from an L8_STRING_CLASS.
  *
  * @param isolate The isolate to store the object into.
  * @return A v8::String with the same string as the receiver.

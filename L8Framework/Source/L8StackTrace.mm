@@ -32,7 +32,7 @@
 using namespace v8;
 
 @implementation L8StackTrace {
-	NSMutableArray *_frameCache;
+	L8_MUTABLE_ARRAY_CLASS *_frameCache;
 	Local<StackTrace> _v8stackTrace;
 }
 
@@ -82,9 +82,9 @@ using namespace v8;
 	return [[self alloc] initWithV8StackTrace:trace];
 }
 
-- (NSString *)description
+- (L8_STRING_CLASS *)description
 {
-	NSMutableString *desc  = [[NSMutableString alloc] init];
+	L8_MUTABLE_STRING_CLASS *desc = [[L8_MUTABLE_STRING_CLASS alloc] init];
 
 	for(unsigned int i = 0; i < self.numberOfFrames; i++) {
 		L8StackFrame *frame = self[i];
@@ -135,30 +135,30 @@ using namespace v8;
 	return self;
 }
 
-- (NSNumber *)lineNumber
+- (L8_NUMBER_CLASS *)lineNumber
 {
 	return @(_v8stackFrame->GetLineNumber());
 }
 
-- (NSNumber *)column
+- (L8_NUMBER_CLASS *)column
 {
 	return @(_v8stackFrame->GetColumn());
 }
 
-- (NSString *)scriptName
+- (L8_STRING_CLASS *)scriptName
 {
-	return [NSString stringWithV8String:_v8stackFrame->GetScriptName()];
+	return [L8_STRING_CLASS stringWithV8String:_v8stackFrame->GetScriptName()];
 }
 
 - (NSURL *)sourceURL
 {
-	NSString *str = [NSString stringWithV8String:_v8stackFrame->GetScriptNameOrSourceURL()];
+	L8_STRING_CLASS *str = [L8_STRING_CLASS stringWithV8String:_v8stackFrame->GetScriptNameOrSourceURL()];
 	return [NSURL URLWithString:str];
 }
 
-- (NSString *)functionName
+- (L8_STRING_CLASS *)functionName
 {
-	return [NSString stringWithV8String:_v8stackFrame->GetFunctionName()];
+	return [L8_STRING_CLASS stringWithV8String:_v8stackFrame->GetFunctionName()];
 }
 
 - (BOOL)isConstructor
@@ -171,9 +171,9 @@ using namespace v8;
 	return _v8stackFrame->IsEval();
 }
 
-- (NSString *)description
+- (L8_STRING_CLASS *)description
 {
-	return [NSString stringWithFormat:@"%@ at %@:%@:%@",self.functionName,self.scriptName,self.lineNumber,self.column];
+	return [L8_STRING_CLASS stringWithFormat:@"%@ at %@:%@:%@",self.functionName,self.scriptName,self.lineNumber,self.column];
 }
 
 @end

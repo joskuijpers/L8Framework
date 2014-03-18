@@ -38,7 +38,7 @@
 							   isolate:(v8::Isolate *)isolate;
 
 - (v8::Local<v8::Value>)v8exception;
-+ (v8::Local<v8::Value>)v8exceptionWithMessage:(NSString *)message
++ (v8::Local<v8::Value>)v8exceptionWithMessage:(L8_STRING_CLASS *)message
 inIsolate:(v8::Isolate *)isolate;
 
 @end

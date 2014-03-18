@@ -46,8 +46,8 @@
 v8::Local<v8::Value> objectToValue(L8Context *context, id object);
 
 id valueToObject(L8Context *context, v8::Local<v8::Value> value);
-NSNumber *valueToNumber(L8Context *context, v8::Local<v8::Value> value);
-NSString *valueToString(L8Context *context, v8::Local<v8::Value> value);
-NSDate *valueToDate(L8Context *context, v8::Local<v8::Value> value);
-NSArray *valueToArray(L8Context *context, v8::Local<v8::Value> value);
+L8_NUMBER_CLASS *valueToNumber(L8Context *context, v8::Local<v8::Value> value);
+L8_STRING_CLASS *valueToString(L8Context *context, v8::Local<v8::Value> value);
+L8_DATE_CLASS *valueToDate(L8Context *context, v8::Local<v8::Value> value);
+L8_ARRAY_CLASS *valueToArray(L8Context *context, v8::Local<v8::Value> value);
 NSDictionary *valueToDictionary(L8Context *context, v8::Local<v8::Value> value);

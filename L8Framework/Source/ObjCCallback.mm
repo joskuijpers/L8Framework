@@ -301,13 +301,13 @@ void objCSetInvocationArgument(Isolate *isolate, L8Context *context, NSInvocatio
 
 			if(objectClass == [L8Value class])
 				value = val;
-			else if(objectClass == [NSString class])
+			else if(objectClass == [L8_STRING_CLASS class])
 				value = valueToString(context, val.V8Value);
-			else if(objectClass == [NSNumber class])
+			else if(objectClass == [L8_NUMBER_CLASS class])
 				value = valueToNumber(context, val.V8Value);
-			else if(objectClass == [NSDate class])
+			else if(objectClass == [L8_DATE_CLASS class])
 				value = valueToDate(context, val.V8Value);
-			else if(objectClass == [NSArray class])
+			else if(objectClass == [L8_ARRAY_CLASS class])
 				value = valueToArray(context, val.V8Value);
 			else if(objectClass == [NSDictionary class])
 				value = valueToObject(context, val.V8Value);
@@ -338,7 +338,7 @@ Local<Value> handleInvocationException(Isolate *isolate, L8Context *context, id 
 		NSException *nsException = (NSException *)exception;
 		Local<String> message;
 
-		message = [[NSString stringWithFormat:@"%@ exception from native code: %@",
+		message = [[L8_STRING_CLASS stringWithFormat:@"%@ exception from native code: %@",
 					nsException.name,nsException.reason] V8StringInIsolate:isolate];
 
 		if([nsException.name isEqualToString:NSRangeException])
@@ -749,7 +749,7 @@ void ObjCNamedPropertySetter(Local<String> property, Local<Value> value, const P
 
 	setValue = [L8Value valueWithV8Value:value inContext:context];
 
-	[object setObject:setValue forKeyedSubscript:[NSString stringWithV8String:property]];
+	[object setObject:setValue forKeyedSubscript:[L8_STRING_CLASS stringWithV8String:property]];
 
 	info.GetReturnValue().Set(setValue.V8Value);
 }
@@ -760,7 +760,7 @@ void ObjCNamedPropertyGetter(Local<String> property, const PropertyCallbackInfo<
 	L8Context *context;
 
 	object = objectFromWrapper(info.This()->GetInternalField(0));
-	value = [object objectForKeyedSubscript:[NSString stringWithV8String:property]];
+	value = [object objectForKeyedSubscript:[L8_STRING_CLASS stringWithV8String:property]];
 
 	context = [L8Context contextWithV8Context:info.GetIsolate()->GetCurrentContext()];
 

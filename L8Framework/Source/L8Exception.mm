@@ -40,7 +40,7 @@ using namespace v8;
 	return [[self alloc] initWithMessage:nil];
 }
 
-+ (instancetype)exceptionWithMessage:(NSString *)message
++ (instancetype)exceptionWithMessage:(L8_STRING_CLASS *)message
 {
 	return [[self alloc] initWithMessage:message];
 }
@@ -54,7 +54,7 @@ using namespace v8;
 								   isolate:isolate];
 }
 
-- (instancetype)initWithMessage:(NSString *)message
+- (instancetype)initWithMessage:(L8_STRING_CLASS *)message
 {
 	self = [super init];
 	if(self) {
@@ -78,8 +78,8 @@ using namespace v8;
 		_lineNumber = message->GetLineNumber();
 		// start pos, end pos
 
-		_sourceLine = [NSString stringWithV8String:message->GetSourceLine()];
-		_resourceName = [NSString stringWithV8Value:message->GetScriptResourceName()
+		_sourceLine = [L8_STRING_CLASS stringWithV8String:message->GetSourceLine()];
+		_resourceName = [L8_STRING_CLASS stringWithV8Value:message->GetScriptResourceName()
 											inIsolate:isolate];
 
 		_thrownObject = object;
@@ -93,14 +93,14 @@ using namespace v8;
 	return Exception::Error([(_message == nil?@"":_message) V8StringInIsolate:_v8isolate]);
 }
 
-+ (Local<Value>)v8exceptionWithMessage:(NSString *)message inIsolate:(Isolate *)isolate
++ (Local<Value>)v8exceptionWithMessage:(L8_STRING_CLASS *)message inIsolate:(Isolate *)isolate
 {
 	return Exception::Error([(message == nil?@"":message) V8StringInIsolate:isolate]);
 }
 
-- (NSString *)description
+- (L8_STRING_CLASS *)description
 {
-	return [NSString stringWithFormat:@"An exception of type %@ occurred at %@:%d:%d-%d: '%@'",
+	return [L8_STRING_CLASS stringWithFormat:@"An exception of type %@ occurred at %@:%d:%d-%d: '%@'",
 			self.className,_resourceName,_lineNumber,
 			_startColumn,_endColumn,_message];
 }

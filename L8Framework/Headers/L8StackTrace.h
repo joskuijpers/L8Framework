@@ -28,7 +28,7 @@
 /**
  * @brief Stacktrace container
  */
-@interface L8StackTrace : NSObject
+@interface L8StackTrace : L8_OBJECT_CLASS
 
 /**
  * Gets a stackframe at given index.
@@ -80,22 +80,22 @@
 /**
  * @brief A single frame in the stack
  */
-@interface L8StackFrame : NSObject
+@interface L8StackFrame : L8_OBJECT_CLASS
 
 /// Number of the line in the script
-@property (nonatomic,readonly) NSNumber *lineNumber;
+@property (nonatomic,readonly) L8_NUMBER_CLASS *lineNumber;
 
 /// Column in the line where the frame resides
-@property (nonatomic,readonly) NSNumber *column;
+@property (nonatomic,readonly) L8_NUMBER_CLASS *column;
 
 /// Name of the script the frame is in
-@property (nonatomic,readonly) NSString *scriptName;
+@property (nonatomic,readonly) L8_STRING_CLASS *scriptName;
 
 /// URL of the origin of the script
 @property (nonatomic,readonly) NSURL *sourceURL;
 
 /// Name of the function around the execution point
-@property (nonatomic,readonly) NSString *functionName;
+@property (nonatomic,readonly) L8_STRING_CLASS *functionName;
 
 /// Whether the frame is inside a constructor
 @property (nonatomic,readonly,getter=isConstructor) BOOL constructor;

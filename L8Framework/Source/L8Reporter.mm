@@ -94,7 +94,7 @@ static L8Reporter *g_sharedReporter = nil;
 	Class exceptionClass = [L8Exception class];
 
 	@try {
-		NSRange strRange;
+		L8_RANGE_TYPE strRange;
 
 		ball = [L8Value valueWithV8Value:tryCatch->Exception() inContext:context];
 
@@ -102,7 +102,7 @@ static L8Reporter *g_sharedReporter = nil;
 		if([(L8Value *)ball isNativeError]) {
 
 			// Is some internal v8 object. Only thing we can do is make it a string
-			ball = [NSString stringWithV8Value:tryCatch->Exception() inIsolate:isolate];
+			ball = [L8_STRING_CLASS stringWithV8Value:tryCatch->Exception() inIsolate:isolate];
 
 			// Find prefix
 			if((strRange = [ball rangeOfString:@"SyntaxError: "]).location != NSNotFound)
