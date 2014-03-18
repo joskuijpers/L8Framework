@@ -41,10 +41,10 @@
 @interface L8Context ()
 
 /// Wrapper map used for wrapping V8 and ObjC objects.
-@property (readonly) L8WrapperMap *wrapperMap;
+@property (nonatomic,readonly) L8WrapperMap *wrapperMap;
 
 /// v8::Context wrapped by this L8Context.
-@property (readonly) v8::Local<v8::Context> V8Context;
+@property (nonatomic,readonly) v8::Local<v8::Context> V8Context;
 
 /**
  * Get the ObjC context stored within a V8 context.

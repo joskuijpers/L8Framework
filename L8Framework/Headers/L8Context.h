@@ -31,7 +31,7 @@
 @interface L8Context : NSObject
 
 /// The virtual machine containing this context.
-@property (readonly) L8VirtualMachine *virtualMachine;
+@property (nonatomic,readonly) L8VirtualMachine *virtualMachine;
 
 /**
  * Initialize a new context in a new virtual machine.

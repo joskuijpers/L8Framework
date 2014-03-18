@@ -32,6 +32,6 @@
 @interface L8VirtualMachine ()
 
 /// v8::Isolate wrapped by this virtual machine.
-@property (readonly) v8::Isolate *V8Isolate __attribute__((objc_returns_inner_pointer));
+@property (nonatomic,readonly) v8::Isolate *V8Isolate __attribute__((objc_returns_inner_pointer));
 
 @end

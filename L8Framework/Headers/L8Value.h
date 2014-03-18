@@ -40,7 +40,7 @@
 /**
  * The L8Context that this value originated from.
  */
-@property (readonly) L8Context *context;
+@property (nonatomic,readonly) L8Context *context;
 
 /**
  * Create a L8Value by converting an Objective-C object.

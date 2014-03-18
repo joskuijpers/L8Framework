@@ -31,7 +31,7 @@
 @interface L8Context ()
 
 /// Port for the debugger to attach to.
-@property (assign) uint16_t debuggerPort;
+@property (nonatomic,assign) uint16_t debuggerPort;
 
 /**
  * Whether to wait for the debugger to attach.
@@ -39,7 +39,7 @@
  * If this property equals YES, enableDebugging will block
  * until a remote debugger has attached.
  */
-@property (assign) BOOL waitForDebugger;
+@property (nonatomic,assign) BOOL waitForDebugger;
 
 /**
  * Enable support for debugging.

@@ -33,7 +33,7 @@
  * Context using this wrapper map
  * @todo Make weak?, private?
  */
-@property (readonly) L8Context *context;
+@property (nonatomic,readonly) L8Context *context;
 
 - (instancetype)initWithContext:(L8Context *)context;
 

@@ -36,7 +36,7 @@
  * @result The corresponding JSValue for this JSManagedValue or
  *  nil if the JSValue has been collected.
  */
-@property (readonly) L8Value *value;
+@property (nonatomic,readonly) L8Value *value;
 
 /**
  * Create a JSManagedValue from a JSValue.

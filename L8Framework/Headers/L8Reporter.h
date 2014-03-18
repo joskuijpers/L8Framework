@@ -31,7 +31,7 @@
 @interface L8Reporter : NSObject
 
 /// Default exception handling block
-@property (copy) void (^exceptionHandler)(L8Exception *);
+@property (nonatomic,copy) void (^exceptionHandler)(L8Exception *);
 
 /**
  * Gets the default instance of the reporter

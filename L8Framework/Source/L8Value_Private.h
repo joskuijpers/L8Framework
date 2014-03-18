@@ -32,7 +32,7 @@
 @interface L8Value ()
 
 /// v8::Value wrapped by this L8Value.
-@property (readonly) v8::Local<v8::Value> V8Value;
+@property (nonatomic,readonly) v8::Local<v8::Value> V8Value;
 
 + (instancetype)valueWithV8Value:(v8::Local<v8::Value>)value __attribute__((unavailable("Use valueWithV8Value:inContext: instead.")));;
 + (instancetype)valueWithV8Value:(v8::Local<v8::Value>)value inContext:(L8Context *)context;

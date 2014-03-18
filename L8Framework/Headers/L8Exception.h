@@ -31,22 +31,22 @@
 @interface L8Exception : NSObject
 
 /// Column where the appointed problem starts
-@property (readonly,assign) int startColumn;
+@property (nonatomic,readonly) int startColumn;
 
 /// Column where the appointed problem ends
-@property (readonly,assign) int endColumn;
+@property (nonatomic,readonly) int endColumn;
 
 /// Line of code from source code
-@property (readonly,copy) NSString *sourceLine;
+@property (nonatomic,readonly) NSString *sourceLine;
 
 /// Number of the line in the source
-@property (readonly,assign) int lineNumber;
+@property (nonatomic,readonly) int lineNumber;
 
 /// Name of the script
-@property (readonly,copy) NSString *resourceName;
+@property (nonatomic,readonly) NSString *resourceName;
 
 /// Message of the exception
-@property (readonly,copy) NSString *message;
+@property (nonatomic,readonly) NSString *message;
 
 /**
  * Create a new, empty exception.

@@ -31,7 +31,7 @@
  */
 @interface L8Exception ()
 
-@property (readonly) id thrownObject;
+@property (nonatomic,readonly) id thrownObject;
 
 + (instancetype)exceptionWithV8Message:(v8::Local<v8::Message>)message
 						  thrownObject:(__weak id)object
