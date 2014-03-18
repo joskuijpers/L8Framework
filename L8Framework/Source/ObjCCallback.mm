@@ -515,7 +515,7 @@ Local<Value> objCInvocation(Isolate *isolate,
 			assert(0 && "A return type is not implemented");
 	}
 
-	return [result V8Value];
+	return result.V8Value;
 }
 
 inline void objCSetInvocationArguments(Isolate *isolate,

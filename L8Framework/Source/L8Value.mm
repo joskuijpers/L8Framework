@@ -805,7 +805,7 @@ static ObjCContainerConverter::Job objectToValueWithoutCopy(L8Runtime *runtime, 
 			value = [(L8ManagedValue *)object value];
 			if(!value) // collected
 				return (ObjCContainerConverter::Job){object, Undefined(isolate), COLLECTION_NONE};
-			return (ObjCContainerConverter::Job){object, [value V8Value], COLLECTION_NONE};
+			return (ObjCContainerConverter::Job){object, value.V8Value, COLLECTION_NONE};
 		}
 	}
 
