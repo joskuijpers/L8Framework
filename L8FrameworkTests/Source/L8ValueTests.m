@@ -24,7 +24,7 @@
  */
 
 #import <XCTest/XCTest.h>
-#import "L8Runtime.h"
+#import "L8Context.h"
 #import "L8Value.h"
 #import "L8Export.h"
 
@@ -62,8 +62,8 @@
 - (void)testStringValue
 {
 	@autoreleasepool {
-		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithObject:@"Hello World" inContext:runtime];
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
+			L8Value *value = [L8Value valueWithObject:@"Hello World" inContext:context];
 
 			XCTAssertNotNil(value, "-[valueWithObject:]");
 			XCTAssertEqualObjects([value toObject], @"Hello World", "-[toObject]");
@@ -71,10 +71,10 @@
 			XCTAssertTrue([value isString], "-[isString]");
 
 
-			runtime[@"string"] = @"Hello World";
-			XCTAssertEqualObjects([runtime[@"string"] toString], @"Hello World", "Value from object");
+			context[@"string"] = @"Hello World";
+			XCTAssertEqualObjects([context[@"string"] toString], @"Hello World", "Value from object");
 
-			L8Value *retVal = [runtime evaluateScript:@"string" withName:@"test.js"];
+			L8Value *retVal = [context evaluateScript:@"string" withName:@"test.js"];
 			XCTAssertEqualObjects([retVal toString], @"Hello World", "Global string assignment script result");
 		}];
 	}
@@ -83,8 +83,8 @@
 - (void)testBooleanValue
 {
 	@autoreleasepool {
-		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithBool:YES inContext:runtime];
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
+			L8Value *value = [L8Value valueWithBool:YES inContext:context];
 
 			XCTAssertNotNil(value, "-[valueWithBool:]");
 			XCTAssertEqual([value toBool], YES, "-[toBool]");
@@ -92,7 +92,7 @@
 			XCTAssertTrue([value isBoolean], "-[isBool]");
 
 			XCTAssertEqual([value toBool],
-						   [[L8Value valueWithObject:@YES inContext:runtime] toBool],
+						   [[L8Value valueWithObject:@YES inContext:context] toBool],
 						   "-[valueWithObject:]");
 		}];
 	}
@@ -101,15 +101,15 @@
 - (void)testNullValue
 {
 	@autoreleasepool {
-		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithNullInContext:runtime];
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
+			L8Value *value = [L8Value valueWithNullInContext:context];
 
 			XCTAssertNotNil(value, "-[valueWithNull]");
 			XCTAssertEqualObjects([value toObject], [NSNull null], "-[toObject]");
 			XCTAssertTrue([value isNull], "-[isNull]");
 
 			XCTAssertEqualObjects([value toObject],
-								  [[L8Value valueWithObject:[NSNull null] inContext:runtime] toObject],
+								  [[L8Value valueWithObject:[NSNull null] inContext:context] toObject],
 								  "-[valueWithObject:]");
 		}];
 	}
@@ -118,18 +118,18 @@
 - (void)testUndefinedValue
 {
 	@autoreleasepool {
-		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithUndefinedInContext:runtime];
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
+			L8Value *value = [L8Value valueWithUndefinedInContext:context];
 
 			XCTAssertNotNil(value, "-[valueWithUndefined]");
 			XCTAssertNil([value toObject], "-[toObject]");
 			XCTAssertTrue([value isUndefined], "-[isUndefined]");
 
-			XCTAssertNil([[L8Value valueWithObject:nil inContext:runtime] toObject],
+			XCTAssertNil([[L8Value valueWithObject:nil inContext:context] toObject],
 						 "-[[valueWithObject:nil] toObject]");
 
 			XCTAssertEqualObjects([value toObject],
-								  [[L8Value valueWithObject:nil inContext:runtime] toObject],
+								  [[L8Value valueWithObject:nil inContext:context] toObject],
 								  "-[valueWithObject:]");
 		}];
 	}
@@ -138,9 +138,9 @@
 - (void)testDateValue
 {
 	@autoreleasepool {
-		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
 			NSDate *date = [NSDate date];
-			L8Value *value = [L8Value valueWithObject:date inContext:runtime];
+			L8Value *value = [L8Value valueWithObject:date inContext:context];
 
 			XCTAssertNotNil(value, "-[valuewithObject:]");
 			XCTAssertEqual((long long)[value toDouble],(long long)[date timeIntervalSince1970],"-[toDouble]");
@@ -153,8 +153,8 @@
 - (void)testDoubleValue
 {
 	@autoreleasepool {
-		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithDouble:5.0 inContext:runtime];
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
+			L8Value *value = [L8Value valueWithDouble:5.0 inContext:context];
 
 			XCTAssertNotNil(value, "-[valueWithDouble:]");
 			XCTAssertEqualObjects([value toNumber], @5.0, "-[toNumber]");
@@ -162,7 +162,7 @@
 			XCTAssertTrue([value isNumber], "-[isNumber]");
 
 			XCTAssertEqualObjects([value toNumber],
-								  [[L8Value valueWithObject:@5.0 inContext:runtime] toNumber],
+								  [[L8Value valueWithObject:@5.0 inContext:context] toNumber],
 								  "-[valueWithObject:]");
 		}];
 	}
@@ -171,15 +171,15 @@
 - (void)testArrayValue
 {
 	@autoreleasepool {
-		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithObject:@[@"a",@"b"] inContext:runtime];
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
+			L8Value *value = [L8Value valueWithObject:@[@"a",@"b"] inContext:context];
 
 			XCTAssertNotNil(value, "-[valueWithObject:(NSArray)]");
 			XCTAssertEqualObjects([value toArray], (@[@"a",@"b"]), "-[toArray]");
 			XCTAssertEqualObjects([value toObject], (@[@"a",@"b"]), "-[toObject]");
 			XCTAssertTrue([value isObject], "-[isObject]");
 
-			value = [L8Value valueWithNewArrayInContext:runtime];
+			value = [L8Value valueWithNewArrayInContext:context];
 			XCTAssertNotNil(value, "-[valueWithNewArray]");
 			XCTAssertEqualObjects([value toArray], @[], "-[toArray] (newArray)");
 			XCTAssertEqualObjects([value toObject], @[], "-[toObject] (newArray)");
@@ -191,8 +191,8 @@
 - (void)testDictionaryValue
 {
 	@autoreleasepool {
-		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithObject:@{@"a":@"1",@"b":@2} inContext:runtime];
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
+			L8Value *value = [L8Value valueWithObject:@{@"a":@"1",@"b":@2} inContext:context];
 
 			XCTAssertNotNil(value, "-[valueWithObject:(NSDictionary)]");
 			XCTAssertEqualObjects([value toDictionary], (@{@"a":@"1",@"b":@2}), "-[toArray]");
@@ -205,8 +205,8 @@
 - (void)testObjectValue
 {
 	@autoreleasepool {
-		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithNewObjectInContext:runtime];
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
+			L8Value *value = [L8Value valueWithNewObjectInContext:context];
 
 			XCTAssertNotNil(value, "-[valueWithNewObject]");
 			XCTAssertNotNil([value toObject], "-[toObject]");
@@ -219,9 +219,9 @@
 - (void)testCustomClassValue
 {
 	@autoreleasepool {
-		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
 			id object = [[CustomSimpleObject alloc] init];
-			L8Value *value = [L8Value valueWithObject:object inContext:runtime];
+			L8Value *value = [L8Value valueWithObject:object inContext:context];
 
 			XCTAssertNotNil(value, "-[valueWithObject:(Custom)]");
 			XCTAssertEqual([value toObject], object, "-[toObject]");
@@ -233,8 +233,8 @@
 - (void)testProperties
 {
 	@autoreleasepool {
-		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithNewObjectInContext:runtime];
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
+			L8Value *value = [L8Value valueWithNewObjectInContext:context];
 
 			XCTAssertNotNil(value, "-[valueWithNewObject]");
 
@@ -243,8 +243,8 @@
 			XCTAssertEqualObjects([[value valueForProperty:@"key"] toString], @"Hello World", "-[valueForProperty:]");
 			XCTAssertTrue([value hasProperty:@"key"], "-[hasProperty]");
 
-			runtime[@"object"] = value;
-			L8Value *returnValue = [runtime evaluateScript:@"object.key" withName:@""];
+			context[@"object"] = value;
+			L8Value *returnValue = [context evaluateScript:@"object.key" withName:@""];
 			XCTAssertEqualObjects([returnValue toString], @"Hello World", "getting value in JavaScript");
 
 			XCTAssertEqualObjects([value toDictionary], (@{@"key":@"Hello World"}), "-[toDictionary] (Object conversion)");
@@ -258,8 +258,8 @@
 - (void)testKeyedProperties
 {
 	@autoreleasepool {
-		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithNewObjectInContext:runtime];
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
+			L8Value *value = [L8Value valueWithNewObjectInContext:context];
 
 			XCTAssertNotNil(value, "-[valueWithNewObject]");
 
@@ -274,8 +274,8 @@
 - (void)testIndexedProperties
 {
 	@autoreleasepool {
-		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
-			L8Value *value = [L8Value valueWithNewArrayInContext:runtime];
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
+			L8Value *value = [L8Value valueWithNewArrayInContext:context];
 
 			XCTAssertNotNil(value, "-[valueWithNewArray]");
 
@@ -284,8 +284,8 @@
 			XCTAssertEqualObjects([value[0] toString], @"Hello World", "-[objectForIndexedSubscript:]");
 			XCTAssertTrue([value hasProperty:@"0"], "-[hasProperty]");
 
-			runtime[@"object"] = value;
-			L8Value *returnValue = [runtime evaluateScript:@"object" withName:@""];
+			context[@"object"] = value;
+			L8Value *returnValue = [context evaluateScript:@"object" withName:@""];
 			XCTAssertEqualObjects([returnValue toArray], @[@"Hello World"], "getting value in JavaScript and conversion to NSArray");
 
 			[value deleteProperty:@"0"];
@@ -297,10 +297,10 @@
 - (void)testCustomObjectWithMethods
 {
 	@autoreleasepool {
-		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
 			L8Value *retVal;
 			CustomMethodClass *object = [[CustomMethodClass alloc] init];
-			L8Value *value = [L8Value valueWithObject:object inContext:runtime];
+			L8Value *value = [L8Value valueWithObject:object inContext:context];
 
 			XCTAssertNotNil(value, "-[valueWithObject:(CustomMethodClass)]");
 
@@ -319,23 +319,23 @@
 - (void)testCustomObjectWithProperties
 {
 	@autoreleasepool {
-		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
 			L8Value *retVal;
 			CustomPropertiesClass *object = [[CustomPropertiesClass alloc] init];
 			object.stringVal = @"Hello World";
 
-			L8Value *value = [L8Value valueWithObject:object inContext:runtime];
+			L8Value *value = [L8Value valueWithObject:object inContext:context];
 
 			XCTAssertNotNil(value, "-[valueWithObject:(CustomPropertiesClass)]");
 
-			runtime[@"object"] = object;
-			retVal = [runtime evaluateScript:@"object.stringVal" withName:@""];
+			context[@"object"] = object;
+			retVal = [context evaluateScript:@"object.stringVal" withName:@""];
 			XCTAssertEqualObjects([retVal toString], @"Hello World", "Property getting in JavaScript");
 
-			[runtime evaluateScript:@"object.stringVal = 'John';" withName:@""];
+			[context evaluateScript:@"object.stringVal = 'John';" withName:@""];
 			XCTAssertEqualObjects(object.stringVal, @"John", "Property setting in JavaScript");
 
-			retVal = [runtime evaluateScript:@"object.notThere" withName:@""];
+			retVal = [context evaluateScript:@"object.notThere" withName:@""];
 			XCTAssertTrue([retVal isUndefined], "Invalid property getting in JavaScript");
 		}];
 	}
@@ -344,12 +344,12 @@
 - (void)testCustomObjectWithAttributedProperties
 {
 	@autoreleasepool {
-		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
 			L8Value *value;
 			CustomPropertiesClassWithAttributes *object;
 
 			object = [[CustomPropertiesClassWithAttributes alloc] init];
-			value = [L8Value valueWithObject:object inContext:runtime];
+			value = [L8Value valueWithObject:object inContext:context];
 
 			XCTAssertNotNil(value, "-[valueWithObject:(CustomPropertiesClassWithAttributes)]");
 
@@ -370,9 +370,9 @@
 - (void)testCustomJSFunction
 {
 	@autoreleasepool {
-		[[[L8Runtime alloc] init] executeBlockInRuntime:^(L8Runtime *runtime) {
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
 			Class cls = [CustomClass class];
-			L8Value *value = [L8Value valueWithObject:cls inContext:runtime];
+			L8Value *value = [L8Value valueWithObject:cls inContext:context];
 
 			XCTAssertNotNil(value, "-[valueWithObject:(Class)]");
 		}];

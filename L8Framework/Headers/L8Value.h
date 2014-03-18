@@ -23,13 +23,13 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-@class L8Runtime;
+@class L8Context;
 
 /**
  * @brief Wrapper of a JavaScript value.
  *
- * A L8Value holds a strong reference to the L8Runtime, thus as long as 
- * a L8Value is active, the runtime remains alive.
+ * A L8Value holds a strong reference to the L8Context, thus as long as 
+ * a L8Value is active, the context remains alive.
  *
  * Avoid storing any L8Values in instance variables or collections.
  * Use L8ManagedValue instead.
@@ -38,9 +38,9 @@
 @interface L8Value : NSObject
 
 /**
- * The L8Runtime that this value originated from.
+ * The L8Context that this value originated from.
  */
-@property (readonly) L8Runtime *runtime;
+@property (readonly) L8Context *context;
 
 /**
  * Create a L8Value by converting an Objective-C object.
@@ -51,7 +51,7 @@
  * @param context The context to create the value in.
  * @return The new L8Value
  */
-+ (instancetype)valueWithObject:(id)value inContext:(L8Runtime *)context;
++ (instancetype)valueWithObject:(id)value inContext:(L8Context *)context;
 
 /**
  * Create a L8Value from a BOOL primitive.
@@ -60,7 +60,7 @@
  * @param context The context to create the value in.
  * @return The new L8Value representing the equivalent boolean value.
  */
-+ (instancetype)valueWithBool:(BOOL)value inContext:(L8Runtime *)context;
++ (instancetype)valueWithBool:(BOOL)value inContext:(L8Context *)context;
 
 /**
  * Create a L8Value from a double primitive.
@@ -69,7 +69,7 @@
  * @param context The context to create the value in.
  * @return The new L8Value representing the equivalent double value.
  */
-+ (instancetype)valueWithDouble:(double)value inContext:(L8Runtime *)context;
++ (instancetype)valueWithDouble:(double)value inContext:(L8Context *)context;
 
 /**
  * Create a L8Value from an integer primitive.
@@ -78,7 +78,7 @@
  * @param context The context to create the value in.
  * @return The new L8Value representing the equivalent integer value.
  */
-+ (instancetype)valueWithInt32:(int32_t)value inContext:(L8Runtime *)context;
++ (instancetype)valueWithInt32:(int32_t)value inContext:(L8Context *)context;
 
 /**
  * Create a L8Value from an unsigned integer primitive.
@@ -88,7 +88,7 @@
  * @return The new L8Value representing the 
  * equivalent unsigned integer value.
  */
-+ (instancetype)valueWithUInt32:(uint32_t)value inContext:(L8Runtime *)context;
++ (instancetype)valueWithUInt32:(uint32_t)value inContext:(L8Context *)context;
 
 /**
  * Create a new, empty JavaScript object.
@@ -96,7 +96,7 @@
  * @param context The context to create the value in.
  * @return The new JavaScript object.
  */
-+ (instancetype)valueWithNewObjectInContext:(L8Runtime *)context;
++ (instancetype)valueWithNewObjectInContext:(L8Context *)context;
 
 /**
  * Create a new, empty JavaScript array.
@@ -104,7 +104,7 @@
  * @param context The context to create the value in.
  * @return The new JavaScript array.
  */
-+ (instancetype)valueWithNewArrayInContext:(L8Runtime *)context;
++ (instancetype)valueWithNewArrayInContext:(L8Context *)context;
 
 /**
  * Create a new JavaScript regular expression object.
@@ -116,7 +116,7 @@
  */
 + (instancetype)valueWithNewRegularExpressionFromPattern:(NSString *)pattern
 												   flags:(NSString *)flags
-											   inContext:(L8Runtime *)context;
+											   inContext:(L8Context *)context;
 
 /**
  * Create a new JavaScript error object.
@@ -125,7 +125,7 @@
  * @param context The context to create the value in.
  * @return The new JavaScript error object.
  */
-+ (instancetype)valueWithNewErrorFromMessage:(NSString *)message inContext:(L8Runtime *)context;
++ (instancetype)valueWithNewErrorFromMessage:(NSString *)message inContext:(L8Context *)context;
 
 /**
  * Create a new JavaScript value <code>null</code>.
@@ -133,7 +133,7 @@
  * @param context The context to create the value in.
  * @return The new JavaScript <code>null</code> value.
  */
-+ (instancetype)valueWithNullInContext:(L8Runtime *)context;
++ (instancetype)valueWithNullInContext:(L8Context *)context;
 
 /**
  * Create a new JavaScript value <code>undefined</code>.
@@ -141,7 +141,7 @@
  * @param context The context to create the value in.
  * @return The new JavaScript <code>undefined</code> value.
  */
-+ (instancetype)valueWithUndefinedInContext:(L8Runtime *)context;
++ (instancetype)valueWithUndefinedInContext:(L8Context *)context;
 
 /**
  * @page convertingtypes Converting to Objective-C Types
@@ -481,7 +481,7 @@
 - (BOOL)isInstanceOf:(id)value;
 
 /**
- * Throws this L8Value as an exception in current running L8Runtime.
+ * Throws this L8Value as an exception in current running L8Context.
  */
 - (void)throwValue;
 

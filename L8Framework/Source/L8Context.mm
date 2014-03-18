@@ -25,8 +25,8 @@
 
 #import <objc/runtime.h>
 
-#import "L8Runtime_Private.h"
-#import "L8Runtime_Debugging.h"
+#import "L8Context_Private.h"
+#import "L8Context_Debugging.h"
 #import "L8VirtualMachine_Private.h"
 #import "L8Value_Private.h"
 #import "L8Reporter_Private.h"
@@ -40,21 +40,21 @@
 
 using namespace v8;
 
-@interface L8Runtime ()
+@interface L8Context ()
 - (id)init;
 @end
 
-@implementation L8Runtime {
+@implementation L8Context {
 	Persistent<Context> _v8context;
 }
 
-+ (instancetype)runtimeWithV8Context:(Local<Context>)v8context;
++ (instancetype)contextWithV8Context:(Local<Context>)v8context;
 {
 	if(v8context.IsEmpty())
 		return nil;
 
 	Local<External> data = v8context->GetEmbedderData(0).As<External>();
-	L8Runtime *context = (__bridge L8Runtime *)data->Value();
+	L8Context *context = (__bridge L8Context *)data->Value();
 
 	return context;
 }
@@ -75,14 +75,14 @@ using namespace v8;
 
 		// Create the context
 		Local<Context> context = Context::New(isolate);
-		context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SELF, External::New(isolate,(__bridge void *)self));
+		context->SetEmbedderData(L8_CONTEXT_EMBEDDER_DATA_SELF, External::New(isolate,(__bridge void *)self));
 		_v8context.Reset(isolate, context);
 
 		// Start the context scope
 		Context::Scope contextScope(context);
 
 		// Create the wrappermap for the context
-		_wrapperMap = [[L8WrapperMap alloc] initWithRuntime:self];
+		_wrapperMap = [[L8WrapperMap alloc] initWithContext:self];
 	}
 	return self;
 }
@@ -97,7 +97,7 @@ using namespace v8;
 	_v8context.ClearAndLeak();
 }
 
-- (void)executeBlockInRuntime:(void(^)(L8Runtime *runtime))block
+- (void)executeBlockInContext:(void(^)(L8Context *context))block
 {
 	Isolate *isolate = _virtualMachine.V8Isolate;
 	HandleScope localScope(isolate);
@@ -204,73 +204,73 @@ using namespace v8;
 	return [L8Value valueWithV8Value:localContext->Global() inContext:self];
 }
 
-+ (instancetype)currentRuntime
++ (instancetype)currentContext
 {
-	return [self runtimeWithV8Context:Isolate::GetCurrent()->GetCurrentContext()];
+	return [self contextWithV8Context:Isolate::GetCurrent()->GetCurrentContext()];
 }
 
 + (L8Value *)currentThis
 {
 	Local<Value> thisObject;
-	Local<Context> context;
-	L8Runtime *runtime;
+	Local<Context> v8context;
+	L8Context *context;
 
-	context = Isolate::GetCurrent()->GetCurrentContext();
-	if(context.IsEmpty())
+	v8context = Isolate::GetCurrent()->GetCurrentContext();
+	if(v8context.IsEmpty())
 		return nil;
 
 	// Retrieve the object from the store
-	thisObject = context->GetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_THIS);
+	thisObject = v8context->GetEmbedderData(L8_CONTEXT_EMBEDDER_DATA_CB_THIS);
 	if(thisObject.IsEmpty() || thisObject->IsNull())
 		return nil;
 
-	runtime = [self runtimeWithV8Context:context];
+	context = [self contextWithV8Context:v8context];
 
 	assert(thisObject->IsObject());
 
-	return [L8Value valueWithV8Value:thisObject inContext:runtime];
+	return [L8Value valueWithV8Value:thisObject inContext:context];
 }
 
 + (L8Value *)currentCallee
 {
 	Local<Value> thisObject;
-	Local<Context> context;
-	L8Runtime *runtime;
+	Local<Context> v8context;
+	L8Context *context;
 
-	context = Isolate::GetCurrent()->GetCurrentContext();
-	if(context.IsEmpty())
+	v8context = Isolate::GetCurrent()->GetCurrentContext();
+	if(v8context.IsEmpty())
 		return nil;
 
 	// Retrieve the function from the store
-	thisObject = context->GetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_CALLEE);
+	thisObject = v8context->GetEmbedderData(L8_CONTEXT_EMBEDDER_DATA_CB_CALLEE);
 	if(thisObject.IsEmpty() || thisObject->IsNull())
 		return nil;
 
-	runtime = [self runtimeWithV8Context:context];
+	context = [self contextWithV8Context:v8context];
 
 	// Callee should be a function
 	assert(thisObject->IsFunction());
 
-	return [L8Value valueWithV8Value:thisObject inContext:runtime];
+	return [L8Value valueWithV8Value:thisObject inContext:context];
 }
 
 + (NSArray *)currentArguments
 {
 	Local<Value> thisObject;
-	Local<Context> context;
+	Local<Context> v8context;
 	Local<Array> argArray;
 	NSMutableArray *arguments;
-	L8Runtime *runtime;
+	L8Context *context;
 
-	context = Isolate::GetCurrent()->GetCurrentContext();
-	if(context.IsEmpty())
+	v8context = Isolate::GetCurrent()->GetCurrentContext();
+	if(v8context.IsEmpty())
 		return nil;
 
-	thisObject = context->GetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_ARGS);
+	thisObject = v8context->GetEmbedderData(L8_CONTEXT_EMBEDDER_DATA_CB_ARGS);
 	if(thisObject.IsEmpty() || thisObject->IsNull())
 		return nil;
 
-	runtime = [self runtimeWithV8Context:context];
+	context = [self contextWithV8Context:v8context];
 
 	// Callee should be an array
 	assert(thisObject->IsArray());
@@ -279,7 +279,7 @@ using namespace v8;
 	arguments = [[NSMutableArray alloc] init];
 
 	for(int i = 0; i < argArray->Length(); ++i)
-		arguments[i] = [L8Value valueWithV8Value:argArray->Get(i) inContext:runtime];
+		arguments[i] = [L8Value valueWithV8Value:argArray->Get(i) inContext:context];
 
 	return arguments;
 }
@@ -306,17 +306,19 @@ using namespace v8;
 
 #pragma mark Debugging
 
-void L8RuntimeDebugMessageDispatchHandler()
+void L8ContextDebugMessageDispatchHandler()
 {
 	dispatch_async(dispatch_get_main_queue(), ^{
 		Isolate *isolate = Isolate::GetCurrent();
 		HandleScope localScope(isolate);
+		Local<Context> debugContext, v8context;
+		L8Context *context;
 
-		Local<Context> debugContext = Debug::GetDebugContext();
-		L8Runtime *runtime = (__bridge L8Runtime *)debugContext->GetEmbedderData(1).As<External>()->Value();
+		debugContext = Debug::GetDebugContext();
+		context = (__bridge L8Context *)debugContext->GetEmbedderData(1).As<External>()->Value();
 
-		Local<Context> context = runtime.V8Context; // if fails, use New(isolate,context) instead.
-		Context::Scope contextScope(context);
+		v8context = context.V8Context; // if fails, use New(isolate,context) instead.
+		Context::Scope contextScope(v8context);
 
 		Debug::ProcessDebugMessages();
 	});
@@ -331,8 +333,8 @@ void L8RuntimeDebugMessageDispatchHandler()
 		_debuggerPort = 12228; // L=12 V=22 8, LFV8
 	}
 
-	Debug::EnableAgent("sphere_runtime", _debuggerPort, _waitForDebugger);
-	Debug::SetDebugMessageDispatchHandler(L8RuntimeDebugMessageDispatchHandler);
+	Debug::EnableAgent("sphere_context", _debuggerPort, _waitForDebugger);
+	Debug::SetDebugMessageDispatchHandler(L8ContextDebugMessageDispatchHandler);
 
 	Debug::GetDebugContext()->SetEmbedderData(1, External::New(isolate,(__bridge void *)self));
 }
@@ -344,7 +346,7 @@ void L8RuntimeDebugMessageDispatchHandler()
 
 @end
 
-@implementation L8Runtime (Subscripting)
+@implementation L8Context (Subscripting)
 
 - (L8Value *)objectForKeyedSubscript:(id)key
 {

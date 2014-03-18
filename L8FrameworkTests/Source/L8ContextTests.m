@@ -23,38 +23,23 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "L8Runtime.h"
-#include "v8.h"
+#import <XCTest/XCTest.h>
+#import "L8Context.h"
+#import "L8Value.h"
 
-@class L8WrapperMap;
+@interface L8ContextTests : XCTestCase
 
-#define L8_RUNTIME_EMBEDDER_DATA_SELF 0
-//#define L8_RUNTIME_EMBEDDER_DATA_SELF_2 1 // TODO: This seems wrong
-#define L8_RUNTIME_EMBEDDER_DATA_CB_THIS 2
-#define L8_RUNTIME_EMBEDDER_DATA_CB_CALLEE 3
-#define L8_RUNTIME_EMBEDDER_DATA_CB_ARGS 4
-#define L8_RUNTIME_EMBEDDER_DATA_SKIP_CONSTRUCTING 5
+@end
 
-/**
- * @brief Runtime extension with private methods
- */
-@interface L8Runtime ()
+@implementation L8ContextTests
 
-/// Wrapper map used for wrapping V8 and ObjC objects.
-@property (readonly) L8WrapperMap *wrapperMap;
-
-/// v8::Context wrapped by this L8Runtime.
-@property (readonly) v8::Local<v8::Context> V8Context;
-
-/**
- * Get the ObjC context stored within a V8 context.
- *
- * @param v8context The v8::Context to get the context for.
- * @return The ObjC Context, or nil if never assigned to v8context.
- */
-+ (instancetype)runtimeWithV8Context:(v8::Local<v8::Context>)v8context;
-
-- (L8Value *)wrapperForObjCObject:(id)object;
-- (L8Value *)wrapperForJSObject:(v8::Local<v8::Value>)value;
+- (void)testCurrentContext
+{
+	L8Context *localContext = [[L8Context alloc] init];
+	[localContext executeBlockInContext:^(L8Context *paramContext) {
+		XCTAssertEqual(paramContext, paramContext, "Context in block parameter is expected context");
+		XCTAssertEqual(paramContext, [L8Context currentContext], "-[currentContext] returns current context");
+	}];
+}
 
 @end

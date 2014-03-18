@@ -23,8 +23,8 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "L8Runtime.h"
-#import "L8Runtime_Debugging.h"
+#import "L8Context.h"
+#import "L8Context_Debugging.h"
 #import "L8Export.h"
 #import "L8Value.h"
 #import "L8ManagedValue.h"

@@ -25,17 +25,17 @@
 
 #include "v8.h"
 
-@class L8Runtime, L8Value;
+@class L8Context, L8Value;
 
 @interface L8WrapperMap : NSObject
 
 /**
- * Runtime using this wrapper map
+ * Context using this wrapper map
  * @todo Make weak?, private?
  */
-@property (readonly) L8Runtime *runtime;
+@property (readonly) L8Context *context;
 
-- (instancetype)initWithRuntime:(L8Runtime *)runtime;
+- (instancetype)initWithContext:(L8Context *)context;
 
 - (L8Value *)JSWrapperForObject:(id)object;
 - (L8Value *)ObjCWrapperForValue:(v8::Local<v8::Value>)value;

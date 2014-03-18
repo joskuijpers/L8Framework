@@ -35,19 +35,19 @@
 @property (readonly) v8::Local<v8::Value> V8Value;
 
 + (instancetype)valueWithV8Value:(v8::Local<v8::Value>)value __attribute__((unavailable("Use valueWithV8Value:inContext: instead.")));;
-+ (instancetype)valueWithV8Value:(v8::Local<v8::Value>)value inContext:(L8Runtime *)context;
++ (instancetype)valueWithV8Value:(v8::Local<v8::Value>)value inContext:(L8Context *)context;
 
 - (instancetype)init __attribute__((unavailable));
 - (instancetype)initWithV8Value:(v8::Local<v8::Value>)value __attribute__((unavailable("Use initWithV8Value:inContext: instead.")));
-- (instancetype)initWithV8Value:(v8::Local<v8::Value>)value inContext:(L8Runtime *)context;
+- (instancetype)initWithV8Value:(v8::Local<v8::Value>)value inContext:(L8Context *)context;
 
 @end
 
-v8::Local<v8::Value> objectToValue(L8Runtime *runtime, id object);
+v8::Local<v8::Value> objectToValue(L8Context *context, id object);
 
-id valueToObject(L8Runtime *runtime, v8::Local<v8::Value> value);
-NSNumber *valueToNumber(L8Runtime *runtime, v8::Local<v8::Value> value);
-NSString *valueToString(L8Runtime *runtime, v8::Local<v8::Value> value);
-NSDate *valueToDate(L8Runtime *runtime, v8::Local<v8::Value> value);
-NSArray *valueToArray(L8Runtime *runtime, v8::Local<v8::Value> value);
-NSDictionary *valueToDictionary(L8Runtime *runtime, v8::Local<v8::Value> value);
+id valueToObject(L8Context *context, v8::Local<v8::Value> value);
+NSNumber *valueToNumber(L8Context *context, v8::Local<v8::Value> value);
+NSString *valueToString(L8Context *context, v8::Local<v8::Value> value);
+NSDate *valueToDate(L8Context *context, v8::Local<v8::Value> value);
+NSArray *valueToArray(L8Context *context, v8::Local<v8::Value> value);
+NSDictionary *valueToDictionary(L8Context *context, v8::Local<v8::Value> value);

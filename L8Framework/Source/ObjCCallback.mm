@@ -29,7 +29,7 @@
 #include <objc/runtime.h>
 
 #import "L8VirtualMachine_Private.h"
-#import "L8Runtime_Private.h"
+#import "L8Context_Private.h"
 #import "L8Value_Private.h"
 #import "L8WrapperMap.h"
 #import "L8Exception_Private.h"
@@ -92,7 +92,7 @@ long strnpos(const char *haystack, const char *needle, long count)
 	return -1;
 }
 
-void objCSetInvocationArgument(Isolate *isolate, L8Runtime *context, NSInvocation *invocation, int index, L8Value *val)
+void objCSetInvocationArgument(Isolate *isolate, L8Context *context, NSInvocation *invocation, int index, L8Value *val)
 {
 	const char *type;
 
@@ -285,7 +285,7 @@ void objCSetInvocationArgument(Isolate *isolate, L8Runtime *context, NSInvocatio
 		case '@': { // object
 			id value;
 			Class objectClass = Nil;
-			L8Runtime *context;
+			L8Context *context;
 
 			// Try to find the classname of the object
 			if(*(type+1) == '"') {
@@ -328,7 +328,7 @@ void objCSetInvocationArgument(Isolate *isolate, L8Runtime *context, NSInvocatio
 	}
 }
 
-Local<Value> handleInvocationException(Isolate *isolate, L8Runtime *context, id exception)
+Local<Value> handleInvocationException(Isolate *isolate, L8Context *context, id exception)
 {
 	Local<Value> valueToThrow;
 
@@ -354,7 +354,7 @@ Local<Value> handleInvocationException(Isolate *isolate, L8Runtime *context, id 
 }
 
 Local<Value> objCInvocation(Isolate *isolate,
-							L8Runtime *context,
+							L8Context *context,
 							NSInvocation *invocation,
 							const char *neededReturnType = NULL)
 {
@@ -519,7 +519,7 @@ Local<Value> objCInvocation(Isolate *isolate,
 }
 
 inline void objCSetInvocationArguments(Isolate *isolate,
-									   L8Runtime *context,
+									   L8Context *context,
 									   NSInvocation *invocation,
 									   const FunctionCallbackInfo<Value>& info,
 									   int offset)
@@ -543,12 +543,12 @@ inline void objCSetContextEmbedderData(const FunctionCallbackInfo<Value>& info)
 
 	context = info.GetIsolate()->GetCurrentContext();
 
-	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_THIS, info.This());
-	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_CALLEE, info.Callee());
+	context->SetEmbedderData(L8_CONTEXT_EMBEDDER_DATA_CB_THIS, info.This());
+	context->SetEmbedderData(L8_CONTEXT_EMBEDDER_DATA_CB_CALLEE, info.Callee());
 	Local<Array> argList = Array::New(info.GetIsolate(), info.Length());
 	for(int i = 0; i < info.Length(); ++i)
 		argList->Set(i, info[i]);
-	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_ARGS, argList);
+	context->SetEmbedderData(L8_CONTEXT_EMBEDDER_DATA_CB_ARGS, argList);
 }
 
 inline void objCClearContextEmbedderData(Isolate *isolate)
@@ -557,9 +557,9 @@ inline void objCClearContextEmbedderData(Isolate *isolate)
 
 	context = isolate->GetCurrentContext();
 
-	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_THIS, Null(isolate));
-	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_CALLEE, Null(isolate));
-	context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_CB_ARGS, Null(isolate));
+	context->SetEmbedderData(L8_CONTEXT_EMBEDDER_DATA_CB_THIS, Null(isolate));
+	context->SetEmbedderData(L8_CONTEXT_EMBEDDER_DATA_CB_CALLEE, Null(isolate));
+	context->SetEmbedderData(L8_CONTEXT_EMBEDDER_DATA_CB_ARGS, Null(isolate));
 }
 
 void ObjCConstructor(const FunctionCallbackInfo<Value>& info)
@@ -571,14 +571,14 @@ void ObjCConstructor(const FunctionCallbackInfo<Value>& info)
 	id __unsafe_unretained resultObject;
 	Isolate *isolate = info.GetIsolate();
 	HandleScope localScope(isolate);
-	L8Runtime *context;
+	L8Context *context;
 
 	NSMethodSignature *methodSignature;
 	NSInvocation *invocation;
 
 	// In one situation we should no nothing:
 	// When just created the class for an existing object
-	Local<Value> skipConstruct = isolate->GetCurrentContext()->GetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SKIP_CONSTRUCTING);
+	Local<Value> skipConstruct = isolate->GetCurrentContext()->GetEmbedderData(L8_CONTEXT_EMBEDDER_DATA_SKIP_CONSTRUCTING);
 	if(!skipConstruct.IsEmpty() && skipConstruct->IsTrue())
 		return;
 
@@ -596,7 +596,7 @@ void ObjCConstructor(const FunctionCallbackInfo<Value>& info)
 	object = [cls alloc];
 
 	// The allocated object is now already released by
-	// the runtime because the init returned nil. We can't
+	// the context because the init returned nil. We can't
 	// release object anymore: it is a zombie.
 	// That is why CFRetain and a conditional CFRelease is used:
 	// to circumvent the ARC problem.
@@ -609,7 +609,7 @@ void ObjCConstructor(const FunctionCallbackInfo<Value>& info)
 	// Set target
 	invocation.target = object;
 
-	context = [L8Runtime runtimeWithV8Context:isolate->GetCurrentContext()];
+	context = [L8Context contextWithV8Context:isolate->GetCurrentContext()];
 
 	objCSetInvocationArguments(isolate, context, invocation, info, 2);
 	objCSetContextEmbedderData(info);
@@ -634,7 +634,7 @@ void ObjCConstructor(const FunctionCallbackInfo<Value>& info)
 				CFRelease((void *)object);
 
 			// Set our self to, ourself
-			info.This()->SetInternalField(0, makeWrapper([L8Runtime currentRuntime].V8Context, resultObject));
+			info.This()->SetInternalField(0, makeWrapper([L8Context currentContext].V8Context, resultObject));
 
 		} @catch (id exception) {
 			info.GetReturnValue().Set(handleInvocationException(isolate,context,exception));
@@ -658,7 +658,7 @@ void ObjCMethodCall(const FunctionCallbackInfo<Value>& info)
 	Local<Array> extraData;
 	Local<Value> retVal;
 	Isolate *isolate;
-	L8Runtime *context;
+	L8Context *context;
 
 	// A constructor call should be with ObjCConstructor
 	assert(info.IsConstructCall() == false);
@@ -686,7 +686,7 @@ void ObjCMethodCall(const FunctionCallbackInfo<Value>& info)
 	invocation.selector = selector;
 	invocation.target = object;
 
-	context = [L8Runtime runtimeWithV8Context:isolate->GetCurrentContext()];
+	context = [L8Context contextWithV8Context:isolate->GetCurrentContext()];
 
 	// Set the arguments
 	objCSetInvocationArguments(isolate, context, invocation, info, 2);
@@ -709,7 +709,7 @@ void ObjCBlockCall(const FunctionCallbackInfo<Value>& info)
 	const char *signature;
 	Isolate *isolate;
 	id block;
-	L8Runtime *context;
+	L8Context *context;
 
 	isolate = info.GetIsolate();
 
@@ -719,7 +719,7 @@ void ObjCBlockCall(const FunctionCallbackInfo<Value>& info)
 	invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
 	invocation.target = block;
 
-	context = [L8Runtime runtimeWithV8Context:isolate->GetCurrentContext()];
+	context = [L8Context contextWithV8Context:isolate->GetCurrentContext()];
 
 	// Set arguments (+1)
 	objCSetInvocationArguments(isolate, context, invocation, info, 1);
@@ -742,12 +742,12 @@ void ObjCNamedPropertySetter(Local<String> property, Local<Value> value, const P
 {
 	id object;
 	L8Value *setValue;
-	L8Runtime *runtime;
+	L8Context *context;
 
 	object = objectFromWrapper(info.This()->GetInternalField(0));
-	runtime = [L8Runtime runtimeWithV8Context:info.GetIsolate()->GetCurrentContext()];
+	context = [L8Context contextWithV8Context:info.GetIsolate()->GetCurrentContext()];
 
-	setValue = [L8Value valueWithV8Value:value inContext:runtime];
+	setValue = [L8Value valueWithV8Value:value inContext:context];
 
 	[object setObject:setValue forKeyedSubscript:[NSString stringWithV8String:property]];
 
@@ -757,28 +757,28 @@ void ObjCNamedPropertySetter(Local<String> property, Local<Value> value, const P
 void ObjCNamedPropertyGetter(Local<String> property, const PropertyCallbackInfo<Value>& info)
 {
 	id object, value;
-	L8Runtime *runtime;
+	L8Context *context;
 
 	object = objectFromWrapper(info.This()->GetInternalField(0));
 	value = [object objectForKeyedSubscript:[NSString stringWithV8String:property]];
 
-	runtime = [L8Runtime runtimeWithV8Context:info.GetIsolate()->GetCurrentContext()];
+	context = [L8Context contextWithV8Context:info.GetIsolate()->GetCurrentContext()];
 
 	if(value)
-		info.GetReturnValue().Set(objectToValue(runtime, value));
+		info.GetReturnValue().Set(objectToValue(context, value));
 }
 
 void ObjCIndexedPropertySetter(uint32_t index, Local<Value> value, const PropertyCallbackInfo<Value>& info)
 {
 	id object;
 	L8Value *setValue;
-	L8Runtime *runtime;
+	L8Context *context;
 
 	object = objectFromWrapper(info.This()->GetInternalField(0));
 
-	runtime = [L8Runtime runtimeWithV8Context:info.GetIsolate()->GetCurrentContext()];
+	context = [L8Context contextWithV8Context:info.GetIsolate()->GetCurrentContext()];
 
-	setValue = [L8Value valueWithV8Value:value inContext:runtime];
+	setValue = [L8Value valueWithV8Value:value inContext:context];
 	[object setObject:setValue atIndexedSubscript:index];
 
 	info.GetReturnValue().Set(setValue.V8Value);
@@ -787,15 +787,15 @@ void ObjCIndexedPropertySetter(uint32_t index, Local<Value> value, const Propert
 void ObjCIndexedPropertyGetter(uint32_t index, const PropertyCallbackInfo<Value>& info)
 {
 	id object, value;
-	L8Runtime *runtime;
+	L8Context *context;
 
 	object = objectFromWrapper(info.This()->GetInternalField(0));
 	value = [object objectAtIndexedSubscript:index];
 
-	runtime = [L8Runtime runtimeWithV8Context:info.GetIsolate()->GetCurrentContext()];
+	context = [L8Context contextWithV8Context:info.GetIsolate()->GetCurrentContext()];
 
 	if(value)
-		info.GetReturnValue().Set(objectToValue(runtime, value));
+		info.GetReturnValue().Set(objectToValue(context, value));
 }
 
 void ObjCAccessorSetter(Local<String> property, Local<Value> value, const PropertyCallbackInfo<void> &info)
@@ -809,12 +809,12 @@ void ObjCAccessorSetter(Local<String> property, Local<Value> value, const Proper
 	Local<Value> retVal;
 	L8Value *newValue;
 	Isolate *isolate;
-	L8Runtime *context;
+	L8Context *context;
 
 	isolate = info.GetIsolate();
 	object = objectFromWrapper(info.This()->GetInternalField(0));
 	extraData = info.Data().As<Array>();
-	context = [L8Runtime runtimeWithV8Context:isolate->GetCurrentContext()];
+	context = [L8Context contextWithV8Context:isolate->GetCurrentContext()];
 
 	// 0 = name, 1 = value type, 2 = getter SEL, 3 = getter types, 4 = setter SEL, 5 = setter types
 	selector = selectorFromV8Value(extraData->Get(4));
@@ -848,12 +848,12 @@ void ObjCAccessorGetter(Local<String> property, const PropertyCallbackInfo<Value
 	Local<Array> extraData;
 	Local<Value> retVal;
 	Isolate *isolate;
-	L8Runtime *context;
+	L8Context *context;
 
 	isolate = info.GetIsolate();
 	object = objectFromWrapper(info.This()->GetInternalField(0));
 	extraData = info.Data().As<Array>();
-	context = [L8Runtime runtimeWithV8Context:isolate->GetCurrentContext()];
+	context = [L8Context contextWithV8Context:isolate->GetCurrentContext()];
 
 	// 0 = name, 1 = value type, 2 = getter SEL, 3 = getter types, 4 = setter SEL, 5 = setter types
 	returnType = createStringFromV8Value(extraData->Get(1));

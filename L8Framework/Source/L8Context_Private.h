@@ -23,35 +23,38 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import "L8Runtime.h"
+#import "L8Context.h"
+#include "v8.h"
+
+@class L8WrapperMap;
+
+#define L8_CONTEXT_EMBEDDER_DATA_SELF 0
+//#define L8_CONTEXT_EMBEDDER_DATA_SELF_2 1 // TODO: This seems wrong
+#define L8_CONTEXT_EMBEDDER_DATA_CB_THIS 2
+#define L8_CONTEXT_EMBEDDER_DATA_CB_CALLEE 3
+#define L8_CONTEXT_EMBEDDER_DATA_CB_ARGS 4
+#define L8_CONTEXT_EMBEDDER_DATA_SKIP_CONSTRUCTING 5
 
 /**
- * @Brief Runtime extension for debugging.
+ * @brief Context extension with private methods
  */
-@interface L8Runtime ()
+@interface L8Context ()
 
-/// Port for the debugger to attach to.
-@property (assign) uint16_t debuggerPort;
+/// Wrapper map used for wrapping V8 and ObjC objects.
+@property (readonly) L8WrapperMap *wrapperMap;
+
+/// v8::Context wrapped by this L8Context.
+@property (readonly) v8::Local<v8::Context> V8Context;
 
 /**
- * Whether to wait for the debugger to attach.
+ * Get the ObjC context stored within a V8 context.
  *
- * If this property equals YES, enableDebugging will block
- * until a remote debugger has attached.
+ * @param v8context The v8::Context to get the context for.
+ * @return The ObjC Context, or nil if never assigned to v8context.
  */
-@property (assign) BOOL waitForDebugger;
++ (instancetype)contextWithV8Context:(v8::Local<v8::Context>)v8context;
 
-/**
- * Enable support for debugging.
- *
- * If waitForDebugger is <code>YES</code>, this method
- * will block until a remote debugger attached.
- */
-- (void)enableDebugging;
-
-/**
- * Disable support for debugging.
- */
-- (void)disableDebugging;
+- (L8Value *)wrapperForObjCObject:(id)object;
+- (L8Value *)wrapperForJSObject:(v8::Local<v8::Value>)value;
 
 @end

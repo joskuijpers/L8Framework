@@ -27,7 +27,7 @@
 
 #include "v8.h"
 
-@class L8Runtime, L8Exception;
+@class L8Context, L8Exception;
 
 /**
  * @brief Reporter extension with private methods
@@ -35,6 +35,6 @@
 @interface L8Reporter ()
 
 + (void)reportTryCatch:(v8::TryCatch *)tryCatch
-			 inContext:(L8Runtime *)context;
+			 inContext:(L8Context *)context;
 
 @end

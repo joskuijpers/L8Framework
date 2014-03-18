@@ -23,23 +23,35 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <XCTest/XCTest.h>
-#import "L8Runtime.h"
-#import "L8Value.h"
+#import "L8Context.h"
 
-@interface L8RuntimeTests : XCTestCase
+/**
+ * @Brief Context extension for debugging.
+ */
+@interface L8Context ()
 
-@end
+/// Port for the debugger to attach to.
+@property (assign) uint16_t debuggerPort;
 
-@implementation L8RuntimeTests
+/**
+ * Whether to wait for the debugger to attach.
+ *
+ * If this property equals YES, enableDebugging will block
+ * until a remote debugger has attached.
+ */
+@property (assign) BOOL waitForDebugger;
 
-- (void)testCurrentRuntime
-{
-	L8Runtime *localRuntime = [[L8Runtime alloc] init];
-	[localRuntime executeBlockInRuntime:^(L8Runtime *paramRuntime) {
-		XCTAssertEqual(localRuntime, paramRuntime, "Runtime in block parameter is expected runtime");
-		XCTAssertEqual(localRuntime, [L8Runtime currentRuntime], "-[currentRuntime] returns current runtime");
-	}];
-}
+/**
+ * Enable support for debugging.
+ *
+ * If waitForDebugger is <code>YES</code>, this method
+ * will block until a remote debugger attached.
+ */
+- (void)enableDebugging;
+
+/**
+ * Disable support for debugging.
+ */
+- (void)disableDebugging;
 
 @end

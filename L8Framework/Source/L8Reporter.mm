@@ -27,7 +27,7 @@
 #import "L8StackTrace_Private.h"
 #import "L8Exception_Private.h"
 #import "L8VirtualMachine_Private.h"
-#import "L8Runtime_Private.h"
+#import "L8Context_Private.h"
 #import "L8Value_Private.h"
 #import "L8NativeException.h"
 #import "NSString+L8.h"
@@ -68,7 +68,7 @@ static L8Reporter *g_sharedReporter = nil;
 	return self;
 }
 
-+ (void)reportTryCatch:(TryCatch *)tryCatch inContext:(L8Runtime *)context
++ (void)reportTryCatch:(TryCatch *)tryCatch inContext:(L8Context *)context
 {
 	L8Exception *exception;
 
@@ -82,7 +82,7 @@ static L8Reporter *g_sharedReporter = nil;
 #endif
 }
 
-+ (L8Exception *)objcExceptionForTryCatch:(TryCatch *)tryCatch inContext:(L8Runtime *)context
++ (L8Exception *)objcExceptionForTryCatch:(TryCatch *)tryCatch inContext:(L8Context *)context
 {
 	if(!tryCatch->HasCaught())
 		return nil;

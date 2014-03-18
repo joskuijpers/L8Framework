@@ -24,7 +24,7 @@
  */
 
 #import "L8VirtualMachine_Private.h"
-#import "L8Runtime_Private.h"
+#import "L8Context_Private.h"
 #import "L8Value_Private.h"
 #import "L8ManagedValue_Private.h"
 #import "L8WrapperMap.h"

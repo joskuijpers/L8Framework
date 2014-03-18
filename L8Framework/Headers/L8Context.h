@@ -26,9 +26,9 @@
 @class L8VirtualMachine, L8Value;
 
 /**
- * @brief The JavaScript runtime
+ * @brief The JavaScript context
  */
-@interface L8Runtime : NSObject
+@interface L8Context : NSObject
 
 /// The virtual machine containing this context.
 @property (readonly) L8VirtualMachine *virtualMachine;
@@ -50,14 +50,14 @@
 __attribute__((objc_designated_initializer));
 
 /**
- * Executes a block in the runtime.
+ * Executes a block in the context.
  *
  * This is the only way to work with JSValues, besides in callbacks.
  * That is due to the current design of L8 and the Scoping system of V8.
  *
  * @param block Block to execute within handlescope of V8
  */
-- (void)executeBlockInRuntime:(void(^)(L8Runtime *runtime))block;
+- (void)executeBlockInContext:(void(^)(L8Context *context))block;
 //	__attribute__((deprecated("No need to use this construct anymore.")));
 
 /**
@@ -69,7 +69,7 @@ __attribute__((objc_designated_initializer));
 - (BOOL)loadScriptAtPath:(NSString *)filePath;
 
 /**
- * Loads given script with given name into the runtime.
+ * Loads given script with given name into the context.
  *
  * @param scriptData the script
  * @param name name of the script. Used in stacktraces and errors.
@@ -78,7 +78,7 @@ __attribute__((objc_designated_initializer));
 - (BOOL)loadScript:(NSString *)scriptData withName:(NSString *)name;
 
 /**
- * Evaluate given script in the runtime.
+ * Evaluate given script in the context.
  *
  * @param scriptData the script contents
  * @return the scripts return value
@@ -86,7 +86,7 @@ __attribute__((objc_designated_initializer));
 - (L8Value *)evaluateScript:(NSString *)scriptData;
 
 /**
- * Evaluate given script in the runtime.
+ * Evaluate given script in the context.
  *
  * @param scriptData the script contents
  * @param name name used in stacktraces and errors
@@ -102,14 +102,14 @@ __attribute__((objc_designated_initializer));
 - (L8Value *)globalObject;
 
 /**
- * Returns the runtime the caller is running in.
+ * Returns the context the caller is running in.
  *
  * This returns <code>nil</code> when the caller is not in a callback and not
- * in an executeBlockInRuntime block.
+ * in an executeBlockInContext block.
  *
- * @return L8Runtime of the current runtime
+ * @return L8Context of the current context
  */
-+ (instancetype)currentRuntime;
++ (instancetype)currentContext;
 
 /**
  * Returns the current <code>this</code> object.
@@ -144,7 +144,7 @@ __attribute__((objc_designated_initializer));
 /**
  * @brief Subscripting support
  */
-@interface L8Runtime (Subscripting)
+@interface L8Context (Subscripting)
 
 /**
  * Access a property of the globalObject.

@@ -24,7 +24,7 @@
  */
 
 #import <XCTest/XCTest.h>
-#import "L8Runtime_Debugging.h"
+#import "L8Context_Debugging.h"
 #import "L8Value.h"
 
 

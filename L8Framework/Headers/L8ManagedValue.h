@@ -47,7 +47,7 @@
 + (instancetype)managedValueWithValue:(L8Value *)value;
 
 /**
- * Create a JSManagedValue from a JSValue and add it to the runtime.
+ * Create a JSManagedValue from a JSValue and add it to the context.
  *
  * @param value
  * @param owner

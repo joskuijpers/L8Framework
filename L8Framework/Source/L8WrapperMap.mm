@@ -32,7 +32,7 @@
 #import "L8WrapperMap.h"
 
 #import "L8VirtualMachine_Private.h"
-#import "L8Runtime_Private.h"
+#import "L8Context_Private.h"
 #import "L8Value_Private.h"
 #import "L8Export.h"
 
@@ -209,7 +209,7 @@ void copyMethodsToObject(L8WrapperMap *wrapperMap,
 						 Local<Template> theTemplate,
 						 NSMutableDictionary *accessorMethods = nil)
 {
-	Isolate *isolate = wrapperMap.runtime.virtualMachine.V8Isolate;
+	Isolate *isolate = wrapperMap.context.virtualMachine.V8Isolate;
 	NSMutableDictionary *renameMap = createRenameMap(protocol, isInstanceMethod);
 
 	forEachMethodInProtocol(protocol, YES, isInstanceMethod, ^(SEL sel, const char *types) {
@@ -227,7 +227,7 @@ void copyMethodsToObject(L8WrapperMap *wrapperMap,
 
 		if(accessorMethods[rawName]) {
 			accessorMethods[rawName] = [L8Value valueWithV8Value:String::NewFromUtf8(isolate,extraTypes)
-													   inContext:wrapperMap.runtime];
+													   inContext:wrapperMap.context];
 		} else {
 			NSString *propertyName;
 			Local<String> v8Name;
@@ -254,7 +254,7 @@ void copyMethodsToObject(L8WrapperMap *wrapperMap,
 }
 
 /*
- * Find useful attributes in the ObjC runtime about given property.
+ * Find useful attributes in the ObjC context about given property.
  */
 void parsePropertyAttributes(objc_property_t property, char *&getterName, char *&setterName, bool &readonly, char *&type)
 {
@@ -309,7 +309,7 @@ void copyPrototypeProperties(L8WrapperMap *wrapperMap,
 		char *type;
 		bool readonly;
 	};
-	Isolate *isolate = wrapperMap.runtime.virtualMachine.V8Isolate;
+	Isolate *isolate = wrapperMap.context.virtualMachine.V8Isolate;
 	__block std::vector<property_t> propertyList;
 	NSMutableDictionary *accessorMethods;
 	L8Value *undefinedValue;
@@ -323,7 +323,7 @@ void copyPrototypeProperties(L8WrapperMap *wrapperMap,
 
 	// Dictionary containing all accessor methods so they can be skipped when copying methods
 	accessorMethods = [NSMutableDictionary dictionary];
-	undefinedValue = [L8Value valueWithUndefinedInContext:wrapperMap.runtime];
+	undefinedValue = [L8Value valueWithUndefinedInContext:wrapperMap.context];
 
 	forEachPropertyInProtocol(protocol, ^(objc_property_t property) {
 		getterName = NULL;
@@ -417,14 +417,14 @@ SEL initializerSelectorForClass(Class cls)
 
 @implementation L8WrapperMap {
 	std::map<std::string,Eternal<FunctionTemplate>> _classCache;
-	__weak L8Runtime *_runtime;
+	__weak L8Context *_context;
 }
 
-- (id)initWithRuntime:(L8Runtime *)runtime
+- (id)initWithContext:(L8Context *)context
 {
 	self = [super init];
 	if(self) {
-		_runtime = runtime;
+		_context = context;
 	}
 	return self;
 }
@@ -438,7 +438,7 @@ SEL initializerSelectorForClass(Class cls)
 	assert(_classCache.find(key) == _classCache.end() && "Must only cache once");
 
 	{
-		Isolate *isolate = _runtime.virtualMachine.V8Isolate;
+		Isolate *isolate = _context.virtualMachine.V8Isolate;
 
 		HandleScope localScope(isolate);
 		myEternal.Set(isolate, funcTemplate);
@@ -451,7 +451,7 @@ SEL initializerSelectorForClass(Class cls)
 {
 	std::string key(class_getName(cls));
 	std::map<std::string,Eternal<FunctionTemplate>>::iterator it;
-	Isolate *isolate = _runtime.virtualMachine.V8Isolate;
+	Isolate *isolate = _context.virtualMachine.V8Isolate;
 
 	it = _classCache.find(key);
 	if(it != _classCache.end()) {
@@ -467,7 +467,7 @@ SEL initializerSelectorForClass(Class cls)
 
 - (Local<FunctionTemplate>)functionTemplateForClass:(Class)cls
 {
-	Isolate *isolate = _runtime.virtualMachine.V8Isolate;
+	Isolate *isolate = _context.virtualMachine.V8Isolate;
 	EscapableHandleScope localScope(isolate);
 	Local<FunctionTemplate> classTemplate;
 	Local<ObjectTemplate> prototypeTemplate, instanceTemplate;
@@ -523,7 +523,7 @@ SEL initializerSelectorForClass(Class cls)
  */
 - (L8Value *)JSWrapperForObjCObject:(id)object
 {
-	Isolate *isolate = _runtime.virtualMachine.V8Isolate;
+	Isolate *isolate = _context.virtualMachine.V8Isolate;
 	EscapableHandleScope localScope(isolate);
 	Local<FunctionTemplate> classTemplate;
 	Local<Function> function;
@@ -539,15 +539,15 @@ SEL initializerSelectorForClass(Class cls)
 	function = classTemplate->GetFunction();
 
 	if(class_isMetaClass(object_getClass(object))) {
-		return [L8Value valueWithV8Value:localScope.Escape(function) inContext:_runtime];
+		return [L8Value valueWithV8Value:localScope.Escape(function) inContext:_context];
 	} else {
-		_runtime.V8Context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SKIP_CONSTRUCTING, True(isolate));
+		_context.V8Context->SetEmbedderData(L8_CONTEXT_EMBEDDER_DATA_SKIP_CONSTRUCTING, True(isolate));
 		Local<Object> instance = function->NewInstance();
-		_runtime.V8Context->SetEmbedderData(L8_RUNTIME_EMBEDDER_DATA_SKIP_CONSTRUCTING, False(isolate));
+		_context.V8Context->SetEmbedderData(L8_CONTEXT_EMBEDDER_DATA_SKIP_CONSTRUCTING, False(isolate));
 
-		instance->SetInternalField(0, makeWrapper(_runtime.V8Context, object));
+		instance->SetInternalField(0, makeWrapper(_context.V8Context, object));
 
-		return [L8Value valueWithV8Value:localScope.Escape(instance) inContext:_runtime];
+		return [L8Value valueWithV8Value:localScope.Escape(instance) inContext:_context];
 	}
 
 	return nil;
@@ -560,9 +560,9 @@ SEL initializerSelectorForClass(Class cls)
  */
 - (L8Value *)JSWrapperForBlock:(id)object
 {
-	Local<Function> function = wrapBlock(_runtime.V8Context,object);
+	Local<Function> function = wrapBlock(_context.V8Context,object);
 
-	return [[L8Value alloc] initWithV8Value:function inContext:_runtime];
+	return [[L8Value alloc] initWithV8Value:function inContext:_context];
 }
 
 /*!
@@ -590,7 +590,7 @@ SEL initializerSelectorForClass(Class cls)
  */
 - (L8Value *)ObjCWrapperForValue:(Local<Value>)value
 {
-	return [[L8Value alloc] initWithV8Value:value inContext:_runtime];
+	return [[L8Value alloc] initWithV8Value:value inContext:_context];
 }
 
 @end

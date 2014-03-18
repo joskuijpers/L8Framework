@@ -25,7 +25,7 @@
 
 #import "L8ManagedValue.h"
 #import "L8Value_Private.h"
-#import "L8Runtime_Private.h"
+#import "L8Context_Private.h"
 #import "L8VirtualMachine_Private.h"
 
 #include "v8.h"
@@ -41,7 +41,7 @@ static void L8ManagedValueWeakReferenceCallback(const WeakCallbackData<Value, vo
 @implementation L8ManagedValue {
 	Persistent<Value> _persist;
 	NSMapTable *_owners;
-	L8Runtime *_runtime;
+	L8Context *_context;
 }
 
 + (instancetype)managedValueWithValue:(L8Value *)value
@@ -54,7 +54,7 @@ static void L8ManagedValueWeakReferenceCallback(const WeakCallbackData<Value, vo
 	L8ManagedValue *mValue;
 
 	mValue = [[self alloc] initWithValue:value];
-	[value.runtime.virtualMachine addManagedReference:mValue withOwner:owner];
+	[value.context.virtualMachine addManagedReference:mValue withOwner:owner];
 
 	return mValue;
 }
@@ -71,13 +71,13 @@ static void L8ManagedValueWeakReferenceCallback(const WeakCallbackData<Value, vo
 		if(!value)
 			return self;
 
-		_runtime = value.runtime;
+		_context = value.context;
 
 		_owners = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsWeakMemory | NSPointerFunctionsObjectPersonality
 											valueOptions:NSPointerFunctionsOpaqueMemory | NSPointerFunctionsIntegerPersonality
 												capacity:1];
 
-		_persist.Reset(value.runtime.virtualMachine.V8Isolate, value.V8Value);
+		_persist.Reset(value.context.virtualMachine.V8Isolate, value.V8Value);
 		void *p = (__bridge void *)self;
 		_persist.SetWeak(p, L8ManagedValueWeakReferenceCallback);
 	}
@@ -96,7 +96,7 @@ static void L8ManagedValueWeakReferenceCallback(const WeakCallbackData<Value, vo
 			count = reinterpret_cast<size_t>(NSMapGet(_owners, key));
 
 			while(count--)
-				[_runtime.virtualMachine removeManagedReference:self withOwner:owner];
+				[_context.virtualMachine removeManagedReference:self withOwner:owner];
 		}
 	}
 
@@ -133,9 +133,9 @@ static void L8ManagedValueWeakReferenceCallback(const WeakCallbackData<Value, vo
 	if(_persist.IsEmpty())
 		return nil;
 
-	v = Local<Value>::New(_runtime.virtualMachine.V8Isolate, _persist);
+	v = Local<Value>::New(_context.virtualMachine.V8Isolate, _persist);
 
-	return [L8Value valueWithV8Value:v inContext:_runtime];
+	return [L8Value valueWithV8Value:v inContext:_context];
 }
 
 - (void)removeValue
