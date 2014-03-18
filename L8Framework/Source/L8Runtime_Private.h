@@ -43,9 +43,16 @@
 /// Wrapper map used for wrapping V8 and ObjC objects.
 @property (readonly) L8WrapperMap *wrapperMap;
 
-+ (instancetype)runtimeWithV8Context:(v8::Local<v8::Context>)v8context;
+/// v8::Context wrapped by this L8Runtime.
+@property (readonly) v8::Local<v8::Context> V8Context;
 
-- (v8::Local<v8::Context>)V8Context;
+/**
+ * Get the ObjC context stored within a V8 context.
+ *
+ * @param v8context The v8::Context to get the context for.
+ * @return The ObjC Context, or nil if never assigned to v8context.
+ */
++ (instancetype)runtimeWithV8Context:(v8::Local<v8::Context>)v8context;
 
 - (L8Value *)wrapperForObjCObject:(id)object;
 - (L8Value *)wrapperForJSObject:(v8::Local<v8::Value>)value;

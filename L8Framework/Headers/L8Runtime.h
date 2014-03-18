@@ -57,7 +57,8 @@ __attribute__((objc_designated_initializer));
  *
  * @param block Block to execute within handlescope of V8
  */
-- (void)executeBlockInRuntime:(void(^)(L8Runtime *runtime))block;
+- (void)executeBlockInRuntime:(void(^)(L8Runtime *runtime))block
+	__attribute__((deprecated("No need to use this construct anymore.")));
 
 /**
  * Loads a script at given path into the system by evaluating it.

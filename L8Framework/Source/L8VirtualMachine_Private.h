@@ -31,11 +31,7 @@
  */
 @interface L8VirtualMachine ()
 
-/**
- * Get the Isolate wrapped by this virtual machine.
- *
- * @return Pointer to the V8 isolate.
- */
-- (v8::Isolate *)V8Isolate __attribute__((objc_returns_inner_pointer));
+/// v8::Isolate wrapped by this virtual machine.
+@property (readonly) v8::Isolate *V8Isolate __attribute__((objc_returns_inner_pointer));
 
 @end
