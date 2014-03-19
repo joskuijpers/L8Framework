@@ -44,7 +44,7 @@
 
 using namespace v8;
 
-/*!
+/**
  * Extract a propertyname from a selectorname.
  *
  * Removes ':' and makes every letter following such colon uppercase. For example,
@@ -53,7 +53,7 @@ using namespace v8;
  *
  * @return An NSString containing the property name
  */
-static NSString *selectorToPropertyName(const char *start, bool instanceMethod = true)
+static NSString *l8_selector_to_property_name(const char *start, bool instanceMethod = true)
 {
 	const char *firstColon, *input;
 	char *buffer, *output;
@@ -96,13 +96,13 @@ done:
 	return result;
 }
 
-/*!
+/**
  * Creates a v8 handle containing the given ObjC object, with memory management
  * taken care of.
  *
  * @return v8 Handle containing the wrapped object
  */
-Local<External> makeWrapper(Local<Context> context, id wrappedObject)
+Local<External> l8_make_wrapper(Local<Context> context, id wrappedObject)
 {
 	void *voidObject;
 	Local<External> ext;
@@ -116,12 +116,12 @@ Local<External> makeWrapper(Local<Context> context, id wrappedObject)
 	return ext;
 }
 
-/*!
+/**
  * Obtains the ObjC object withing the wrapper
  *
  * @return Objective-C object withing wrapper, or nil on failure
  */
-id objectFromWrapper(Local<Value> wrapper)
+id l8_object_from_wrapper(Local<Value> wrapper)
 {
 	id object;
 
@@ -133,13 +133,13 @@ id objectFromWrapper(Local<Value> wrapper)
 	return object;
 }
 
-static NSMutableDictionary *createRenameMap(Protocol *protocol, BOOL isInstanceMethod)
+static NSMutableDictionary *l8_create_rename_map(Protocol *protocol, BOOL isInstanceMethod)
 {
 	NSMutableDictionary *renameMap;
 
 	renameMap = [NSMutableDictionary dictionary];
 
-	forEachMethodInProtocol(protocol, NO, isInstanceMethod, ^(SEL sel, const char *types)
+	l8_for_each_method_in_protocol(protocol, NO, isInstanceMethod, ^(SEL sel, const char *types)
 	{
 		const char *selName;
 		NSString *rename, *selector, *name;
@@ -170,7 +170,7 @@ static NSMutableDictionary *createRenameMap(Protocol *protocol, BOOL isInstanceM
  * Create the default setter name using only the property name.
  * A setter name is built with: 'set'<name with first letter capital>':'
  */
-static char *makeSetterName(const char *name)
+static char *l8_make_setter_name(const char *name)
 {
 	size_t length = strlen(name);
 	char *setterName = (char *)malloc(length + 5); // 'set' Name ':' 0
@@ -188,7 +188,7 @@ static char *makeSetterName(const char *name)
 	return setterName;
 }
 
-bool isMethodAnInitializer(SEL sel)
+bool l8_is_method_initializer(SEL sel)
 {
 	char *selStr;
 
@@ -214,9 +214,9 @@ bool isMethodAnInitializer(SEL sel)
  * Get whether the given method should not be copied
  * to the JavaScript object.
  */
-bool shouldSkipMethodWhenCopying(SEL sel)
+bool l8_should_skip_method_when_copying(SEL sel)
 {
-	return isMethodAnInitializer(sel);
+	return l8_is_method_initializer(sel);
 }
 
 /*
@@ -226,21 +226,21 @@ bool shouldSkipMethodWhenCopying(SEL sel)
  * This method also stores type-information of accessor methods in the given
  * dictionary, if given.
  */
-void copyMethodsToObject(L8WrapperMap *wrapperMap,
+void l8_copy_method_to_object(L8WrapperMap *wrapperMap,
 						 Protocol *protocol,
 						 BOOL isInstanceMethod,
 						 Local<Template> theTemplate,
 						 NSMutableDictionary *accessorMethods = nil)
 {
 	Isolate *isolate = wrapperMap.context.virtualMachine.V8Isolate;
-	NSMutableDictionary *renameMap = createRenameMap(protocol, isInstanceMethod);
+	NSMutableDictionary *renameMap = l8_create_rename_map(protocol, isInstanceMethod);
 
-	forEachMethodInProtocol(protocol, YES, isInstanceMethod, ^(SEL sel, const char *types) {
+	l8_for_each_method_in_protocol(protocol, YES, isInstanceMethod, ^(SEL sel, const char *types) {
 		const char *selName;
 		NSString *rawName;
 		const char *extraTypes;
 
-		if(shouldSkipMethodWhenCopying(sel))
+		if(l8_should_skip_method_when_copying(sel))
 			return;
 
 		selName = sel_getName(sel);
@@ -259,7 +259,7 @@ void copyMethodsToObject(L8WrapperMap *wrapperMap,
 
 			propertyName = renameMap[rawName];
 			if(propertyName == nil)
-				propertyName = selectorToPropertyName(selName,isInstanceMethod);
+				propertyName = l8_selector_to_property_name(selName,isInstanceMethod);
 
 			v8Name = [propertyName V8StringInIsolate:isolate];
 
@@ -279,7 +279,11 @@ void copyMethodsToObject(L8WrapperMap *wrapperMap,
 /*
  * Find useful attributes in the ObjC context about given property.
  */
-void parsePropertyAttributes(objc_property_t property, char *&getterName, char *&setterName, bool &readonly, char *&type)
+void l8_parse_property_attributes(objc_property_t property,
+								  char *&getterName,
+								  char *&setterName,
+								  bool &readonly,
+								  char *&type)
 {
 	unsigned int count;
 	objc_property_attribute_t *attributes = property_copyAttributeList(property, &count);
@@ -320,7 +324,7 @@ void parsePropertyAttributes(objc_property_t property, char *&getterName, char *
  * we first need to find all properties and get their getter (and setter). Then, when copying
  * the methods, we should skip these as they are already covered by the property-accessors
  */
-void copyPrototypeProperties(L8WrapperMap *wrapperMap,
+void l8_copy_prototype_properties(L8WrapperMap *wrapperMap,
 							 Local<ObjectTemplate> prototypeTemplate,
 							 Local<ObjectTemplate> instanceTemplate,
 							 Protocol *protocol)
@@ -348,7 +352,7 @@ void copyPrototypeProperties(L8WrapperMap *wrapperMap,
 	accessorMethods = [NSMutableDictionary dictionary];
 	undefinedValue = [L8Value valueWithUndefinedInContext:wrapperMap.context];
 
-	forEachPropertyInProtocol(protocol, ^(objc_property_t property) {
+	l8_for_each_property_in_protocol(protocol, ^(objc_property_t property) {
 		getterName = NULL;
 		setterName = NULL;
 		type = NULL;
@@ -357,7 +361,7 @@ void copyPrototypeProperties(L8WrapperMap *wrapperMap,
 		const char *propertyName = property_getName(property);
 
 		// Get property information
-		parsePropertyAttributes(property, getterName, setterName, readonly, type);
+		l8_parse_property_attributes(property, getterName, setterName, readonly, type);
 
 		// Getter
 		if(getterName == NULL)
@@ -367,7 +371,7 @@ void copyPrototypeProperties(L8WrapperMap *wrapperMap,
 		// Setter, if applicable
 		if(readonly == false) {
 			if(setterName == NULL)
-				setterName = makeSetterName(propertyName);
+				setterName = l8_make_setter_name(propertyName);
 			accessorMethods[@(setterName)] = undefinedValue;
 		}
 
@@ -376,7 +380,7 @@ void copyPrototypeProperties(L8WrapperMap *wrapperMap,
 	});
 
 	// Copy the instance methods except the accessors, which we get info for
-	copyMethodsToObject(wrapperMap, protocol, YES, prototypeTemplate, accessorMethods);
+	l8_copy_method_to_object(wrapperMap, protocol, YES, prototypeTemplate, accessorMethods);
 
 	// Add accessors for each property with correct name, setter, getter and attributes
 	for(int i = 0; i < propertyList.size(); i++) {
@@ -399,23 +403,24 @@ void copyPrototypeProperties(L8WrapperMap *wrapperMap,
 		free(property.getterName);
 		free(property.setterName);
 
-		instanceTemplate->SetAccessor(v8PropertyName, ObjCAccessorGetter, ObjCAccessorSetter, extraData,
+		instanceTemplate->SetAccessor(v8PropertyName, ObjCAccessorGetter,
+									  ObjCAccessorSetter, extraData,
 									  AccessControl::DEFAULT,
 									  property.readonly ? PropertyAttribute::ReadOnly : PropertyAttribute::None
 									  /*| PropertyAttribute::DontEnum*/);
 	}
 }
 
-SEL initializerSelectorForClass(Class cls)
+SEL l8_initializer_selector_for_class(Class cls)
 {
 	__block SEL selector;
 	__block BOOL found = NO;
 	__block BOOL foundMultiple = NO;
 
-	forEachProtocolImplementingProtocol(cls, objc_getProtocol("L8Export"), ^(Protocol *protocol) {
+	l8_for_each_protocol_implementing_protocol(cls, objc_getProtocol("L8Export"), ^(Protocol *protocol) {
 
-		forEachMethodInProtocol(protocol, YES, YES, ^(SEL sel, const char *encoding) {
-			if(!isMethodAnInitializer(sel))
+		l8_for_each_method_in_protocol(protocol, YES, YES, ^(SEL sel, const char *encoding) {
+			if(!l8_is_method_initializer(sel))
 				return;
 
 			if(sel_isEqual(sel, selector))
@@ -462,8 +467,8 @@ SEL initializerSelectorForClass(Class cls)
 
 	{
 		Isolate *isolate = _context.virtualMachine.V8Isolate;
-
 		HandleScope localScope(isolate);
+		
 		myEternal.Set(isolate, funcTemplate);
 	}
 
@@ -511,7 +516,7 @@ SEL initializerSelectorForClass(Class cls)
 			classTemplate->Inherit(parentTemplate);
 	}
 
-	initSelector = initializerSelectorForClass(cls);
+	initSelector = l8_initializer_selector_for_class(cls);
 
 	classTemplate->SetClassName([className V8StringInIsolate:isolate]);
 
@@ -519,10 +524,10 @@ SEL initializerSelectorForClass(Class cls)
 	instanceTemplate = classTemplate->InstanceTemplate();
 	instanceTemplate->SetInternalFieldCount(1);
 
-	forEachProtocolImplementingProtocol(cls, objc_getProtocol("L8Export"), ^(Protocol *protocol) {
-		copyPrototypeProperties(self, prototypeTemplate, instanceTemplate, protocol);
+	l8_for_each_protocol_implementing_protocol(cls, objc_getProtocol("L8Export"), ^(Protocol *protocol) {
+		l8_copy_prototype_properties(self, prototypeTemplate, instanceTemplate, protocol);
 
-		copyMethodsToObject(self, protocol, NO, classTemplate);
+		l8_copy_method_to_object(self, protocol, NO, classTemplate);
 	});
 
 	// Set constructor callback
@@ -537,7 +542,7 @@ SEL initializerSelectorForClass(Class cls)
 	return classTemplate;
 }
 
-/*!
+/**
  * Create a wrapper-to-JavaScript for an Objective-C object
  *
  * @return an L8Value containing the V8 handle wrapping the object
@@ -566,24 +571,24 @@ SEL initializerSelectorForClass(Class cls)
 	Local<Object> instance = function->NewInstance();
 	_context.V8Context->SetEmbedderData(L8_CONTEXT_EMBEDDER_DATA_SKIP_CONSTRUCTING, False(isolate));
 
-	instance->SetInternalField(0, makeWrapper(_context.V8Context, object));
+	instance->SetInternalField(0, l8_make_wrapper(_context.V8Context, object));
 
 	return [L8Value valueWithV8Value:localScope.Escape(instance) inContext:_context];
 }
 
-/*!
+/**
  * Create a wrapper-to-JavaScript for a block object
  *
  * @return an L8Value containing the V8 handle wrapping the block object
  */
 - (L8Value *)JSWrapperForBlock:(id)object
 {
-	Local<Function> function = wrapBlock(_context.V8Context,object);
+	Local<Function> function = l8_wrap_block(_context.V8Context,object);
 
 	return [[L8Value alloc] initWithV8Value:function inContext:_context];
 }
 
-/*!
+/**
  * Create a wrapper for any type of objective object
  *
  * @return an L8Value containing the V8 handle wrapping the object
@@ -592,15 +597,15 @@ SEL initializerSelectorForClass(Class cls)
 {
 	L8Value *wrapper;
 
-	if([object isKindOfClass:BlockClass()]) {
+	if([object isKindOfClass:BlockClass()])
 		wrapper = [self JSWrapperForBlock:object];
-	} else
+	else
 		wrapper = [self JSWrapperForObjCObject:object];
 
 	return wrapper;
 }
 
-/*!
+/**
  * Create a wrapper-to-ObjectiveC for the given JavaScript value
  *
  * @return an L8Value wrapping the value. Use the appropriate value-converter to retrieve the
@@ -613,7 +618,7 @@ SEL initializerSelectorForClass(Class cls)
 
 @end
 
-id unwrapObjCObject(Isolate *isolate, Local<Value> value)
+id l8_unwrap_objc_object(Isolate *isolate, Local<Value> value)
 {
 	Local<Object> object;
 
@@ -641,7 +646,7 @@ id unwrapObjCObject(Isolate *isolate, Local<Value> value)
 		name = [NSString stringWithV8Value:object.As<Function>()->GetName() inIsolate:isolate];
 
 		if(isBlock) {
-			if(id target = unwrapBlock(isolate, object)) // Block
+			if(id target = l8_unwrap_block(isolate, object)) // Block
 				return target;
 			return nil;
 		}
@@ -651,26 +656,28 @@ id unwrapObjCObject(Isolate *isolate, Local<Value> value)
 	return nil;
 }
 
-Local<Function> wrapBlock(Local<Context> context, id object)
+Local<Function> l8_wrap_block(Local<Context> context, id object)
 {
 	Isolate *isolate = context->GetIsolate();
 	EscapableHandleScope localScope(isolate);
+	Local<Function> function;
+	Local<FunctionTemplate> functionTemplate;
 
-	Local<FunctionTemplate> functionTemplate = FunctionTemplate::New(isolate);
-	functionTemplate->SetCallHandler(ObjCBlockCall, makeWrapper(context, object));
+	functionTemplate = FunctionTemplate::New(isolate);
+	functionTemplate->SetCallHandler(ObjCBlockCall, l8_make_wrapper(context, object));
 	functionTemplate->PrototypeTemplate()->SetInternalFieldCount(1);
 	functionTemplate->InstanceTemplate()->SetInternalFieldCount(1);
 
-	Local<Function> function = functionTemplate->GetFunction();
+	function = functionTemplate->GetFunction();
 	function->SetHiddenValue(String::NewFromUtf8(isolate, "isBlock"),
 							 v8::Boolean::New(isolate,true));
 	function->SetHiddenValue(String::NewFromUtf8(isolate, "cBlock"),
-							 makeWrapper(context, object));
+							 l8_make_wrapper(context, object));
 
 	return localScope.Escape(function);
 }
 
-id unwrapBlock(Isolate *isolate, Local<Object> object)
+id l8_unwrap_block(Isolate *isolate, Local<Object> object)
 {
 	Local<Value> cblock;
 	id blockObject;

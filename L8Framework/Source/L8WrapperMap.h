@@ -27,31 +27,98 @@
 
 @class L8Context, L8Value;
 
+/**
+ * @brief A structure that maps between JS and ObjC objects.
+ */
 @interface L8WrapperMap : NSObject
 
-/**
- * Context using this wrapper map
- * @todo Make weak?, private?
- */
+/// Context using this wrapper map
 @property (nonatomic,readonly) L8Context *context;
 
+/**
+ * Create a new Wrapper Map for specified context.
+ *
+ * @return self.
+ */
 - (instancetype)initWithContext:(L8Context *)context;
 
+/**
+ * Create a JavaScript wrapper for an Objective-C object.
+ *
+ * @todo Add caching to increase performance and decrease memory usage.
+ *
+ * @param object The Objective-C object.
+ * @return A JavaScript value.
+ */
 - (L8Value *)JSWrapperForObject:(id)object;
+
+/**
+ * Create a JavaScript wrapper for an Objective-C object.
+ *
+ * @todo This method simply calls the init method of L8Value. It should
+ * instead be caching the values.
+ *
+ * @param object A v8 value.
+ * @return L8Value containing the v8 value.
+ */
 - (L8Value *)ObjCWrapperForValue:(v8::Local<v8::Value>)value;
 
-// Used by -isInstanceOf:
+/**
+ * Get the cached function template for given class.
+ *
+ * Used by -[L8Value isInstanceOf:]
+ *
+ * @param cls Class to get the template for.
+ * @return The function template, or an Empty handle when cache
+ * does not contain the class.
+ */
 - (v8::Local<v8::FunctionTemplate>)getCachedFunctionTemplateForClass:(Class)cls;
 
 @end
 
-v8::Local<v8::External> makeWrapper(v8::Local<v8::Context> context, id wrappedObject);
-id objectFromWrapper(v8::Local<v8::Value> wrapper);
+/**
+ * Wrap an ObjC object in a simple v8 object with weak memory.
+ *
+ * @param context The v8 context to create the wrapper in.
+ * @param wrappedObject The ObjC object to wrap.
+ * @return A v8 value.
+ */
+v8::Local<v8::External> l8_make_wrapper(v8::Local<v8::Context> context, id object);
 
-id unwrapObjCObject(v8::Isolate *isolate, v8::Local<v8::Value> value);
+/**
+ * Get an ObjC object from a V8 object with weak memory.
+ *
+ * @param wrapper The v8 object containing the ObjC object.
+ * @return The ObjC object, or nil on failure.
+ */
+id l8_object_from_wrapper(v8::Local<v8::Value> wrapper);
 
-v8::Local<v8::Function> wrapBlock(v8::Local<v8::Context> context, id object);
-id unwrapBlock(v8::Isolate *isolate, v8::Local<v8::Object> object);
+/**
+ * Get the wrapped ObjC object from an V8 object, created using -[JSWrapperForObject:]
+ *
+ * @param isolate The isolate the value is created in.
+ * @param value The v8 value containing the object.
+ * @return The ObjC object, or nil on failure.
+ */
+id l8_unwrap_objc_object(v8::Isolate *isolate, v8::Local<v8::Value> value);
+
+/**
+ * Wrap a C block into a V8 function object.
+ *
+ * @param context The v8 context to create the wrapper in.
+ * @param object The C block.
+ * @return A v8 Function object.
+ */
+v8::Local<v8::Function> l8_wrap_block(v8::Local<v8::Context> context, id object);
+
+/**
+ * Get the wrapped C block from a V8 object.
+ *
+ * @param isolate The v8 isolate.
+ * @param object The object containing the block.
+ * @return A block on success, <code>nil</code> on failure.
+ */
+id l8_unwrap_block(v8::Isolate *isolate, v8::Local<v8::Object> object);
 
 /**
  * The class of a Block

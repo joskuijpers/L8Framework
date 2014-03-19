@@ -79,7 +79,7 @@ using namespace v8;
 		L8Value *value;
 
 		value = [(L8ManagedValue *)object value];
-		temp = unwrapObjCObject(_v8isolate, value.V8Value);
+		temp = l8_unwrap_objc_object(_v8isolate, value.V8Value);
 
 		if(temp)
 			return temp;
@@ -90,7 +90,7 @@ using namespace v8;
 		L8Value *value;
 
 		value = (L8Value *)object;
-		object = unwrapObjCObject(_v8isolate, value.V8Value);
+		object = l8_unwrap_objc_object(_v8isolate, value.V8Value);
 	}
 
 	return object;

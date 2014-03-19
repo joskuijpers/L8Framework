@@ -26,7 +26,7 @@
 #import "ObjCRuntime+L8.h"
 #include <objc/runtime.h>
 
-BOOL protocolImplementsProtocol(Protocol *candidate, Protocol *target)
+BOOL l8_protocol_implements_protocol(Protocol *candidate, Protocol *target)
 {
 	unsigned int count;
 	Protocol * __unsafe_unretained *protocols = protocol_copyProtocolList(candidate, &count);
@@ -42,7 +42,7 @@ BOOL protocolImplementsProtocol(Protocol *candidate, Protocol *target)
 	return NO;
 }
 
-void forEachProtocolImplementingProtocol(Class cls, Protocol *target, void (^callback)(Protocol *))
+void l8_for_each_protocol_implementing_protocol(Class cls, Protocol *target, void (^callback)(Protocol *))
 {
 	Protocol * __unsafe_unretained *protocols;
 	unsigned int count;
@@ -51,14 +51,14 @@ void forEachProtocolImplementingProtocol(Class cls, Protocol *target, void (^cal
 	for(int i = 0; i < count; i++) {
 		Protocol *candidate = protocols[i];
 
-		if(protocolImplementsProtocol(candidate, target))
+		if(l8_protocol_implements_protocol(candidate, target))
 			callback(candidate);
 	}
 
 	free(protocols);
 }
 
-void forEachMethodInProtocol(Protocol *protocol, BOOL isRequiredMethod, BOOL isInstanceMethod, void (^callback)(SEL name, const char *types))
+void l8_for_each_method_in_protocol(Protocol *protocol, BOOL isRequiredMethod, BOOL isInstanceMethod, void (^callback)(SEL name, const char *types))
 {
 	unsigned int count;
 	struct objc_method_description *methods;
@@ -71,7 +71,7 @@ void forEachMethodInProtocol(Protocol *protocol, BOOL isRequiredMethod, BOOL isI
 	free(methods);
 }
 
-void forEachPropertyInProtocol(Protocol *protocol, void (^callback)(objc_property_t property))
+void l8_for_each_property_in_protocol(Protocol *protocol, void (^callback)(objc_property_t property))
 {
 	unsigned int count;
 	objc_property_t *properties = protocol_copyPropertyList(protocol, &count);
@@ -82,7 +82,7 @@ void forEachPropertyInProtocol(Protocol *protocol, void (^callback)(objc_propert
 	free(properties);
 }
 
-void forEachMethodInClass(Class cls, void (^callback)(Method method, BOOL *stop))
+void l8_for_each_method_in_class(Class cls, void (^callback)(Method method, BOOL *stop))
 {
 	unsigned int count;
 	Method *methods = class_copyMethodList(cls, &count);

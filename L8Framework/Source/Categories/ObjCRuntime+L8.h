@@ -26,11 +26,60 @@
 #include <objc/runtime.h>
 #include <Availability.h>
 
-BOOL protocolImplementsProtocol(Protocol *candidate, Protocol *target);
-void forEachProtocolImplementingProtocol(Class cls, Protocol *target, void (^callback)(Protocol *));
-void forEachMethodInProtocol(Protocol *protocol, BOOL isRequiredMethod, BOOL isInstanceMethod, void (^callback)(SEL sel, const char *));
-void forEachMethodInClass(Class cls, void (^callback)(Method method, BOOL *stop));
-void forEachPropertyInProtocol(Protocol *protocol, void (^callback)(objc_property_t property));
+/**
+ * Get whether given target implements given candidate.
+ *
+ * @param candidate
+ * @param target
+ * @return YES when it is implemented, NO otherwise.
+ */
+BOOL l8_protocol_implements_protocol(Protocol *candidate,
+									 Protocol *target);
+
+/**
+ * Enumerate over the protocols implementing given protocol
+ * in the specified class.
+ *
+ * @param cls The class to search protocols for.
+ * @param target The protocol each protocol must implement.
+ * @param callback The callback block.
+ */
+void l8_for_each_protocol_implementing_protocol(Class cls,
+												Protocol *target,
+												void (^callback)(Protocol *protocol));
+
+/**
+ * Enumerate over the methods implemented by specified protocol.
+ *
+ * @param protocol The protocol to look into.
+ * @param isRequiredMethod Whether the methods to enumerate over
+ * must be set as @required.
+ * @param isInstanceMethod Whether the methods to enumerate over are
+ * instance methods (YES) or class methods (NO).
+ * @param callback The callback block.
+ */
+void l8_for_each_method_in_protocol(Protocol *protocol,
+									BOOL isRequiredMethod,
+									BOOL isInstanceMethod,
+									void (^callback)(SEL sel, const char *types));
+
+/**
+ * Enumerate over the methods in a class.
+ *
+ * @param cls The class to look into.
+ * @param callback The callback block.
+ */
+void l8_for_each_method_in_class(Class cls,
+								 void (^callback)(Method method, BOOL *stop));
+
+/**
+ * Enumerate over the properties in a protocol.
+ *
+ * @param protocol The protocol to look into.
+ * @param callback The callback block.
+ */
+void l8_for_each_property_in_protocol(Protocol *protocol,
+									  void (^callback)(objc_property_t property));
 
 extern "C" {
 	/**

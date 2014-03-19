@@ -145,7 +145,7 @@ using namespace v8;
 	if(!isBlock.IsEmpty() && isBlock->IsTrue()) {
 		id block;
 
-		block = unwrapBlock(_context.virtualMachine.V8Isolate,function);
+		block = l8_unwrap_block(_context.virtualMachine.V8Isolate,function);
 
 		return block;
 	}
@@ -466,7 +466,7 @@ using namespace v8;
 
 - (NSString *)description
 {
-	if(id wrapped = unwrapObjCObject(_context.virtualMachine.V8Isolate, _v8value))
+	if(id wrapped = l8_unwrap_objc_object(_context.virtualMachine.V8Isolate, _v8value))
 			return [wrapped description];
 	return [self toString];
 }
@@ -586,7 +586,7 @@ static JavaScriptContainerConverter::Job valueToObjectWithoutCopy(Local<Context>
 	}
 
 	object = value->ToObject();
-	if(id wrapped = unwrapObjCObject(v8context->GetIsolate(), value))
+	if(id wrapped = l8_unwrap_objc_object(v8context->GetIsolate(), value))
 		return (JavaScriptContainerConverter::Job){ object, wrapped, COLLECTION_NONE };
 
 	if(object->IsDate())
@@ -650,7 +650,7 @@ id valueToObject(L8Context *context, Local<Value> value)
 
 NSNumber *valueToNumber(L8Context *context, Local<Value> value)
 {
-	id wrapped = unwrapObjCObject(context.virtualMachine.V8Isolate, value);
+	id wrapped = l8_unwrap_objc_object(context.virtualMachine.V8Isolate, value);
 	if(wrapped && [wrapped isKindOfClass:[NSNumber class]]) {
 		return wrapped;
 	}
@@ -664,7 +664,7 @@ NSNumber *valueToNumber(L8Context *context, Local<Value> value)
 
 NSString *valueToString(L8Context *context, Local<Value> value)
 {
-	id wrapped = unwrapObjCObject(context.virtualMachine.V8Isolate, value);
+	id wrapped = l8_unwrap_objc_object(context.virtualMachine.V8Isolate, value);
 	if(wrapped && [wrapped isKindOfClass:[NSString class]]) {
 		return wrapped;
 	}
@@ -677,7 +677,7 @@ NSString *valueToString(L8Context *context, Local<Value> value)
 
 NSDate *valueToDate(L8Context *context, Local<Value> value)
 {
-	id wrapped = unwrapObjCObject(context.virtualMachine.V8Isolate, value);
+	id wrapped = l8_unwrap_objc_object(context.virtualMachine.V8Isolate, value);
 	if(wrapped && [wrapped isKindOfClass:[NSDate class]]) {
 		return wrapped;
 	}
@@ -687,7 +687,7 @@ NSDate *valueToDate(L8Context *context, Local<Value> value)
 
 NSArray *valueToArray(L8Context *context, Local<Value> value)
 {
-	id wrapped = unwrapObjCObject(context.virtualMachine.V8Isolate, value);
+	id wrapped = l8_unwrap_objc_object(context.virtualMachine.V8Isolate, value);
 	if(wrapped && [wrapped isKindOfClass:[NSArray class]]) {
 		return wrapped;
 	}
@@ -704,7 +704,7 @@ NSArray *valueToArray(L8Context *context, Local<Value> value)
 
 NSDictionary *valueToDictionary(L8Context *context, Local<Value> value)
 {
-	id wrapped = unwrapObjCObject(context.virtualMachine.V8Isolate, value);
+	id wrapped = l8_unwrap_objc_object(context.virtualMachine.V8Isolate, value);
 	if(wrapped && [wrapped isKindOfClass:[NSDictionary class]]) {
 		return wrapped;
 	}

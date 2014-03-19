@@ -633,7 +633,7 @@ void ObjCConstructor(const FunctionCallbackInfo<Value>& info)
 				CFRelease((void *)object);
 
 			// Set our self to, ourself
-			info.This()->SetInternalField(0, makeWrapper(context.V8Context, resultObject));
+			info.This()->SetInternalField(0, l8_make_wrapper(context.V8Context, resultObject));
 
 		} @catch (id exception) {
 			info.GetReturnValue().Set(handleInvocationException(isolate,context,exception));
@@ -680,7 +680,7 @@ void ObjCMethodCall(const FunctionCallbackInfo<Value>& info)
 		object = objc_getClass(classStr);
 		free((void *)classStr);
 	} else
-		object = objectFromWrapper(info.This()->GetInternalField(0));
+		object = l8_object_from_wrapper(info.This()->GetInternalField(0));
 
 	invocation.selector = selector;
 	invocation.target = object;
@@ -743,7 +743,7 @@ void ObjCNamedPropertySetter(Local<String> property, Local<Value> value, const P
 	L8Value *setValue;
 	L8Context *context;
 
-	object = objectFromWrapper(info.This()->GetInternalField(0));
+	object = l8_object_from_wrapper(info.This()->GetInternalField(0));
 	context = [L8Context contextWithV8Context:info.GetIsolate()->GetCurrentContext()];
 
 	setValue = [L8Value valueWithV8Value:value inContext:context];
@@ -758,7 +758,7 @@ void ObjCNamedPropertyGetter(Local<String> property, const PropertyCallbackInfo<
 	id object, value;
 	L8Context *context;
 
-	object = objectFromWrapper(info.This()->GetInternalField(0));
+	object = l8_object_from_wrapper(info.This()->GetInternalField(0));
 	value = [object objectForKeyedSubscript:[NSString stringWithV8String:property]];
 
 	context = [L8Context contextWithV8Context:info.GetIsolate()->GetCurrentContext()];
@@ -773,7 +773,7 @@ void ObjCIndexedPropertySetter(uint32_t index, Local<Value> value, const Propert
 	L8Value *setValue;
 	L8Context *context;
 
-	object = objectFromWrapper(info.This()->GetInternalField(0));
+	object = l8_object_from_wrapper(info.This()->GetInternalField(0));
 
 	context = [L8Context contextWithV8Context:info.GetIsolate()->GetCurrentContext()];
 
@@ -788,7 +788,7 @@ void ObjCIndexedPropertyGetter(uint32_t index, const PropertyCallbackInfo<Value>
 	id object, value;
 	L8Context *context;
 
-	object = objectFromWrapper(info.This()->GetInternalField(0));
+	object = l8_object_from_wrapper(info.This()->GetInternalField(0));
 	value = [object objectAtIndexedSubscript:index];
 
 	context = [L8Context contextWithV8Context:info.GetIsolate()->GetCurrentContext()];
@@ -811,7 +811,7 @@ void ObjCAccessorSetter(Local<String> property, Local<Value> value, const Proper
 	L8Context *context;
 
 	isolate = info.GetIsolate();
-	object = objectFromWrapper(info.This()->GetInternalField(0));
+	object = l8_object_from_wrapper(info.This()->GetInternalField(0));
 	extraData = info.Data().As<Array>();
 	context = [L8Context contextWithV8Context:isolate->GetCurrentContext()];
 
@@ -850,7 +850,7 @@ void ObjCAccessorGetter(Local<String> property, const PropertyCallbackInfo<Value
 	L8Context *context;
 
 	isolate = info.GetIsolate();
-	object = objectFromWrapper(info.This()->GetInternalField(0));
+	object = l8_object_from_wrapper(info.This()->GetInternalField(0));
 	extraData = info.Data().As<Array>();
 	context = [L8Context contextWithV8Context:isolate->GetCurrentContext()];
 
