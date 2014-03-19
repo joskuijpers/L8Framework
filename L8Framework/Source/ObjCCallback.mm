@@ -285,7 +285,6 @@ void objCSetInvocationArgument(Isolate *isolate, L8Context *context, NSInvocatio
 		case '@': { // object
 			id value;
 			Class objectClass = Nil;
-			L8Context *context;
 
 			// Try to find the classname of the object
 			if(*(type+1) == '"') {

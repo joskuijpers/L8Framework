@@ -68,6 +68,13 @@
 @interface InnerClassProfile : NSObject <InnerClassProfile>
 @end
 
+@protocol TheConsole <L8Export>
+- (void)log:(NSString *)string;
+@end
+
+@interface TheConsole : NSObject <TheConsole>
+@end
+
 
 @implementation L8ValueTests
 
@@ -408,6 +415,20 @@
 	}
 }
 
+- (void)testArgumentConversion1
+{
+	@autoreleasepool {
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
+			context[@"console"] = [[TheConsole alloc] init];
+			context[@"AnotherClass"] = [CustomMethodClass class];
+
+			[context evaluateScript:@"function AClass() {}"];
+			[context evaluateScript:@"console.log(AClass);"];
+			[context evaluateScript:@"console.log(AnotherClass);"];
+		}];
+	}
+}
+
 @end
 
 @implementation CustomSimpleObject @end
@@ -456,6 +477,15 @@
 - (NSString *)someString
 {
 	return @"CORRECT";
+}
+
+@end
+
+@implementation TheConsole
+
+- (void)log:(NSString *)string
+{
+	NSLog(@"[JS] %@ [%@]",string,[string className]);
 }
 
 @end
