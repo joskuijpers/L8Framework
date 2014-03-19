@@ -71,6 +71,7 @@
 		80477BB718D11B0000B16692 /* l8-defs.h in Headers */ = {isa = PBXBuildFile; fileRef = 80477BB618D11B0000B16692 /* l8-defs.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		80477BC118D11BFC00B16692 /* L8ContextTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 80477BBD18D11BFC00B16692 /* L8ContextTests.m */; };
 		80477BC218D11BFC00B16692 /* L8ValueTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 80477BBE18D11BFC00B16692 /* L8ValueTests.m */; };
+		8049F80A18DA500B00B454F8 /* L8ExceptionTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 8049F80918DA500B00B454F8 /* L8ExceptionTests.m */; };
 		80B682AB18D7FAF200445BF9 /* L8Export_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 80B682A918D7FAF200445BF9 /* L8Export_Private.h */; };
 		80B682AC18D7FAF200445BF9 /* L8Export.m in Sources */ = {isa = PBXBuildFile; fileRef = 80B682AA18D7FAF200445BF9 /* L8Export.m */; };
 		80B682B018D9001300445BF9 /* macros.h in Headers */ = {isa = PBXBuildFile; fileRef = 80B682AD18D8C8A500445BF9 /* macros.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -196,6 +197,7 @@
 		80477BB818D11B0700B16692 /* Doxyfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Doxyfile; sourceTree = "<group>"; };
 		80477BBD18D11BFC00B16692 /* L8ContextTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = L8ContextTests.m; path = Source/L8ContextTests.m; sourceTree = "<group>"; };
 		80477BBE18D11BFC00B16692 /* L8ValueTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = L8ValueTests.m; path = Source/L8ValueTests.m; sourceTree = "<group>"; };
+		8049F80918DA500B00B454F8 /* L8ExceptionTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = L8ExceptionTests.m; sourceTree = "<group>"; };
 		8060610418D223B5003CC846 /* v8_build.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = v8_build.sh; sourceTree = "<group>"; };
 		8060610618D223D4003CC846 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		8060610718D223D4003CC846 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
@@ -445,6 +447,7 @@
 				80477BBD18D11BFC00B16692 /* L8ContextTests.m */,
 				80477BBE18D11BFC00B16692 /* L8ValueTests.m */,
 				802495E618D378EA0071F3C4 /* L8DebugTests.m */,
+				8049F80918DA500B00B454F8 /* L8ExceptionTests.m */,
 				80477B4218D119F000B16692 /* Supporting Files */,
 			);
 			path = L8FrameworkTests;
@@ -862,6 +865,7 @@
 				802495E718D378EA0071F3C4 /* L8DebugTests.m in Sources */,
 				80477BC218D11BFC00B16692 /* L8ValueTests.m in Sources */,
 				80477BC118D11BFC00B16692 /* L8ContextTests.m in Sources */,
+				8049F80A18DA500B00B454F8 /* L8ExceptionTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
