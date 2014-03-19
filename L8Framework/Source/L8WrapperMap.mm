@@ -55,20 +55,25 @@ using namespace v8;
  */
 static NSString *selectorToPropertyName(const char *start, bool instanceMethod = true)
 {
+	const char *firstColon, *input;
+	char *buffer, *output;
+	size_t header;
+	NSString *result;
+
 	// Find the first semicolon
-	const char *firstColon = index(start, ':');
+	firstColon = index(start, ':');
 	if(!firstColon)
 		return [NSString stringWithUTF8String:start];
 
-	size_t header = firstColon - start;
-	char *buffer = (char *)malloc(header + strlen(firstColon + 1) + 1);
+	header = firstColon - start;
+	buffer = (char *)malloc(header + strlen(firstColon + 1) + 1);
 	memcpy(buffer, start, header);
 
 	if(!instanceMethod)
 		buffer[0] = toupper(buffer[0]);
 
-	char *output = buffer + header;
-	const char *input = start + header + 1;
+	output = buffer + header;
+	input = start + header + 1;
 
 	while(true) {
 		char c;
@@ -85,7 +90,7 @@ static NSString *selectorToPropertyName(const char *start, bool instanceMethod =
 	}
 
 done:
-	NSString *result = [NSString stringWithUTF8String:buffer];
+	result = [NSString stringWithUTF8String:buffer];
 	free(buffer);
 
 	return result;
@@ -99,9 +104,12 @@ done:
  */
 Local<External> makeWrapper(Local<Context> context, id wrappedObject)
 {
-	void *voidObject = (void *)CFBridgingRetain(wrappedObject);
+	void *voidObject;
+	Local<External> ext;
 
-	Local<External> ext = External::New(context->GetIsolate(),voidObject);
+	voidObject = (void *)CFBridgingRetain(wrappedObject);
+
+	ext = External::New(context->GetIsolate(),voidObject);
 	Persistent<External> persist(context->GetIsolate(),ext);
 	persist.SetWeak((__bridge void *)wrappedObject, ObjCWeakReferenceCallback);
 
@@ -115,28 +123,43 @@ Local<External> makeWrapper(Local<Context> context, id wrappedObject)
  */
 id objectFromWrapper(Local<Value> wrapper)
 {
+	id object;
+
 	if(!wrapper->IsExternal())
 		return nil;
 
-	id object = (__bridge id)External::Cast(*wrapper)->Value();
+	object = (__bridge id)External::Cast(*wrapper)->Value();
+
 	return object;
 }
 
 static NSMutableDictionary *createRenameMap(Protocol *protocol, BOOL isInstanceMethod)
 {
-	NSMutableDictionary *renameMap = [NSMutableDictionary dictionary];
+	NSMutableDictionary *renameMap;
+
+	renameMap = [NSMutableDictionary dictionary];
 
 	forEachMethodInProtocol(protocol, NO, isInstanceMethod, ^(SEL sel, const char *types)
 	{
-		NSString *rename = @(sel_getName(sel));
-		NSRange range = [rename rangeOfString:@"__L8_EXPORT_AS__"];
+		const char *selName;
+		NSString *rename, *selector, *name;
+		NSUInteger begin, length;
+		NSRange range;
+		BOOL hasNoArguments = NO;
+
+		selName = sel_getName(sel);
+		rename = @(selName);
+		range = [rename rangeOfString:@"__L8_EXPORT_AS__"];
 		if(range.location == NSNotFound)
 			return;
 
-		NSString *selector = [rename substringToIndex:range.location];
-		NSUInteger begin = range.location + range.length;
-		NSUInteger length = [rename length] - begin - 1;
-		NSString *name = [rename substringWithRange:(NSRange){ begin, length }];
+		if(selName[strlen(selName)-1] != ':')
+			hasNoArguments = YES;
+
+		selector = [rename substringToIndex:range.location];
+		begin = range.location + range.length;
+		length = [rename length] - begin - hasNoArguments?0:1;
+		name = [rename substringWithRange:(NSRange){ begin, length }];
 		renameMap[selector] = name;
 	});
 

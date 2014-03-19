@@ -32,32 +32,47 @@
 /**
  * A name-changer for exported methods in L8 exports.
  *
- * Note that the JSExport macro may only be applied to a selector that takes one
- * or more argument.
+ * @note Note that the L8Export macro may only be applied to a selector that takes one
+ * or more argument. If you need to rename a method with no arguments, use
+ * L8_EXPORT_AS_NO_ARG
  */
-#define L8ExportAs(PropertyName, Selector) \
+#define L8_EXPORT_AS(PropertyName, Selector) \
 	@optional Selector __L8_EXPORT_AS__##PropertyName:(id)argument; @required Selector
 
 /**
- * @page exportas L8ExportAs: renaming of exported selectors
+ * A name-changer for exported methods in L8 exports.
+ *
+ * @note Note that this only works for methods with no arguments. If you
+ * arguments, use L8_EXPORT_AS instead.
+ */
+#define L8_EXPORT_AS_NO_ARG(PropertyName, Selector) \
+	@optional Selector##__L8_EXPORT_AS__##PropertyName; @required Selector
+
+/**
+ * @page exportas L8_EXPORT_AS: renaming of exported selectors
  *
  * A selector that will be exported to JavaScript can be renamed
- * using the L8ExportAs() macro.
+ * using the L8_EXPORT_AS() macro.
  *
  *
  * @code
  * @protocol MyClass <JSExport>
- * L8ExportAs(foo,
+ * L8_EXPORT_AS(foo,
  * - (void)doFoo:(id)foo withBar:(id)bar
+ * );
+ *
+ * L8_EXPORT_AS_NO_ARG(bar,
+ * - (void)createCrowBar
  * );
  * @end
  * @endcode
  *
- * Note that this can only be used for selectors with one or more arguments.
- *
  * @code
- * #define L8ExportAs(PropertyName, Selector) \
+ * #define L8_EXPORT_AS(PropertyName, Selector) \
  *   @optional Selector __L8_EXPORT_AS__##PropertyName:(id)argument; @required Selector
+ 
+ * #define L8_EXPORT_AS_NO_ARG(PropertyName, Selector) \
+ *   @optional Selector##__L8_EXPORT_AS__##PropertyName; @required Selector
  * @endcode
  *
  */
