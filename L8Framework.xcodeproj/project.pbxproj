@@ -691,6 +691,7 @@
 				80477B1F18D119ED00B16692 /* Frameworks */,
 				80477B2018D119ED00B16692 /* Headers */,
 				80477B2118D119ED00B16692 /* Resources */,
+				80B682B618D91D8F00445BF9 /* Copy resulting framework to Build/Release */,
 			);
 			buildRules = (
 			);
@@ -788,6 +789,23 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		80B682B618D91D8F00445BF9 /* Copy resulting framework to Build/Release */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 8;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy resulting framework to Build/Release";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+			shellPath = /bin/sh;
+			shellScript = "rm -Rf ./Build/Release/L8Framework.framework\ncp -Rf ./Build/Intermediates/ArchiveIntermediates/L8Framework/IntermediateBuildFilesPath/UninstalledProducts/L8Framework.framework ./Build/Release";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		8024959318D2A8710071F3C4 /* Sources */ = {
@@ -1057,11 +1075,13 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "L8Framework/L8Framework-Prefix.pch";
 				INFOPLIST_FILE = "L8Framework/L8Framework-Info.plist";
+				INSTALL_PATH = "@rpath";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/v8/xcodebuild/Release",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
 				WRAPPER_EXTENSION = framework;
 			};
 			name = Debug;
@@ -1077,11 +1097,13 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "L8Framework/L8Framework-Prefix.pch";
 				INFOPLIST_FILE = "L8Framework/L8Framework-Info.plist";
+				INSTALL_PATH = "@rpath";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/v8/xcodebuild/Release",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
 				WRAPPER_EXTENSION = framework;
 			};
 			name = Release;
