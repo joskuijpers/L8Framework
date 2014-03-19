@@ -56,6 +56,18 @@
 @interface CustomClass : NSObject
 @end
 
+@protocol InnerClass <L8Export>
+@end
+@interface InnerClass : NSObject <InnerClass>
+@end
+
+@protocol InnerClassProfile <L8Export>
+@property (readonly) NSString *someString;
+@end
+
+@interface InnerClassProfile : NSObject <InnerClassProfile>
+@end
+
 
 @implementation L8ValueTests
 
@@ -379,6 +391,23 @@
 	}
 }
 
+- (void)testInnerClass
+{
+	@autoreleasepool {
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
+			L8Value *innerClass, *obj;
+
+			context[@"MyClass"] = [InnerClass class];
+			context[@"MyClass"][@"Profile"] = [InnerClassProfile class];
+
+			innerClass = [context evaluateScript:@"MyClass.Profile"];
+			obj = [innerClass constructWithArguments:@[]];
+
+			XCTAssertEqualObjects([obj[@"someString"] toString], @"CORRECT", "Value is correct");
+		}];
+	}
+}
+
 @end
 
 @implementation CustomSimpleObject @end
@@ -411,4 +440,22 @@
     }
     return self;
 }
+@end
+
+@implementation InnerClass
+
++ (Class)profileClass
+{
+	return [InnerClassProfile class];
+}
+
+@end
+
+@implementation InnerClassProfile
+
+- (NSString *)someString
+{
+	return @"CORRECT";
+}
+
 @end

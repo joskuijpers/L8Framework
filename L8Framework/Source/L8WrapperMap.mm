@@ -461,14 +461,12 @@ SEL initializerSelectorForClass(Class cls)
 		return eternal.Get(isolate);
 	}
 
-	EscapableHandleScope localScope(isolate);
-	return localScope.Escape(Local<FunctionTemplate>());
+	return Local<FunctionTemplate>();
 }
 
 - (Local<FunctionTemplate>)functionTemplateForClass:(Class)cls
 {
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
-	EscapableHandleScope localScope(isolate);
 	Local<FunctionTemplate> classTemplate;
 	Local<ObjectTemplate> prototypeTemplate, instanceTemplate;
 	Local<Array> extraClassData;
@@ -513,7 +511,7 @@ SEL initializerSelectorForClass(Class cls)
 	[self cacheFunctionTemplate:classTemplate
 					   forClass:cls];
 
-	return localScope.Escape(classTemplate);
+	return classTemplate;
 }
 
 /*!
@@ -538,19 +536,16 @@ SEL initializerSelectorForClass(Class cls)
 	// The class (constructor)
 	function = classTemplate->GetFunction();
 
-	if(class_isMetaClass(object_getClass(object))) {
+	if(class_isMetaClass(object_getClass(object)))
 		return [L8Value valueWithV8Value:localScope.Escape(function) inContext:_context];
-	} else {
-		_context.V8Context->SetEmbedderData(L8_CONTEXT_EMBEDDER_DATA_SKIP_CONSTRUCTING, True(isolate));
-		Local<Object> instance = function->NewInstance();
-		_context.V8Context->SetEmbedderData(L8_CONTEXT_EMBEDDER_DATA_SKIP_CONSTRUCTING, False(isolate));
 
-		instance->SetInternalField(0, makeWrapper(_context.V8Context, object));
+	_context.V8Context->SetEmbedderData(L8_CONTEXT_EMBEDDER_DATA_SKIP_CONSTRUCTING, True(isolate));
+	Local<Object> instance = function->NewInstance();
+	_context.V8Context->SetEmbedderData(L8_CONTEXT_EMBEDDER_DATA_SKIP_CONSTRUCTING, False(isolate));
 
-		return [L8Value valueWithV8Value:localScope.Escape(instance) inContext:_context];
-	}
+	instance->SetInternalField(0, makeWrapper(_context.V8Context, object));
 
-	return nil;
+	return [L8Value valueWithV8Value:localScope.Escape(instance) inContext:_context];
 }
 
 /*!

@@ -76,8 +76,8 @@
 #endif
 
 #if __has_builtin(__builtin_expect)
-# define L8_LIKELY(condition) (__builtin_expect(!!(condition), 0))
-# define L8_UNLIKELY(condition) (__builtin_expect(!!(condition), 1))
+# define L8_LIKELY(condition) (__builtin_expect(!!(condition), 1))
+# define L8_UNLIKELY(condition) (__builtin_expect(!!(condition), 0))
 #else
 # define L8_LIKELY(condition)
 # define L8_UNLIKELY(condition)

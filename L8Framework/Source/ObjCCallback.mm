@@ -634,7 +634,7 @@ void ObjCConstructor(const FunctionCallbackInfo<Value>& info)
 				CFRelease((void *)object);
 
 			// Set our self to, ourself
-			info.This()->SetInternalField(0, makeWrapper([L8Context currentContext].V8Context, resultObject));
+			info.This()->SetInternalField(0, makeWrapper(context.V8Context, resultObject));
 
 		} @catch (id exception) {
 			info.GetReturnValue().Set(handleInvocationException(isolate,context,exception));

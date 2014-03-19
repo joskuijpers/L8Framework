@@ -504,7 +504,7 @@
  * @param arguments The arguments to pass to the constructor.
  * @return The return value of the constructor call.
  */
-- (L8Value *)constructWithArguments:(NSArray *)arguments;
+- (L8Value *)constructWithArguments:(NSArray *)arguments L8_WARN_UNUSED_RESULT;
 
 /**
  * Invoke a method on a L8Value.
