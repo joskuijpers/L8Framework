@@ -45,7 +45,7 @@
  * @note Note that this only works for methods with no arguments. If you
  * arguments, use L8_EXPORT_AS instead.
  */
-#define L8_EXPORT_AS_NO_ARG(PropertyName, Selector) \
+#define L8_EXPORT_AS_NO_ARGS(PropertyName, Selector) \
 	@optional Selector##__L8_EXPORT_AS__##PropertyName; @required Selector
 
 /**
@@ -61,7 +61,7 @@
  * - (void)doFoo:(id)foo withBar:(id)bar
  * );
  *
- * L8_EXPORT_AS_NO_ARG(bar,
+ * L8_EXPORT_AS_NO_ARGS(bar,
  * - (void)createCrowBar
  * );
  * @end
@@ -71,7 +71,7 @@
  * #define L8_EXPORT_AS(PropertyName, Selector) \
  *   @optional Selector __L8_EXPORT_AS__##PropertyName:(id)argument; @required Selector
  
- * #define L8_EXPORT_AS_NO_ARG(PropertyName, Selector) \
+ * #define L8_EXPORT_AS_NO_ARGS(PropertyName, Selector) \
  *   @optional Selector##__L8_EXPORT_AS__##PropertyName; @required Selector
  * @endcode
  *
