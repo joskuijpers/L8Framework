@@ -36,15 +36,9 @@
 {
 	@autoreleasepool {
 		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
-			BOOL gotException = YES;
 
-			@try {
-				[context evaluateScript:@"new Foo();"];
-				gotException = NO;
-			} @catch(L8Exception *e) {
-			}
-
-			XCTAssertTrue(gotException, "Exception conversion from JS to ObjC");
+			XCTAssertThrows([context evaluateScript:@"new Foo();"],
+							"Exception conversion from JS to ObjC");
 		}];
 	}
 }

@@ -75,6 +75,17 @@
 @interface TheConsole : NSObject <TheConsole>
 @end
 
+@protocol RenameClass <L8Export>
+L8_EXPORT_AS(create,
+- (NSString *)createImageWithName:(NSString *)name
+);
+
+L8_EXPORT_AS_NO_ARGS(list,
+- (NSArray *)contents
+);
+@end
+@interface RenameClass : NSObject <RenameClass>
+@end
 
 @implementation L8ValueTests
 
@@ -429,6 +440,27 @@
 	}
 }
 
+- (void)testMethodRenaming
+{
+	@autoreleasepool {
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
+			L8Value *instance, *stringValue, *arrayValue;
+
+			context[@"RenameClass"] = [RenameClass class];
+
+			instance = [context[@"RenameClass"] constructWithArguments:@[]];
+
+			arrayValue = [instance invokeMethod:@"list" withArguments:@[]];
+			XCTAssertNotNil(arrayValue, "list() returns a value.");
+			XCTAssertEqual([arrayValue isObject], YES, "list() return value is an object");
+
+			stringValue = [instance invokeMethod:@"create" withArguments:@[@"INPUT"]];
+			XCTAssertNotNil(stringValue, "create() returns a value.");
+			XCTAssertEqual([stringValue isString], YES, "create() return value is a string");
+		}];
+	}
+}
+
 @end
 
 @implementation CustomSimpleObject @end
@@ -486,6 +518,20 @@
 - (void)log:(NSString *)string
 {
 	NSLog(@"[JS] %@ [%@]",string,[string className]);
+}
+
+@end
+
+@implementation RenameClass
+
+- (NSArray *)contents
+{
+	return @[@"foo",@"bar"];
+}
+
+- (NSString *)createImageWithName:(NSString *)name
+{
+	return [NSString stringWithFormat:@"<%@>",name];
 }
 
 @end

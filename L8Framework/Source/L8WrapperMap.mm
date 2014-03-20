@@ -158,7 +158,7 @@ static NSMutableDictionary *l8_create_rename_map(Protocol *protocol, BOOL isInst
 
 		selector = [rename substringToIndex:range.location];
 		begin = range.location + range.length;
-		length = [rename length] - begin - hasNoArguments?0:1;
+		length = [rename length] - begin - (hasNoArguments?0:1);
 		name = [rename substringWithRange:(NSRange){ begin, length }];
 		renameMap[selector] = name;
 	});

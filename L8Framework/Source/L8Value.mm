@@ -466,9 +466,14 @@ using namespace v8;
 
 - (NSString *)description
 {
+	NSString *value;
+
 	if(id wrapped = l8_unwrap_objc_object(_context.virtualMachine.V8Isolate, _v8value))
-			return [wrapped description];
-	return [self toString];
+			value = [wrapped description];
+	else
+		value = [self toString];
+
+	return [NSString stringWithFormat:@"<L8Value>(%@)",value];
 }
 
 #pragma mark - Private
