@@ -197,7 +197,7 @@
 		80477BB818D11B0700B16692 /* Doxyfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Doxyfile; sourceTree = "<group>"; };
 		80477BBD18D11BFC00B16692 /* L8ContextTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = L8ContextTests.m; path = Source/L8ContextTests.m; sourceTree = "<group>"; };
 		80477BBE18D11BFC00B16692 /* L8ValueTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = L8ValueTests.m; path = Source/L8ValueTests.m; sourceTree = "<group>"; };
-		8049F80918DA500B00B454F8 /* L8ExceptionTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = L8ExceptionTests.m; sourceTree = "<group>"; };
+		8049F80918DA500B00B454F8 /* L8ExceptionTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = L8ExceptionTests.m; path = Source/L8ExceptionTests.m; sourceTree = "<group>"; };
 		8060610418D223B5003CC846 /* v8_build.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = v8_build.sh; sourceTree = "<group>"; };
 		8060610618D223D4003CC846 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		8060610718D223D4003CC846 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
