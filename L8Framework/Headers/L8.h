@@ -33,3 +33,4 @@
 #import "L8Exception.h"
 #import "L8NativeException.h"
 #import "L8StackTrace.h"
+#import "L8VirtualMachine.h"
