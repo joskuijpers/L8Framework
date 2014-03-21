@@ -469,7 +469,7 @@ using namespace v8;
 	NSString *value;
 
 	if(id wrapped = l8_unwrap_objc_object(_context.virtualMachine.V8Isolate, _v8value))
-			value = [wrapped description];
+		value = [wrapped description];
 	else
 		value = [self toString];
 

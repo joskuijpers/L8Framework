@@ -36,6 +36,8 @@
 - (int)methodReturningInteger;
 - (id)methodReturningId;
 - (void)methodWithStringArgument:(NSString *)argument;
+- (void)methodWithL8Argument:(L8Value *)argument;
+- (void)methodWithBlockArgument:(int (^)(NSString *data))argument;
 @end
 @interface CustomMethodClass : NSObject <CustomMethodClass> @end
 
@@ -461,15 +463,55 @@ L8_EXPORT_AS_NO_ARGS(list,
 	}
 }
 
+- (void)testFunctionArgument
+{
+	@autoreleasepool {
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
+
+			context[@"someObject"] = [[CustomMethodClass alloc] init];
+			context[@"SomeClass"] = [CustomMethodClass class];
+
+			[context evaluateScript:@"someObject.methodWithL8Argument(function(){})"];
+			[context evaluateScript:@"var obj = new SomeClass(); obj.methodWithL8Argument(15,function(error,xx){ return xx; })"];
+
+			[context evaluateScript:@"someObject.methodWithBlockArgument(function(){})"];
+		}];
+	}
+}
+
 @end
 
 @implementation CustomSimpleObject @end
 
 @implementation CustomMethodClass
-- (void)simpleMethod{}
-- (int)methodReturningInteger{return 42;}
-- (id)methodReturningId{return nil;}
-- (void)methodWithStringArgument:(NSString *)argument {}
+- (void)simpleMethod
+{
+}
+
+- (int)methodReturningInteger
+{
+	return 42;
+}
+
+- (id)methodReturningId
+{
+	return nil;
+}
+
+- (void)methodWithStringArgument:(NSString *)argument
+{
+}
+
+- (void)methodWithL8Argument:(L8Value *)argument
+{
+//	NSLog(@"The argument: %@",argument);
+}
+
+- (void)methodWithBlockArgument:(int (^)(NSString *data))argument
+{
+	NSLog(@"The argument: %@",argument);
+}
+
 @end
 
 @implementation CustomPropertiesClass
