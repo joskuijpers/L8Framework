@@ -61,7 +61,7 @@ NSArray *ldb_process_arguments(int argc, const char *argv[])
 
 	array = [[NSMutableArray alloc] init];
 
-	for(int i = 0; i < argc; i++)
+	for(int i = 0; i < argc; ++i)
 		[array addObject:[NSString stringWithUTF8String:argv[i]]];
 
 	return array;

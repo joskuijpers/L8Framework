@@ -139,9 +139,9 @@ static L8Reporter *g_sharedReporter = nil;
 	printf("%s\n",[exception.sourceLine UTF8String]);
 
 	int i;
-	for(i = 0; i < exception.startColumn; i++)
+	for(i = 0; i < exception.startColumn; ++i)
 		printf(" ");
-	for(; i < exception.endColumn; i++)
+	for(; i < exception.endColumn; ++i)
 		printf("~");
 	printf("\n");
 }

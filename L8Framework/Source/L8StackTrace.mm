@@ -46,7 +46,7 @@ using namespace v8;
 		_v8stackTrace = v8stackTrace;
 
 		_frameCache = [NSMutableArray array];
-		for(int i = 0; i < _v8stackTrace->GetFrameCount(); i++) {
+		for(int i = 0; i < _v8stackTrace->GetFrameCount(); ++i) {
 			[_frameCache addObject:[NSNull null]];
 		}
 	}
@@ -86,7 +86,7 @@ using namespace v8;
 {
 	NSMutableString *desc  = [[NSMutableString alloc] init];
 
-	for(unsigned int i = 0; i < self.numberOfFrames; i++) {
+	for(unsigned int i = 0; i < self.numberOfFrames; ++i) {
 		L8StackFrame *frame = self[i];
 
 		if(i == 0)

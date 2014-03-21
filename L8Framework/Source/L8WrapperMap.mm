@@ -195,7 +195,7 @@ bool l8_is_method_initializer(SEL sel)
 	selStr = (char *)sel_getName(sel);
 
 	while(*selStr == '_')
-		selStr++;
+		++selStr;
 
 	if(*selStr == '\0')
 		return false;
@@ -289,7 +289,7 @@ void l8_parse_property_attributes(objc_property_t property,
 	objc_property_attribute_t *attributes = property_copyAttributeList(property, &count);
 	readonly = false;
 
-	for(unsigned int i = 0; i < count; i++) {
+	for(unsigned int i = 0; i < count; ++i) {
 		switch(*(attributes[i].name)) {
 			case 'R': // read-only (readonly)
 				readonly = true;
@@ -383,7 +383,7 @@ void l8_copy_prototype_properties(L8WrapperMap *wrapperMap,
 	l8_copy_method_to_object(wrapperMap, protocol, YES, prototypeTemplate, accessorMethods);
 
 	// Add accessors for each property with correct name, setter, getter and attributes
-	for(size_t i = 0; i < propertyList.size(); i++) {
+	for(size_t i = 0; i < propertyList.size(); ++i) {
 		property_t& property = propertyList[i];
 
 		Local<String> v8PropertyName = [@(property.name) V8StringInIsolate:isolate];

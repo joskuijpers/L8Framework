@@ -31,7 +31,7 @@ BOOL l8_protocol_implements_protocol(Protocol *candidate, Protocol *target)
 	unsigned int count;
 	Protocol * __unsafe_unretained *protocols = protocol_copyProtocolList(candidate, &count);
 
-	for(unsigned int i = 0; i < count; i++) {
+	for(unsigned int i = 0; i < count; ++i) {
 		if(protocol_isEqual(protocols[i], target)) {
 			free(protocols);
 			return YES;
@@ -65,7 +65,7 @@ void l8_for_each_method_in_protocol(Protocol *protocol, BOOL isRequiredMethod, B
 
 	methods = protocol_copyMethodDescriptionList(protocol, isRequiredMethod,
 												 isInstanceMethod, &count);
-	for(unsigned int i = 0; i < count; i++)
+	for(unsigned int i = 0; i < count; ++i)
 		callback(methods[i].name, methods[i].types);
 
 	free(methods);
@@ -76,7 +76,7 @@ void l8_for_each_property_in_protocol(Protocol *protocol, void (^callback)(objc_
 	unsigned int count;
 	objc_property_t *properties = protocol_copyPropertyList(protocol, &count);
 
-	for(unsigned int i = 0; i < count; i++)
+	for(unsigned int i = 0; i < count; ++i)
 		callback(properties[i]);
 
 	free(properties);
@@ -88,7 +88,7 @@ void l8_for_each_method_in_class(Class cls, void (^callback)(Method method, BOOL
 	Method *methods = class_copyMethodList(cls, &count);
 	BOOL stop = NO;
 
-	for(unsigned int i = 0; i < count && !stop; i++)
+	for(unsigned int i = 0; i < count && !stop; ++i)
 		callback(methods[i],&stop);
 
 	free(methods);

@@ -621,7 +621,7 @@ static id containerValueToObject(Local<Context> v8context, JavaScriptContainerCo
 
 			uint32_t length = value->Get([@"length" V8StringInIsolate:isolate])->Uint32Value();
 
-			for(uint32_t i = 0; i < length; i++) {
+			for(uint32_t i = 0; i < length; ++i) {
 				id object = converter.convert(value->Get(i));
 				[array addObject:object?object:[NSNull null]];
 			}
@@ -632,7 +632,7 @@ static id containerValueToObject(Local<Context> v8context, JavaScriptContainerCo
 			Local<Array> propertyNames = value->GetPropertyNames();
 			uint32_t length = propertyNames->Length();
 
-			for(uint32_t i = 0; i < length; i++) {
+			for(uint32_t i = 0; i < length; ++i) {
 				Local<Value> key = propertyNames->Get(i);
 				id object = converter.convert(value->Get(key));
 				if(object)
@@ -854,7 +854,7 @@ Local<Value> objectToValue(L8Context *context, id object)
 		if(currentJob.type == COLLECTION_ARRAY) {
 			NSArray *array = currentJob.object;
 
-			for(NSUInteger i = 0; i < [array count]; i++)
+			for(NSUInteger i = 0; i < [array count]; ++i)
 				value->Set((uint32_t)i, converter.convert(array[i]));
 		} else {
 			NSDictionary *dictionary = currentJob.object;
