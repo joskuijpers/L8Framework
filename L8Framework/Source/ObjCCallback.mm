@@ -523,11 +523,11 @@ inline void objCSetInvocationArguments(Isolate *isolate,
 									   const FunctionCallbackInfo<Value>& info,
 									   int offset)
 {
-	for(int i = offset; i < invocation.methodSignature.numberOfArguments; i++) {
+	for(unsigned int i = offset; i < invocation.methodSignature.numberOfArguments; ++i) {
 		L8Value *argument;
 
 		// Arguments that are requested but not supplied: give Undefined
-		if(i-offset < info.Length())
+		if(i - offset < (unsigned int)info.Length())
 			argument = [L8Value valueWithV8Value:info[i-offset] inContext:context];
 		else
 			argument = [L8Value valueWithUndefinedInContext:context];

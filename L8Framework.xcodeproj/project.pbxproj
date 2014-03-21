@@ -1031,7 +1031,12 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_CFLAGS = "-fobjc-arc-exceptions";
+				OTHER_CFLAGS = (
+					"-fobjc-arc-exceptions",
+					"-Wextra",
+					"-Wno-unused-parameter",
+					"-Wunreachable-code",
+				);
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -1063,7 +1068,12 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				OTHER_CFLAGS = "-fobjc-arc-exceptions";
+				OTHER_CFLAGS = (
+					"-fobjc-arc-exceptions",
+					"-Wextra",
+					"-Wno-unused-parameter",
+					"-Wunreachable-code",
+				);
 				SDKROOT = macosx;
 			};
 			name = Release;

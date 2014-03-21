@@ -48,7 +48,7 @@ using namespace v8;
 	Persistent<Context> _v8context;
 }
 
-+ (instancetype)contextWithV8Context:(Local<Context>)v8context;
++ (instancetype)contextWithV8Context:(Local<Context>)v8context
 {
 	if(v8context.IsEmpty())
 		return nil;
@@ -278,7 +278,7 @@ using namespace v8;
 	argArray = Local<Array>::Cast(thisObject);
 	arguments = [[NSMutableArray alloc] init];
 
-	for(int i = 0; i < argArray->Length(); ++i)
+	for(unsigned int i = 0; i < argArray->Length(); ++i)
 		arguments[i] = [L8Value valueWithV8Value:argArray->Get(i) inContext:context];
 
 	return arguments;

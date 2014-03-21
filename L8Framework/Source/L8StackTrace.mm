@@ -36,7 +36,7 @@ using namespace v8;
 	Local<StackTrace> _v8stackTrace;
 }
 
-- (instancetype)initWithV8StackTrace:(Local<StackTrace>)v8stackTrace;
+- (instancetype)initWithV8StackTrace:(Local<StackTrace>)v8stackTrace
 {
 	self = [super init];
 	if(self) {
@@ -117,7 +117,6 @@ using namespace v8;
 {
 	// TODO
 	@throw [NSException exceptionWithName:@"NotImplemented" reason:@"" userInfo:nil];
-	return 0;
 }
 
 @end

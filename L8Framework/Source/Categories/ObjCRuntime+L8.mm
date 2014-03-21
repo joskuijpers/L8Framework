@@ -48,7 +48,7 @@ void l8_for_each_protocol_implementing_protocol(Class cls, Protocol *target, voi
 	unsigned int count;
 
 	protocols = class_copyProtocolList(cls, &count);
-	for(int i = 0; i < count; i++) {
+	for(unsigned int i = 0; i < count; ++i) {
 		Protocol *candidate = protocols[i];
 
 		if(l8_protocol_implements_protocol(candidate, target))

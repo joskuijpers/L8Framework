@@ -383,7 +383,7 @@ void l8_copy_prototype_properties(L8WrapperMap *wrapperMap,
 	l8_copy_method_to_object(wrapperMap, protocol, YES, prototypeTemplate, accessorMethods);
 
 	// Add accessors for each property with correct name, setter, getter and attributes
-	for(int i = 0; i < propertyList.size(); i++) {
+	for(size_t i = 0; i < propertyList.size(); i++) {
 		property_t& property = propertyList[i];
 
 		Local<String> v8PropertyName = [@(property.name) V8StringInIsolate:isolate];
