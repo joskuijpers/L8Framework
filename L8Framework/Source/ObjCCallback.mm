@@ -298,7 +298,9 @@ void objCSetInvocationArgument(Isolate *isolate, L8Context *context, NSInvocatio
 				free((void *)className);
 			}
 
-			if(objectClass == [L8Value class])
+			if([val isUndefined])
+				value = nil; // undefined <> nil
+			else if(objectClass == [L8Value class])
 				value = val;
 			else if(objectClass == [NSString class])
 				value = valueToString(context, val.V8Value);
