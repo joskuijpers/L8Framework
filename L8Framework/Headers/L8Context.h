@@ -94,6 +94,14 @@
 - (L8Value *)evaluateScript:(NSString *)scriptData withName:(NSString *)name;
 
 /**
+ * Evaluate a script file.
+ *
+ * @param filePath Path of the script file.
+ * @return the scripts return value
+ */
+- (L8Value *)evaluateScriptAtPath:(NSString *)filePath;
+
+/**
  * Returns the object depicting the global object.
  *
  * @return L8Value, an JS object

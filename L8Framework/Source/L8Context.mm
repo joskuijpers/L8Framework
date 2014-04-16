@@ -162,6 +162,18 @@ using namespace v8;
 	return [self evaluateScript:scriptData withName:@""];
 }
 
+- (L8Value *)evaluateScriptAtPath:(NSString *)filePath
+{
+	NSError *error;
+	NSString *data = [NSString stringWithContentsOfFile:filePath
+											   encoding:NSUTF8StringEncoding
+												  error:&error];
+	if(error != NULL)
+		return nil;
+
+	return [self evaluateScript:data withName:filePath];
+}
+
 - (L8Value *)evaluateScript:(NSString *)scriptData withName:(NSString *)name
 {
 	if(scriptData == nil)
