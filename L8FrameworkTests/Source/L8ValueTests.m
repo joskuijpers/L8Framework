@@ -112,6 +112,41 @@ L8_EXPORT_AS_NO_ARGS(list,
 	}
 }
 
+- (void)testBigStringValue
+{
+	@autoreleasepool {
+		[[[L8Context alloc] init] executeBlockInContext:^(L8Context *context) {
+			NSString *bigString;
+
+			bigString = @"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+						"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+						"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+						"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+						"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+						"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+			L8Value *value = [L8Value valueWithObject:bigString inContext:context];
+
+			XCTAssertNotNil(value, "-[valueWithObject:]");
+			XCTAssertEqualObjects([value toObject], bigString, "-[toObject]");
+			XCTAssertEqualObjects([value toString], bigString, "-[toString]");
+			XCTAssertTrue([value isString], "-[isString]");
+
+
+			context[@"string"] = bigString;
+			XCTAssertEqualObjects([context[@"string"] toString], bigString, "Value from object");
+
+			L8Value *retVal = [context evaluateScript:@"string" withName:@"test.js"];
+			XCTAssertEqualObjects([retVal toString], bigString, "Global string assignment script result");
+			retVal = nil;
+
+			size_t length = [bigString length];
+			bigString = @"Empty";
+			XCTAssertEqual([[value toString] length], length, "Object reference kept after release.");
+		}];
+	}
+}
+
 - (void)testBooleanValue
 {
 	@autoreleasepool {

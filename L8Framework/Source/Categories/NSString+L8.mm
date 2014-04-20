@@ -28,6 +28,32 @@
 
 using namespace v8;
 
+class L8ExternalStringResource : public String::ExternalStringResource
+{
+public:
+	NSString *_resource;
+
+	L8ExternalStringResource(NSString *resource) {
+		_resource = resource;
+	}
+
+	~L8ExternalStringResource() {
+		_resource = nil;
+	}
+
+	const uint16_t *data() const {
+		return (uint16_t *)[_resource cStringUsingEncoding:NSUTF16StringEncoding];
+	}
+
+	size_t length() const {
+		return [_resource length];
+	}
+
+	void Dispose() {
+		_resource = nil;
+	}
+};
+
 @implementation NSString (L8)
 
 + (NSString *)stringWithV8String:(Local<String>)v8string
@@ -37,6 +63,14 @@ using namespace v8;
 
 	if(v8string.IsEmpty())
 		return nil;
+
+	if(v8string->IsExternal()) {
+		L8ExternalStringResource *resource;
+
+		resource = reinterpret_cast<L8ExternalStringResource *>(v8string->GetExternalStringResource());
+
+		return resource->_resource;
+	}
 
 	buffer = (char *)malloc(v8string->Length()+1);
 	if(buffer == NULL)
@@ -64,8 +98,21 @@ using namespace v8;
 - (Local<String>)V8StringInIsolate:(Isolate *)isolate
 {
 	EscapableHandleScope scope(isolate);
+	Local<String> ret;
 
-	Local<String> ret = String::NewFromUtf8(isolate, [self UTF8String]);
+	if(self.length < 128) {
+		ret = String::NewFromUtf8(isolate,
+								  [self UTF8String],
+								  String::NewStringType::kNormalString,
+								  (int)[self length]);
+	} else {
+		L8ExternalStringResource *resource;
+
+		resource = new L8ExternalStringResource(self);
+
+		ret = String::NewExternal(isolate,
+								  resource);
+	}
 
 	return scope.Escape(ret);
 }
