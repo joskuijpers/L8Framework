@@ -300,18 +300,21 @@ using namespace v8;
 - (BOOL)isUndefined
 {
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
+	HandleScope localScope(isolate);
 	return Local<Value>::New(isolate,_v8value)->IsUndefined();
 }
 
 - (BOOL)isNull
 {
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
+	HandleScope localScope(isolate);
 	return Local<Value>::New(isolate,_v8value)->IsNull();
 }
 
 - (BOOL)isBoolean
 {
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
+	HandleScope localScope(isolate);
 	Local<Value> v8value = Local<Value>::New(isolate,_v8value);
 	return v8value->IsBoolean() || (v8value->IsNumber() && v8value->Uint32Value() <= 1);
 }
@@ -319,18 +322,21 @@ using namespace v8;
 - (BOOL)isNumber
 {
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
+	HandleScope localScope(isolate);
 	return Local<Value>::New(isolate,_v8value)->IsNumber();
 }
 
 - (BOOL)isString
 {
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
+	HandleScope localScope(isolate);
 	return Local<Value>::New(isolate,_v8value)->IsString();
 }
 
 - (BOOL)isObject
 {
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
+	HandleScope localScope(isolate);
 	Local<Value> v8value = Local<Value>::New(isolate,_v8value);
 	return v8value->IsObject() && !v8value->IsFunction();
 }
@@ -338,30 +344,35 @@ using namespace v8;
 - (BOOL)isFunction
 {
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
+	HandleScope localScope(isolate);
 	return Local<Value>::New(isolate,_v8value)->IsFunction();
 }
 
 - (BOOL)isRegularExpression
 {
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
+	HandleScope localScope(isolate);
 	return Local<Value>::New(isolate,_v8value)->IsRegExp();
 }
 
 - (BOOL)isNativeError
 {
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
+	HandleScope localScope(isolate);
 	return Local<Value>::New(isolate,_v8value)->IsNativeError();
 }
 
 - (BOOL)isEqualToObject:(id)value
 {
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
+	HandleScope localScope(isolate);
 	return 	Local<Value>::New(isolate,_v8value)->StrictEquals(objectToValue(isolate,_context,value));
 }
 
 - (BOOL)isEqualWithTypeCoercionToObject:(id)value
 {
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
+	HandleScope localScope(isolate);
 	return 	Local<Value>::New(isolate,_v8value)->Equals(objectToValue(isolate,_context,value));
 }
 
@@ -391,6 +402,7 @@ using namespace v8;
 - (void)throwValue
 {
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
+	HandleScope localScope(isolate);
 	isolate->ThrowException(Local<Value>::New(isolate,_v8value));
 }
 
