@@ -7,11 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		8024956018D26A3A0071F3C4 /* libicudata.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6A18D11A6200B16692 /* libicudata.a */; };
-		8024956118D26A3A0071F3C4 /* libicui18n.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6B18D11A6200B16692 /* libicui18n.a */; };
-		8024956218D26A3A0071F3C4 /* libicuuc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6C18D11A6200B16692 /* libicuuc.a */; };
-		8024956318D26A3A0071F3C4 /* libv8_base.x64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6D18D11A6200B16692 /* libv8_base.x64.a */; };
-		8024956418D26A3A0071F3C4 /* libv8_snapshot.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6E18D11A6200B16692 /* libv8_snapshot.a */; };
 		8024959818D2A8710071F3C4 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B2918D119ED00B16692 /* Foundation.framework */; };
 		8024959B18D2A8710071F3C4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 8024959A18D2A8710071F3C4 /* main.m */; };
 		8024959F18D2A8720071F3C4 /* L8Debugger.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8024959E18D2A8710071F3C4 /* L8Debugger.1 */; };
@@ -72,6 +67,11 @@
 		80477BC118D11BFC00B16692 /* L8ContextTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 80477BBD18D11BFC00B16692 /* L8ContextTests.m */; };
 		80477BC218D11BFC00B16692 /* L8ValueTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 80477BBE18D11BFC00B16692 /* L8ValueTests.m */; };
 		8049F80A18DA500B00B454F8 /* L8ExceptionTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 8049F80918DA500B00B454F8 /* L8ExceptionTests.m */; };
+		80A0A5561903E87100E73AA2 /* libicudata.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6A18D11A6200B16692 /* libicudata.a */; };
+		80A0A5571903E87100E73AA2 /* libicui18n.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6B18D11A6200B16692 /* libicui18n.a */; };
+		80A0A5581903E87100E73AA2 /* libicuuc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6C18D11A6200B16692 /* libicuuc.a */; };
+		80A0A5591903E87100E73AA2 /* libv8_base.x64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6D18D11A6200B16692 /* libv8_base.x64.a */; };
+		80A0A55A1903E87100E73AA2 /* libv8_snapshot.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6E18D11A6200B16692 /* libv8_snapshot.a */; };
 		80B682AB18D7FAF200445BF9 /* L8Export_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 80B682A918D7FAF200445BF9 /* L8Export_Private.h */; };
 		80B682AC18D7FAF200445BF9 /* L8Export.m in Sources */ = {isa = PBXBuildFile; fileRef = 80B682AA18D7FAF200445BF9 /* L8Export.m */; };
 		80B682B018D9001300445BF9 /* macros.h in Headers */ = {isa = PBXBuildFile; fileRef = 80B682AD18D8C8A500445BF9 /* macros.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -157,11 +157,11 @@
 		80477B6018D11A5100B16692 /* v8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = v8.h; path = v8/include/v8.h; sourceTree = SOURCE_ROOT; };
 		80477B6118D11A5100B16692 /* v8config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = v8config.h; path = v8/include/v8config.h; sourceTree = SOURCE_ROOT; };
 		80477B6218D11A5100B16692 /* v8stdint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = v8stdint.h; path = v8/include/v8stdint.h; sourceTree = SOURCE_ROOT; };
-		80477B6A18D11A6200B16692 /* libicudata.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libicudata.a; path = v8/xcodebuild/Release/libicudata.a; sourceTree = SOURCE_ROOT; };
-		80477B6B18D11A6200B16692 /* libicui18n.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libicui18n.a; path = v8/xcodebuild/Release/libicui18n.a; sourceTree = SOURCE_ROOT; };
-		80477B6C18D11A6200B16692 /* libicuuc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libicuuc.a; path = v8/xcodebuild/Release/libicuuc.a; sourceTree = SOURCE_ROOT; };
-		80477B6D18D11A6200B16692 /* libv8_base.x64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libv8_base.x64.a; path = v8/xcodebuild/Release/libv8_base.x64.a; sourceTree = SOURCE_ROOT; };
-		80477B6E18D11A6200B16692 /* libv8_snapshot.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libv8_snapshot.a; path = v8/xcodebuild/Release/libv8_snapshot.a; sourceTree = SOURCE_ROOT; };
+		80477B6A18D11A6200B16692 /* libicudata.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libicudata.a; sourceTree = "<group>"; };
+		80477B6B18D11A6200B16692 /* libicui18n.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libicui18n.a; sourceTree = "<group>"; };
+		80477B6C18D11A6200B16692 /* libicuuc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libicuuc.a; sourceTree = "<group>"; };
+		80477B6D18D11A6200B16692 /* libv8_base.x64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libv8_base.x64.a; sourceTree = "<group>"; };
+		80477B6E18D11A6200B16692 /* libv8_snapshot.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libv8_snapshot.a; sourceTree = "<group>"; };
 		80477B7818D11AA700B16692 /* L8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = L8.h; path = Headers/L8.h; sourceTree = "<group>"; };
 		80477B7918D11AA700B16692 /* L8Exception.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = L8Exception.h; path = Headers/L8Exception.h; sourceTree = "<group>"; };
 		80477B7A18D11AA700B16692 /* L8Export.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = L8Export.h; path = Headers/L8Export.h; sourceTree = "<group>"; };
@@ -240,11 +240,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8024956018D26A3A0071F3C4 /* libicudata.a in Frameworks */,
-				8024956118D26A3A0071F3C4 /* libicui18n.a in Frameworks */,
-				8024956218D26A3A0071F3C4 /* libicuuc.a in Frameworks */,
-				8024956318D26A3A0071F3C4 /* libv8_base.x64.a in Frameworks */,
-				8024956418D26A3A0071F3C4 /* libv8_snapshot.a in Frameworks */,
+				80A0A5561903E87100E73AA2 /* libicudata.a in Frameworks */,
+				80A0A5571903E87100E73AA2 /* libicui18n.a in Frameworks */,
+				80A0A5581903E87100E73AA2 /* libicuuc.a in Frameworks */,
+				80A0A5591903E87100E73AA2 /* libv8_base.x64.a in Frameworks */,
+				80A0A55A1903E87100E73AA2 /* libv8_snapshot.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -563,6 +563,7 @@
 				80477B6E18D11A6200B16692 /* libv8_snapshot.a */,
 			);
 			name = V8;
+			path = v8/xcodebuild/Debug;
 			sourceTree = "<group>";
 		};
 		8060610518D223C0003CC846 /* Supporting Files */ = {
@@ -1093,9 +1094,11 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/v8/xcodebuild/Release",
+					"$(PROJECT_DIR)/v8/xcodebuild/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				STRIP_INSTALLED_PRODUCT = NO;
 				WRAPPER_EXTENSION = framework;
 			};
 			name = Debug;
@@ -1115,9 +1118,11 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/v8/xcodebuild/Release",
+					"$(PROJECT_DIR)/v8/xcodebuild/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				STRIP_INSTALLED_PRODUCT = NO;
 				WRAPPER_EXTENSION = framework;
 			};
 			name = Release;

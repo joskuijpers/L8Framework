@@ -43,11 +43,11 @@
 
 @end
 
-v8::Local<v8::Value> objectToValue(L8Context *context, id object);
+v8::Local<v8::Value> objectToValue(v8::Isolate *isolate, L8Context *context, id object);
 
-id valueToObject(L8Context *context, v8::Local<v8::Value> value);
-NSNumber *valueToNumber(L8Context *context, v8::Local<v8::Value> value);
-NSString *valueToString(L8Context *context, v8::Local<v8::Value> value);
-NSDate *valueToDate(L8Context *context, v8::Local<v8::Value> value);
-NSArray *valueToArray(L8Context *context, v8::Local<v8::Value> value);
-NSDictionary *valueToDictionary(L8Context *context, v8::Local<v8::Value> value);
+id valueToObject(v8::Isolate *isolate, L8Context *context, v8::Local<v8::Value> value);
+NSNumber *valueToNumber(v8::Isolate *isolate, L8Context *context, v8::Local<v8::Value> value);
+NSString *valueToString(v8::Isolate *isolate, L8Context *context, v8::Local<v8::Value> value);
+NSDate *valueToDate(v8::Isolate *isolate, L8Context *context, v8::Local<v8::Value> value);
+NSArray *valueToArray(v8::Isolate *isolate, L8Context *context, v8::Local<v8::Value> value);
+NSDictionary *valueToDictionary(v8::Isolate *isolate, L8Context *context, v8::Local<v8::Value> value);

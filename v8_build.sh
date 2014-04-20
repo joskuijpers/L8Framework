@@ -25,7 +25,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-V8_OPTIONS="-Dv8_enable_disassembler=1 -Dv8_use_liveobjectlist=true -Dv8_deprecation_warnings=true"
+V8_OPTIONS="-Dv8_enable_disassembler=1 -Dv8_use_liveobjectlist=true -Dv8_deprecation_warnings=true -Dv8_enable_gdbjit=1"
 
 cd v8
 
@@ -46,7 +46,7 @@ echo "Creating Xcode projects..."
 build/gyp_v8 -Dtarget_arch=x64 || exit $?
 
 echo "Building V8..."
-xcodebuild -project build/all.xcodeproj -configuration Release -jobs 8 || exit $?
+xcodebuild -project build/all.xcodeproj -configuration Debug -jobs 8 || exit $?
 
 echo "Removing patches..."
 for patch in ../Patches/*; do

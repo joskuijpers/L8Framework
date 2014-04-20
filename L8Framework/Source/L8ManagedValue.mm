@@ -77,7 +77,7 @@ static void L8ManagedValueWeakReferenceCallback(const WeakCallbackData<Value, vo
 											valueOptions:NSPointerFunctionsOpaqueMemory | NSPointerFunctionsIntegerPersonality
 												capacity:1];
 
-		_persist.Reset(value.context.virtualMachine.V8Isolate, value.V8Value);
+		_persist.Reset(_context.virtualMachine.V8Isolate, value.V8Value);
 		void *p = (__bridge void *)self;
 		_persist.SetWeak(p, L8ManagedValueWeakReferenceCallback);
 	}
@@ -128,14 +128,17 @@ static void L8ManagedValueWeakReferenceCallback(const WeakCallbackData<Value, vo
 
 - (L8Value *)value
 {
+	Isolate *isolate = _context.virtualMachine.V8Isolate;
+	Context::Scope contextScope(_context.V8Context);
+	EscapableHandleScope localScope(isolate);
 	Local<Value> v;
 
 	if(_persist.IsEmpty())
 		return nil;
 
-	v = Local<Value>::New(_context.virtualMachine.V8Isolate, _persist);
+	v = Local<Value>::New(isolate, _persist);
 
-	return [L8Value valueWithV8Value:v inContext:_context];
+	return [L8Value valueWithV8Value:localScope.Escape(v) inContext:_context];
 }
 
 - (void)removeValue

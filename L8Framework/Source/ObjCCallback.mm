@@ -303,15 +303,15 @@ void objCSetInvocationArgument(Isolate *isolate, L8Context *context, NSInvocatio
 			else if(objectClass == [L8Value class])
 				value = val;
 			else if(objectClass == [NSString class])
-				value = valueToString(context, val.V8Value);
+				value = valueToString(isolate, context, val.V8Value);
 			else if(objectClass == [NSNumber class])
-				value = valueToNumber(context, val.V8Value);
+				value = valueToNumber(isolate, context, val.V8Value);
 			else if(objectClass == [NSDate class])
-				value = valueToDate(context, val.V8Value);
+				value = valueToDate(isolate, context, val.V8Value);
 			else if(objectClass == [NSArray class])
-				value = valueToArray(context, val.V8Value);
+				value = valueToArray(isolate, context, val.V8Value);
 			else if(objectClass == [NSDictionary class])
-				value = valueToObject(context, val.V8Value);
+				value = valueToObject(isolate, context, val.V8Value);
 			else
 				value = [val toObject];
 
@@ -349,7 +349,7 @@ Local<Value> handleInvocationException(Isolate *isolate, L8Context *context, id 
 		else
 			valueToThrow = Exception::Error(message);
 	} else
-		valueToThrow = objectToValue(context, exception);
+		valueToThrow = objectToValue(isolate, context, exception);
 
 	return isolate->ThrowException(valueToThrow);
 }
@@ -483,14 +483,14 @@ Local<Value> objCInvocation(Isolate *isolate,
 			assert(retLength == sizeof(char *));
 
 			[invocation getReturnValue:&string];
-			return objectToValue(context,@(string));
+			return objectToValue(isolate, context,@(string));
 		}
 		case '@': { // object
 			id __unsafe_unretained object;
 			assert(retLength == sizeof(id));
 
 			[invocation getReturnValue:&object];
-			return objectToValue(context, object);
+			return objectToValue(isolate, context, object);
 		}
 		case '#': { // Class
 			Class __unsafe_unretained classObject;
@@ -499,7 +499,7 @@ Local<Value> objCInvocation(Isolate *isolate,
 
 			// TODO find name of class if available
 
-			return objectToValue(context, classObject);
+			return objectToValue(isolate, context, classObject);
 		}
 			break;
 		case ':': // SEL
@@ -759,14 +759,15 @@ void ObjCNamedPropertyGetter(Local<String> property, const PropertyCallbackInfo<
 {
 	id object, value;
 	L8Context *context;
+	Isolate *isolate = info.GetIsolate();
 
 	object = l8_object_from_wrapper(info.This()->GetInternalField(0));
 	value = [object objectForKeyedSubscript:[NSString stringWithV8String:property]];
 
-	context = [L8Context contextWithV8Context:info.GetIsolate()->GetCurrentContext()];
+	context = [L8Context contextWithV8Context:isolate->GetCurrentContext()];
 
 	if(value)
-		info.GetReturnValue().Set(objectToValue(context, value));
+		info.GetReturnValue().Set(objectToValue(isolate, context, value));
 }
 
 void ObjCIndexedPropertySetter(uint32_t index, Local<Value> value, const PropertyCallbackInfo<Value>& info)
@@ -787,16 +788,17 @@ void ObjCIndexedPropertySetter(uint32_t index, Local<Value> value, const Propert
 
 void ObjCIndexedPropertyGetter(uint32_t index, const PropertyCallbackInfo<Value>& info)
 {
+	Isolate *isolate = info.GetIsolate();
 	id object, value;
 	L8Context *context;
 
 	object = l8_object_from_wrapper(info.This()->GetInternalField(0));
 	value = [object objectAtIndexedSubscript:index];
 
-	context = [L8Context contextWithV8Context:info.GetIsolate()->GetCurrentContext()];
+	context = [L8Context contextWithV8Context:isolate->GetCurrentContext()];
 
 	if(value)
-		info.GetReturnValue().Set(objectToValue(context, value));
+		info.GetReturnValue().Set(objectToValue(isolate, context, value));
 }
 
 void ObjCAccessorSetter(Local<String> property, Local<Value> value, const PropertyCallbackInfo<void> &info)
