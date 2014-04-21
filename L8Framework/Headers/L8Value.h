@@ -23,7 +23,7 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-@class L8Context;
+@class L8Context, L8ArrayBuffer;
 
 /**
  * @brief Wrapper of a JavaScript value.
@@ -152,6 +152,14 @@
  * @return The new JavaScript symbol.
  */
 + (instancetype)valueWithSymbol:(NSString *)symbol inContext:(L8Context *)context;
+
+/**
+ * Create a new Symbol.
+ *
+ * @param context The context to create the value in.
+ * @return The new JavaScript Symbol.
+ */
++ (instancetype)valueWithNewSymbolInContext:(L8Context *)context;
 #endif
 
 #ifdef L8_ENABLE_TYPED_ARRAYS
@@ -185,8 +193,7 @@
  * NSArray           |    Array object
  * NSDate            |     Date object
  * NSData            |  ArrayBuffer object
- * L8Symbol          |    Symbol object
- * L8TypedArray      |ArrayBufferView object
+ * L8Value           |    Symbol object
  * NSBlock *         |  Function object *
  * id **             |  Wrapper object **
  * Class ***         |Constructor object ***
@@ -352,7 +359,7 @@
  *
  * @return The NSData object containing the ArrayBuffer data.
  */
-- (NSData *)toData;
+- (L8ArrayBuffer *)toArrayBuffer;
 #endif
 
 /**
@@ -505,13 +512,6 @@
  * @return YES if this L8Value represents an ArrayBuffer. NO otherwise.
  */
 - (BOOL)isArrayBuffer;
-
-/**
- * Check if the L8Value is an ArrayBufferView.
- *
- * @return YES if this L8Value represents an ArrayBufferView. NO otherwise.
- */
-- (BOOL)isArrayBufferView;
 #endif
 
 /**

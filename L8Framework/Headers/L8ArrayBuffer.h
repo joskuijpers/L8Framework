@@ -20,63 +20,37 @@
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
 #import "l8-defs.h"
-#import "L8Value_Private.h"
-#import "L8TypedArray_Private.h"
 
 #ifdef L8_ENABLE_TYPED_ARRAYS
 
-using namespace v8;
+@class L8Value;
 
-@implementation L8TypedArray
+/**
+ * @brief Objective-C version of a JavaScript TypedArray.
+ */
+@interface L8ArrayBuffer : NSObject
 
-- (instancetype)initWithArrayBuffer:(L8Value *)arrayBuffer
-						 byteOffset:(size_t)byteOffset
-							 length:(size_t)length
-{
-	self = [super init];
-	if(self) {
-		_arrayBuffer = arrayBuffer;
-		_byteOffset = byteOffset;
-		_length = length;
-	}
-	return self;
-}
+/// The length of the buffer.
+@property (readonly) size_t length;
 
-- (instancetype)initWithV8Value:(Local<Value>)v8value
-{
-	L8Value *arrayBuffer;
-	Local<TypedArray> typedArray;
+/**
+ * A mutable data objec to the buffer data.
+ *
+ * @warning Do not change the size of the NSMutableData object.
+ */
+@property (readonly) NSMutableData *data;
 
-	typedArray = v8value.As<TypedArray>();
-
-	return [self initWithArrayBuffer:arrayBuffer
-						  byteOffset:typedArray->ByteOffset()
-							  length:typedArray->ByteLength()];
-}
-
-- (Local<Value>)createV8ValueInIsolate:(Isolate *)isolate
-{
-	Local<ArrayBufferView> ret;
-	Local<ArrayBuffer> arrayBuffer;
-
-	arrayBuffer = ([_arrayBuffer V8Value]).As<ArrayBuffer>();
-	ret = DataView::New(arrayBuffer,_byteOffset,_length);
-
-	return ret;
-}
-
-- (uint8_t *)mutableBytes
-{
-	NSData *data;
-
-	data = [_arrayBuffer toData];
-
-	return (uint8_t *)[data bytes] + _byteOffset;
-}
+/**
+ * Create a new ArrayBuffer with specified data.
+ *
+ * @param data The data.
+ * @return An initiailized ArrayBuffer, or nil on failure.
+ */
+- (instancetype)initWithData:(NSData *)data;
 
 @end
 

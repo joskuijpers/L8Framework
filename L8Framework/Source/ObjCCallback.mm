@@ -35,6 +35,7 @@
 #import "L8Exception_Private.h"
 #import "ObjCRuntime+L8.h"
 #import "NSString+L8.h"
+#import "L8ArrayBuffer_Private.h"
 
 #include "v8.h"
 
@@ -312,6 +313,8 @@ void objCSetInvocationArgument(Isolate *isolate, L8Context *context, NSInvocatio
 				value = valueToArray(isolate, context, val.V8Value);
 			else if(objectClass == [NSDictionary class])
 				value = valueToObject(isolate, context, val.V8Value);
+			else if(objectClass == [L8ArrayBuffer class])
+				value = valueToArrayBuffer(isolate, context, val.V8Value);
 			else
 				value = [val toObject];
 

@@ -32,7 +32,7 @@
 #import "L8WrapperMap.h"
 #import "NSString+L8.h"
 #import "L8Symbol_Private.h"
-#import "L8TypedArray_Private.h"
+#import "L8ArrayBuffer_Private.h"
 
 #include "v8.h"
 #import <objc/runtime.h>
@@ -126,6 +126,12 @@ using namespace v8;
 	return [self valueWithV8Value:Symbol::New(context.virtualMachine.V8Isolate,
 											  [symbol UTF8String],
 											  (int)symbol.length)
+						inContext:context];
+}
+
++ (instancetype)valueWithNewSymbolInContext:(L8Context *)context
+{
+	return [self valueWithV8Value:Symbol::New(context.virtualMachine.V8Isolate)
 						inContext:context];
 }
 #endif
@@ -241,12 +247,14 @@ using namespace v8;
 	return valueToDictionary(isolate, _context, Local<Value>::New(isolate,_v8value));
 }
 
-- (NSData *)toData
+#ifdef L8_ENABLE_TYPED_ARRAYS
+- (L8ArrayBuffer *)toArrayBuffer
 {
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
 	HandleScope localScope(isolate);
-	return valueToData(isolate, _context, Local<Value>::New(isolate,_v8value));
+	return [L8ArrayBuffer arrayBufferWithV8Value:Local<Value>::New(isolate,_v8value) inIsolate:isolate];
 }
+#endif
 
 #pragma mark Setting and getting properties
 
@@ -701,13 +709,8 @@ static JavaScriptContainerConverter::Job valueToObjectWithoutCopy(Isolate *isola
 			primitive = [NSNull null];
 #ifdef L8_ENABLE_SYMBOLS
 		else if(value->IsSymbol())
-			primitive = [[L8Symbol alloc] initWithV8Value:value];
-#endif
-#ifdef L8_ENABLE_TYPED_ARRAYS
-		else if(value->IsArrayBuffer())
-			primitive = valueToData(isolate, [L8Context contextWithV8Context:v8context], value);
-		else if(value->IsArrayBufferView())
-			primitive = [[L8TypedArray alloc] initWithV8Value:value];
+			primitive = [L8Value valueWithV8Value:value
+										inContext:[L8Context contextWithV8Context:v8context]];
 #endif
 		else {
 			assert(value->IsUndefined());
@@ -725,6 +728,11 @@ static JavaScriptContainerConverter::Job valueToObjectWithoutCopy(Isolate *isola
 
 	if(object->IsArray())
 		return (JavaScriptContainerConverter::Job){ object, [NSMutableArray array], COLLECTION_ARRAY };
+
+#ifdef L8_ENABLE_TYPED_ARRAYS
+	if(object->IsArrayBuffer())
+		return (JavaScriptContainerConverter::Job) { object, [L8ArrayBuffer arrayBufferWithV8Value:object inIsolate:isolate], COLLECTION_NONE };
+#endif
 
 	return (JavaScriptContainerConverter::Job){ object, [NSMutableDictionary dictionary], COLLECTION_DICTIONARY };
 }
@@ -800,11 +808,6 @@ NSString *valueToString(Isolate *isolate, L8Context *context, Local<Value> value
 	if(value.IsEmpty())
 		return nil;
 
-#ifdef L8_ENABLE_SYMBOLS
-	if(value->IsSymbol())
-		return [NSString stringWithV8Value:value.As<Symbol>()->Name() inIsolate:isolate];
-#endif
-
 	return [NSString stringWithV8String:value->ToString()];
 }
 
@@ -852,24 +855,10 @@ NSDictionary *valueToDictionary(Isolate *isolate, L8Context *context, Local<Valu
 	return nil;
 }
 
-/**
- TODO; Create a wrapper class for ArrayBuffer
- It contains Length and pointer to the Buffer
- Make it have a strong handle to itself
- Plust a Persistent handle to the arraybuffer
- In weak callback, reset persistent handle and self_strong
- 
- when destructed, call free() on the buffer
- */
-
-NSData *valueToData(Isolate *isolate, L8Context *context, Local<Value> value)
+L8ArrayBuffer *valueToArrayBuffer(Isolate *isolate, L8Context *context, Local<Value> value)
 {
-	Local<ArrayBuffer> arrayBuffer;
-	NSData *data;
-	ArrayBuffer::Contents contents;
-
 	id wrapped = l8_unwrap_objc_object(isolate, value);
-	if(wrapped && [wrapped isKindOfClass:[NSDictionary class]]) {
+	if(wrapped && [wrapped isKindOfClass:[L8ArrayBuffer class]]) {
 		return wrapped;
 	}
 
@@ -878,30 +867,7 @@ NSData *valueToData(Isolate *isolate, L8Context *context, Local<Value> value)
 	if(!value->IsArrayBuffer())
 		return nil;
 
-	arrayBuffer = value.As<ArrayBuffer>();
-	if(arrayBuffer->IsExternal()) {
-		data = (__bridge NSData *)arrayBuffer->GetAlignedPointerFromInternalField(0);
-		return data;
-	}
-
-	contents = arrayBuffer->Externalize();
-	data = [NSData dataWithBytes:contents.Data() length:contents.ByteLength()];
-	// OR NOCOPY (+ FREE)
-
-	arrayBuffer->SetAlignedPointerInInternalField(0, (__bridge_retained void *)data);
-
-	return data;
-}
-
-Local<Value> dataToValue(Isolate *isolate, NSData *data)
-{
-	Local<ArrayBuffer> ret;
-#warning TODO
-
-	ret = ArrayBuffer::New(isolate, (void *)data.bytes, data.length);
-	ret->SetAlignedPointerInInternalField(0, (__bridge_retained void *)data);
-
-	return ret;
+	return [L8ArrayBuffer arrayBufferWithV8Value:value inIsolate:isolate];
 }
 
 class ObjCContainerConverter
@@ -1001,11 +967,8 @@ static ObjCContainerConverter::Job objectToValueWithoutCopy(Isolate *isolate, L8
 #endif
 
 #ifdef L8_ENABLE_TYPED_ARRAYS
-		if([object isKindOfClass:[NSData class]])
-			return (ObjCContainerConverter::Job){object, dataToValue(isolate, (NSData *)object), COLLECTION_NONE};
-
-		if([object isKindOfClass:[L8TypedArray class]])
-			return (ObjCContainerConverter::Job){object, [(L8TypedArray *)object createV8ValueInIsolate:isolate], COLLECTION_NONE};
+		if([object isKindOfClass:[L8ArrayBuffer class]])
+			return (ObjCContainerConverter::Job){object, [(L8ArrayBuffer *)object V8Value], COLLECTION_NONE};
 #endif
 
 		if([object isKindOfClass:[L8ManagedValue class]]) {

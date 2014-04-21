@@ -23,27 +23,17 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
-#import "L8TypedArray.h"
+#import "L8ArrayBuffer.h"
 #import "v8.h"
 
 #ifdef L8_ENABLE_TYPED_ARRAYS
 
-@interface L8TypedArray ()
+@interface L8ArrayBuffer ()
 
-/**
- * Create a new L8TypedArray using an existing V8 TypedArray.
- *
- * @param v8value The V8 value.
- * @return The new L8TypedArray object.
- */
-- (instancetype)initWithV8Value:(v8::Local<v8::Value>)v8value;
++ (instancetype)arrayBufferWithV8Value:(v8::Local<v8::Value>)v8value
+							 inIsolate:(v8::Isolate *)isolate;
 
-/**
- * Create a matching V8 TypedArray for the L8TypedArray.
- *
- * @return A V8 value containing the correct TypedArray object.
- */
-- (v8::Local<v8::Value>)createV8ValueInIsolate:(v8::Isolate *)isolate;
+- (v8::Local<v8::Value>)V8Value;
 
 @end
 
