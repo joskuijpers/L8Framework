@@ -20,34 +20,23 @@
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
+
+#import "l8-defs.h"
+
+#ifdef L8_ENABLE_TYPED_ARRAYS
+# include "v8.h"
 
 /**
- * When transferring JavaScript exceptions, Objective-C
- * exceptions are thrown when a JavaScript exception is caught.
- *
- * When not transferring, the exception handling block of 
- * L8Reporter is called instead.
+ * @brief The allocator for ArrayBuffers: TypedArrays.
  */
-#define L8_TRANSFER_JS_EXCEPTIONS
+class L8ArrayBufferAllocator : public v8::ArrayBuffer::Allocator
+{
+public:
+	virtual void *Allocate(size_t length);
+	virtual void* AllocateUninitialized(size_t length);
+	virtual void Free(void *data, size_t length);
+};
 
-/**
- * Enables typed arrays and their encapsulation.
- */
-#define L8_ENABLE_TYPED_ARRAYS
-
-/**
- * Enables symbols and their encapsulation.
- *
- * Enables an experimental V8 harmony feature.
- */
-#define L8_ENABLE_SYMBOLS
-
-//#define L8_OBJC_OBJFW
-
-#pragma mark Definitions dependent on configuration
-
-#ifndef L8_OBJC_OBJFW
-# define L8_OBJC_FOUNDATION
 #endif

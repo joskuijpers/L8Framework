@@ -20,34 +20,35 @@
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
+
+#import "l8-defs.h"
+
+#ifdef L8_ENABLE_TYPED_ARRAYS
+
+@class L8Value;
 
 /**
- * When transferring JavaScript exceptions, Objective-C
- * exceptions are thrown when a JavaScript exception is caught.
- *
- * When not transferring, the exception handling block of 
- * L8Reporter is called instead.
+ * @brief Objective-C version of a JavaScript TypedArray.
  */
-#define L8_TRANSFER_JS_EXCEPTIONS
+@interface L8TypedArray : NSObject
 
-/**
- * Enables typed arrays and their encapsulation.
- */
-#define L8_ENABLE_TYPED_ARRAYS
+/// The array buffer.
+@property (readonly) L8Value *arrayBuffer;
 
-/**
- * Enables symbols and their encapsulation.
- *
- * Enables an experimental V8 harmony feature.
- */
-#define L8_ENABLE_SYMBOLS
+/// Byte offset within the buffer.
+@property (readonly) size_t byteOffset;
 
-//#define L8_OBJC_OBJFW
+/// Length of the view.
+@property (readonly) size_t length;
 
-#pragma mark Definitions dependent on configuration
+- (instancetype)initWithArrayBuffer:(L8Value *)arrayBuffer
+						 byteOffset:(size_t)byteOffset
+							 length:(size_t)length;
 
-#ifndef L8_OBJC_OBJFW
-# define L8_OBJC_FOUNDATION
+- (uint8_t *)mutableBytes;
+
+@end
+
 #endif

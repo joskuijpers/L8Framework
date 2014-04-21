@@ -20,34 +20,24 @@
  * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
- * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
  */
 
+#import "L8Symbol.h"
+#import "v8.h"
+
+#ifdef L8_ENABLE_SYMBOLS
+
+@interface L8Symbol ()
+
 /**
- * When transferring JavaScript exceptions, Objective-C
- * exceptions are thrown when a JavaScript exception is caught.
+ * Create a new L8Symbol using an existing V8 Symbol.
  *
- * When not transferring, the exception handling block of 
- * L8Reporter is called instead.
+ * @param v8value The V8 value.
+ * @return The new L8Symbol object.
  */
-#define L8_TRANSFER_JS_EXCEPTIONS
+- (instancetype)initWithV8Value:(v8::Local<v8::Value>)v8value;
 
-/**
- * Enables typed arrays and their encapsulation.
- */
-#define L8_ENABLE_TYPED_ARRAYS
+@end
 
-/**
- * Enables symbols and their encapsulation.
- *
- * Enables an experimental V8 harmony feature.
- */
-#define L8_ENABLE_SYMBOLS
-
-//#define L8_OBJC_OBJFW
-
-#pragma mark Definitions dependent on configuration
-
-#ifndef L8_OBJC_OBJFW
-# define L8_OBJC_FOUNDATION
 #endif

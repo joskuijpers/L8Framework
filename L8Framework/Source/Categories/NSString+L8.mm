@@ -83,11 +83,21 @@ public:
 	return ret;
 }
 
++ (NSString *)stringWithV8Value:(v8::Local<v8::Value>)v8value
+{
+	return [self stringWithV8Value:v8value inIsolate:NULL];
+}
+
 + (NSString *)stringWithV8Value:(Local<Value>)v8value
 						inIsolate:(Isolate *)isolate
 {
 	if(v8value.IsEmpty())
 		return nil;
+
+	if(isolate == NULL)
+		// We are allowed to do this, as the only reason we need an isolate
+		// is to _temporarily_ convert a Value to a String.
+		isolate = Isolate::GetCurrent();
 
 	HandleScope handleScope(isolate);
 	Local<String> string = v8value->ToString();

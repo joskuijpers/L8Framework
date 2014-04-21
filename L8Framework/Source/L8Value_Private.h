@@ -51,3 +51,4 @@ NSString *valueToString(v8::Isolate *isolate, L8Context *context, v8::Local<v8::
 NSDate *valueToDate(v8::Isolate *isolate, L8Context *context, v8::Local<v8::Value> value);
 NSArray *valueToArray(v8::Isolate *isolate, L8Context *context, v8::Local<v8::Value> value);
 NSDictionary *valueToDictionary(v8::Isolate *isolate, L8Context *context, v8::Local<v8::Value> value);
+NSData *valueToData(v8::Isolate *isolate, L8Context *context, v8::Local<v8::Value> value);

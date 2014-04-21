@@ -23,31 +23,61 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * When transferring JavaScript exceptions, Objective-C
- * exceptions are thrown when a JavaScript exception is caught.
- *
- * When not transferring, the exception handling block of 
- * L8Reporter is called instead.
- */
-#define L8_TRANSFER_JS_EXCEPTIONS
+#import "l8-defs.h"
+#import "L8Value_Private.h"
+#import "L8TypedArray_Private.h"
 
-/**
- * Enables typed arrays and their encapsulation.
- */
-#define L8_ENABLE_TYPED_ARRAYS
+#ifdef L8_ENABLE_TYPED_ARRAYS
 
-/**
- * Enables symbols and their encapsulation.
- *
- * Enables an experimental V8 harmony feature.
- */
-#define L8_ENABLE_SYMBOLS
+using namespace v8;
 
-//#define L8_OBJC_OBJFW
+@implementation L8TypedArray
 
-#pragma mark Definitions dependent on configuration
+- (instancetype)initWithArrayBuffer:(L8Value *)arrayBuffer
+						 byteOffset:(size_t)byteOffset
+							 length:(size_t)length
+{
+	self = [super init];
+	if(self) {
+		_arrayBuffer = arrayBuffer;
+		_byteOffset = byteOffset;
+		_length = length;
+	}
+	return self;
+}
 
-#ifndef L8_OBJC_OBJFW
-# define L8_OBJC_FOUNDATION
+- (instancetype)initWithV8Value:(Local<Value>)v8value
+{
+	L8Value *arrayBuffer;
+	Local<TypedArray> typedArray;
+
+	typedArray = v8value.As<TypedArray>();
+
+	return [self initWithArrayBuffer:arrayBuffer
+						  byteOffset:typedArray->ByteOffset()
+							  length:typedArray->ByteLength()];
+}
+
+- (Local<Value>)createV8ValueInIsolate:(Isolate *)isolate
+{
+	Local<ArrayBufferView> ret;
+	Local<ArrayBuffer> arrayBuffer;
+
+	arrayBuffer = ([_arrayBuffer V8Value]).As<ArrayBuffer>();
+	ret = DataView::New(arrayBuffer,_byteOffset,_length);
+
+	return ret;
+}
+
+- (uint8_t *)mutableBytes
+{
+	NSData *data;
+
+	data = [_arrayBuffer toData];
+
+	return (uint8_t *)[data bytes] + _byteOffset;
+}
+
+@end
+
 #endif

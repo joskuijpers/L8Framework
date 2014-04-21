@@ -28,8 +28,11 @@
 #import "L8Value_Private.h"
 #import "L8ManagedValue_Private.h"
 #import "L8WrapperMap.h"
+#import "L8ArrayBufferAllocator.h"
 
 using namespace v8;
+
+static L8ArrayBufferAllocator *g_l8_array_buffer_allocator = nullptr;
 
 @implementation L8VirtualMachine {
 	Isolate *_v8isolate;
@@ -45,6 +48,8 @@ using namespace v8;
 {
 	self = [super init];
 	if(self) {
+		[L8VirtualMachine initializeV8];
+
 		_v8isolate = Isolate::New();
 		_v8isolate->Enter();
 
@@ -54,6 +59,25 @@ using namespace v8;
 
 	}
 	return self;
+}
+
++ (void)initializeV8
+{
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
+#ifdef L8_ENABLE_TYPED_ARRAYS
+		{
+			g_l8_array_buffer_allocator = new L8ArrayBufferAllocator();
+			V8::SetArrayBufferAllocator(g_l8_array_buffer_allocator);
+		}
+#endif
+#ifdef L8_ENABLE_SYMBOLS
+		{
+			const char *flag = "--harmony_symbols";
+			V8::SetFlagsFromString(flag, (int)strlen(flag));
+		}
+#endif
+	});
 }
 
 - (void)dealloc

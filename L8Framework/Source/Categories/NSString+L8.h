@@ -49,6 +49,14 @@
 					  inIsolate:(v8::Isolate *)isolate;
 
 /**
+ * Get an NSString from a v8::Value.
+ *
+ * @param v8string The v8::Value.
+ * @return An NSString with the same string as v8string.
+ */
++ (NSString *)stringWithV8Value:(v8::Local<v8::Value>)v8value;
+
+/**
  * Get a v8::String from an NSString.
  *
  * @param isolate The isolate to store the object into.

@@ -23,31 +23,33 @@
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * When transferring JavaScript exceptions, Objective-C
- * exceptions are thrown when a JavaScript exception is caught.
- *
- * When not transferring, the exception handling block of 
- * L8Reporter is called instead.
- */
-#define L8_TRANSFER_JS_EXCEPTIONS
+#import "l8-defs.h"
+#import "L8Symbol_Private.h"
+#import "NSString+L8.h"
 
-/**
- * Enables typed arrays and their encapsulation.
- */
-#define L8_ENABLE_TYPED_ARRAYS
+#ifdef L8_ENABLE_SYMBOLS
 
-/**
- * Enables symbols and their encapsulation.
- *
- * Enables an experimental V8 harmony feature.
- */
-#define L8_ENABLE_SYMBOLS
+using namespace v8;
 
-//#define L8_OBJC_OBJFW
+@implementation L8Symbol
 
-#pragma mark Definitions dependent on configuration
+- (instancetype)initWithName:(NSString *)name
+{
+	self = [super init];
+	if(self) {
+		_name = [name copy];
+	}
+	return self;
+}
 
-#ifndef L8_OBJC_OBJFW
-# define L8_OBJC_FOUNDATION
+- (instancetype)initWithV8Value:(Local<Value>)v8value
+{
+	NSString *name;
+
+	name = [NSString stringWithV8Value:v8value];
+
+	return [self initWithName:name];
+}
+
+@end
 #endif

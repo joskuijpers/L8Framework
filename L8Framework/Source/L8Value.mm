@@ -31,6 +31,8 @@
 #import "L8Export.h"
 #import "L8WrapperMap.h"
 #import "NSString+L8.h"
+#import "L8Symbol_Private.h"
+#import "L8TypedArray_Private.h"
 
 #include "v8.h"
 #import <objc/runtime.h>
@@ -117,6 +119,25 @@ using namespace v8;
 {
 	return [self valueWithV8Value:Undefined(context.virtualMachine.V8Isolate) inContext:context];
 }
+
+#ifdef L8_ENABLE_SYMBOLS
++ (instancetype)valueWithSymbol:(NSString *)symbol inContext:(L8Context *)context
+{
+	return [self valueWithV8Value:Symbol::New(context.virtualMachine.V8Isolate,
+											  [symbol UTF8String],
+											  (int)symbol.length)
+						inContext:context];
+}
+#endif
+
+#ifdef L8_ENABLE_TYPED_ARRAYS
++ (instancetype)valueWithArrayBufferOfLength:(size_t)length inContext:(L8Context *)context
+{
+	return [self valueWithV8Value:ArrayBuffer::New(context.virtualMachine.V8Isolate,
+												   length)
+						inContext:context];
+}
+#endif
 
 #pragma mark Object conversions
 
@@ -218,6 +239,13 @@ using namespace v8;
 	Isolate *isolate = _context.virtualMachine.V8Isolate;
 	HandleScope localScope(isolate);
 	return valueToDictionary(isolate, _context, Local<Value>::New(isolate,_v8value));
+}
+
+- (NSData *)toData
+{
+	Isolate *isolate = _context.virtualMachine.V8Isolate;
+	HandleScope localScope(isolate);
+	return valueToData(isolate, _context, Local<Value>::New(isolate,_v8value));
 }
 
 #pragma mark Setting and getting properties
@@ -361,6 +389,31 @@ using namespace v8;
 	HandleScope localScope(isolate);
 	return Local<Value>::New(isolate,_v8value)->IsNativeError();
 }
+
+#ifdef L8_ENABLE_SYMBOLS
+- (BOOL)isSymbol
+{
+	Isolate *isolate = _context.virtualMachine.V8Isolate;
+	HandleScope localScope(isolate);
+	return Local<Value>::New(isolate,_v8value)->IsSymbol();
+}
+#endif
+
+#ifdef L8_ENABLE_TYPED_ARRAYS
+- (BOOL)isArrayBuffer
+{
+	Isolate *isolate = _context.virtualMachine.V8Isolate;
+	HandleScope localScope(isolate);
+	return Local<Value>::New(isolate,_v8value)->IsArrayBuffer();
+}
+
+- (BOOL)isArrayBufferView
+{
+	Isolate *isolate = _context.virtualMachine.V8Isolate;
+	HandleScope localScope(isolate);
+	return Local<Value>::New(isolate,_v8value)->IsArrayBufferView();
+}
+#endif
 
 - (BOOL)isEqualToObject:(id)value
 {
@@ -646,6 +699,16 @@ static JavaScriptContainerConverter::Job valueToObjectWithoutCopy(Isolate *isola
 			primitive = [NSString stringWithV8Value:value inIsolate:v8context->GetIsolate()];
 		else if(value->IsNull())
 			primitive = [NSNull null];
+#ifdef L8_ENABLE_SYMBOLS
+		else if(value->IsSymbol())
+			primitive = [[L8Symbol alloc] initWithV8Value:value];
+#endif
+#ifdef L8_ENABLE_TYPED_ARRAYS
+		else if(value->IsArrayBuffer())
+			primitive = valueToData(isolate, [L8Context contextWithV8Context:v8context], value);
+		else if(value->IsArrayBufferView())
+			primitive = [[L8TypedArray alloc] initWithV8Value:value];
+#endif
 		else {
 			assert(value->IsUndefined());
 			primitive = nil;
@@ -737,6 +800,11 @@ NSString *valueToString(Isolate *isolate, L8Context *context, Local<Value> value
 	if(value.IsEmpty())
 		return nil;
 
+#ifdef L8_ENABLE_SYMBOLS
+	if(value->IsSymbol())
+		return [NSString stringWithV8Value:value.As<Symbol>()->Name() inIsolate:isolate];
+#endif
+
 	return [NSString stringWithV8String:value->ToString()];
 }
 
@@ -782,6 +850,58 @@ NSDictionary *valueToDictionary(Isolate *isolate, L8Context *context, Local<Valu
 									   reason:@"Cannot convert to Dictionary" userInfo:nil];
 
 	return nil;
+}
+
+/**
+ TODO; Create a wrapper class for ArrayBuffer
+ It contains Length and pointer to the Buffer
+ Make it have a strong handle to itself
+ Plust a Persistent handle to the arraybuffer
+ In weak callback, reset persistent handle and self_strong
+ 
+ when destructed, call free() on the buffer
+ */
+
+NSData *valueToData(Isolate *isolate, L8Context *context, Local<Value> value)
+{
+	Local<ArrayBuffer> arrayBuffer;
+	NSData *data;
+	ArrayBuffer::Contents contents;
+
+	id wrapped = l8_unwrap_objc_object(isolate, value);
+	if(wrapped && [wrapped isKindOfClass:[NSDictionary class]]) {
+		return wrapped;
+	}
+
+	if(value->IsNull() || value->IsUndefined())
+		return nil;
+	if(!value->IsArrayBuffer())
+		return nil;
+
+	arrayBuffer = value.As<ArrayBuffer>();
+	if(arrayBuffer->IsExternal()) {
+		data = (__bridge NSData *)arrayBuffer->GetAlignedPointerFromInternalField(0);
+		return data;
+	}
+
+	contents = arrayBuffer->Externalize();
+	data = [NSData dataWithBytes:contents.Data() length:contents.ByteLength()];
+	// OR NOCOPY (+ FREE)
+
+	arrayBuffer->SetAlignedPointerInInternalField(0, (__bridge_retained void *)data);
+
+	return data;
+}
+
+Local<Value> dataToValue(Isolate *isolate, NSData *data)
+{
+	Local<ArrayBuffer> ret;
+#warning TODO
+
+	ret = ArrayBuffer::New(isolate, (void *)data.bytes, data.length);
+	ret->SetAlignedPointerInInternalField(0, (__bridge_retained void *)data);
+
+	return ret;
 }
 
 class ObjCContainerConverter
@@ -872,6 +992,21 @@ static ObjCContainerConverter::Job objectToValueWithoutCopy(Isolate *isolate, L8
 
 		if([object isKindOfClass:BlockClass()])
 			return (ObjCContainerConverter::Job){object, [[context wrapperForObjCObject:object] V8Value], COLLECTION_NONE};
+
+#ifdef L8_ENABLE_SYMBOLS
+		if([object isKindOfClass:[L8Symbol class]]) {
+			NSString *name = [(L8Symbol *)object name];
+			return (ObjCContainerConverter::Job){object, Symbol::New(isolate,[name UTF8String],(int)name.length), COLLECTION_NONE};
+		}
+#endif
+
+#ifdef L8_ENABLE_TYPED_ARRAYS
+		if([object isKindOfClass:[NSData class]])
+			return (ObjCContainerConverter::Job){object, dataToValue(isolate, (NSData *)object), COLLECTION_NONE};
+
+		if([object isKindOfClass:[L8TypedArray class]])
+			return (ObjCContainerConverter::Job){object, [(L8TypedArray *)object createV8ValueInIsolate:isolate], COLLECTION_NONE};
+#endif
 
 		if([object isKindOfClass:[L8ManagedValue class]]) {
 			L8Value *value;

@@ -34,3 +34,10 @@
 #import "L8NativeException.h"
 #import "L8StackTrace.h"
 #import "L8VirtualMachine.h"
+
+#ifdef L8_ENABLE_SYMBOLS
+# import "L8Symbol.h"
+#endif
+#ifdef L8_ENABLE_TYPED_ARRAYS
+# import "L8TypedArray.h"
+#endif
