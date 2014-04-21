@@ -74,8 +74,6 @@
 		80A0A55A1903E87100E73AA2 /* libv8_snapshot.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B6E18D11A6200B16692 /* libv8_snapshot.a */; };
 		80A0A571190533B800E73AA2 /* L8ArrayBufferAllocator.mm in Sources */ = {isa = PBXBuildFile; fileRef = 80A0A56F190533B800E73AA2 /* L8ArrayBufferAllocator.mm */; };
 		80A0A572190533B800E73AA2 /* L8ArrayBufferAllocator.h in Headers */ = {isa = PBXBuildFile; fileRef = 80A0A570190533B800E73AA2 /* L8ArrayBufferAllocator.h */; };
-		80A0A5751905483D00E73AA2 /* L8Symbol.h in Headers */ = {isa = PBXBuildFile; fileRef = 80A0A5731905483D00E73AA2 /* L8Symbol.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		80A0A5761905483D00E73AA2 /* L8Symbol.mm in Sources */ = {isa = PBXBuildFile; fileRef = 80A0A5741905483D00E73AA2 /* L8Symbol.mm */; };
 		80A0A5791905484900E73AA2 /* L8ArrayBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 80A0A5771905484900E73AA2 /* L8ArrayBuffer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		80A0A57C1905489200E73AA2 /* L8ArrayBuffer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 80A0A57B1905489200E73AA2 /* L8ArrayBuffer.mm */; };
 		80B682AB18D7FAF200445BF9 /* L8Export_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 80B682A918D7FAF200445BF9 /* L8Export_Private.h */; };
@@ -210,11 +208,8 @@
 		8060610818D223D4003CC846 /* v8_build.patch */ = {isa = PBXFileReference; lastKnownFileType = text; path = v8_build.patch; sourceTree = "<group>"; };
 		80A0A56F190533B800E73AA2 /* L8ArrayBufferAllocator.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = L8ArrayBufferAllocator.mm; sourceTree = "<group>"; };
 		80A0A570190533B800E73AA2 /* L8ArrayBufferAllocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = L8ArrayBufferAllocator.h; sourceTree = "<group>"; };
-		80A0A5731905483D00E73AA2 /* L8Symbol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = L8Symbol.h; path = Headers/L8Symbol.h; sourceTree = "<group>"; };
-		80A0A5741905483D00E73AA2 /* L8Symbol.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = L8Symbol.mm; path = Source/L8Symbol.mm; sourceTree = "<group>"; };
 		80A0A5771905484900E73AA2 /* L8ArrayBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = L8ArrayBuffer.h; path = Headers/L8ArrayBuffer.h; sourceTree = "<group>"; };
 		80A0A57B1905489200E73AA2 /* L8ArrayBuffer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = L8ArrayBuffer.mm; path = Source/L8ArrayBuffer.mm; sourceTree = "<group>"; };
-		80A0A57D19054A2500E73AA2 /* L8Symbol_Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = L8Symbol_Private.h; sourceTree = "<group>"; };
 		80A0A57E19054A5800E73AA2 /* L8ArrayBuffer_Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = L8ArrayBuffer_Private.h; sourceTree = "<group>"; };
 		80B682A918D7FAF200445BF9 /* L8Export_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = L8Export_Private.h; sourceTree = "<group>"; };
 		80B682AA18D7FAF200445BF9 /* L8Export.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = L8Export.m; sourceTree = "<group>"; };
@@ -488,7 +483,6 @@
 				80477B9018D11AB600B16692 /* L8NativeException.mm */,
 				80477B9218D11AB600B16692 /* L8Reporter.mm */,
 				80477B9618D11AB600B16692 /* L8StackTrace.mm */,
-				80A0A5741905483D00E73AA2 /* L8Symbol.mm */,
 				80477B9818D11AB600B16692 /* L8Value.mm */,
 				80E5141F18D678ED007B436E /* L8VirtualMachine.mm */,
 				80B682AD18D8C8A500445BF9 /* macros.h */,
@@ -524,7 +518,6 @@
 				80477B8018D11AA700B16692 /* L8StackTrace.h */,
 				80477B8118D11AA700B16692 /* L8Value.h */,
 				80E5141E18D678ED007B436E /* L8VirtualMachine.h */,
-				80A0A5731905483D00E73AA2 /* L8Symbol.h */,
 				80A0A5771905484900E73AA2 /* L8ArrayBuffer.h */,
 			);
 			name = Public;
@@ -569,7 +562,6 @@
 				80477B9518D11AB600B16692 /* L8StackTrace_Private.h */,
 				80477B9718D11AB600B16692 /* L8Value_Private.h */,
 				80E5142218D67954007B436E /* L8VirtualMachine_Private.h */,
-				80A0A57D19054A2500E73AA2 /* L8Symbol_Private.h */,
 				80A0A57E19054A5800E73AA2 /* L8ArrayBuffer_Private.h */,
 			);
 			name = Extensions;
@@ -631,7 +623,6 @@
 				80B682B018D9001300445BF9 /* macros.h in Headers */,
 				80477BB718D11B0000B16692 /* l8-defs.h in Headers */,
 				80A0A5791905484900E73AA2 /* L8ArrayBuffer.h in Headers */,
-				80A0A5751905483D00E73AA2 /* L8Symbol.h in Headers */,
 				80A0A572190533B800E73AA2 /* L8ArrayBufferAllocator.h in Headers */,
 				80E5142018D678ED007B436E /* L8VirtualMachine.h in Headers */,
 				80477B6518D11A5100B16692 /* v8-profiler.h in Headers */,
@@ -876,7 +867,6 @@
 				80477BB518D11AD700B16692 /* ObjCRuntime+L8.mm in Sources */,
 				80477BA918D11AB600B16692 /* L8Value.mm in Sources */,
 				80477BA718D11AB600B16692 /* L8StackTrace.mm in Sources */,
-				80A0A5761905483D00E73AA2 /* L8Symbol.mm in Sources */,
 				80B682AC18D7FAF200445BF9 /* L8Export.m in Sources */,
 				80477BA018D11AB600B16692 /* L8ManagedValue.mm in Sources */,
 				80A0A571190533B800E73AA2 /* L8ArrayBufferAllocator.mm in Sources */,

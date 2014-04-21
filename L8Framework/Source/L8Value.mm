@@ -31,7 +31,6 @@
 #import "L8Export.h"
 #import "L8WrapperMap.h"
 #import "NSString+L8.h"
-#import "L8Symbol_Private.h"
 #import "L8ArrayBuffer_Private.h"
 
 #include "v8.h"
@@ -958,13 +957,6 @@ static ObjCContainerConverter::Job objectToValueWithoutCopy(Isolate *isolate, L8
 
 		if([object isKindOfClass:BlockClass()])
 			return (ObjCContainerConverter::Job){object, [[context wrapperForObjCObject:object] V8Value], COLLECTION_NONE};
-
-#ifdef L8_ENABLE_SYMBOLS
-		if([object isKindOfClass:[L8Symbol class]]) {
-			NSString *name = [(L8Symbol *)object name];
-			return (ObjCContainerConverter::Job){object, Symbol::New(isolate,[name UTF8String],(int)name.length), COLLECTION_NONE};
-		}
-#endif
 
 #ifdef L8_ENABLE_TYPED_ARRAYS
 		if([object isKindOfClass:[L8ArrayBuffer class]])
