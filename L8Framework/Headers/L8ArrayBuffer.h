@@ -37,12 +37,8 @@
 /// The length of the buffer.
 @property (readonly) size_t length;
 
-/**
- * A mutable data objec to the buffer data.
- *
- * @warning Do not change the size of the NSMutableData object.
- */
-@property (readonly) NSMutableData *data;
+/// The buffer.
+@property (readonly) void *buffer;
 
 /**
  * Create a new ArrayBuffer with specified data.

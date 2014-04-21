@@ -508,17 +508,17 @@
 			isa = PBXGroup;
 			children = (
 				80477B7818D11AA700B16692 /* L8.h */,
+				80A0A5771905484900E73AA2 /* L8ArrayBuffer.h */,
+				80477B7F18D11AA700B16692 /* L8Context.h */,
+				80477B7E18D11AA700B16692 /* L8Context_Debugging.h */,
 				80477B7918D11AA700B16692 /* L8Exception.h */,
 				80477B7A18D11AA700B16692 /* L8Export.h */,
 				80477B7B18D11AA700B16692 /* L8ManagedValue.h */,
 				80477B7C18D11AA700B16692 /* L8NativeException.h */,
 				80477B7D18D11AA700B16692 /* L8Reporter.h */,
-				80477B7E18D11AA700B16692 /* L8Context_Debugging.h */,
-				80477B7F18D11AA700B16692 /* L8Context.h */,
 				80477B8018D11AA700B16692 /* L8StackTrace.h */,
 				80477B8118D11AA700B16692 /* L8Value.h */,
 				80E5141E18D678ED007B436E /* L8VirtualMachine.h */,
-				80A0A5771905484900E73AA2 /* L8ArrayBuffer.h */,
 			);
 			name = Public;
 			sourceTree = "<group>";
@@ -526,16 +526,15 @@
 		80477B7518D11A8C00B16692 /* Private */ = {
 			isa = PBXGroup;
 			children = (
-				80477B7718D11A9800B16692 /* Extensions */,
 				80477B7618D11A9200B16692 /* Categories */,
+				80477B7718D11A9800B16692 /* Extensions */,
+				80A0A570190533B800E73AA2 /* L8ArrayBufferAllocator.h */,
+				80A0A56F190533B800E73AA2 /* L8ArrayBufferAllocator.mm */,
+				80B682AA18D7FAF200445BF9 /* L8Export.m */,
 				80477B9918D11AB600B16692 /* L8WrapperMap.h */,
 				80477B9A18D11AB600B16692 /* L8WrapperMap.mm */,
 				80477B9B18D11AB600B16692 /* ObjCCallback.h */,
 				80477B9C18D11AB600B16692 /* ObjCCallback.mm */,
-				80B682A918D7FAF200445BF9 /* L8Export_Private.h */,
-				80B682AA18D7FAF200445BF9 /* L8Export.m */,
-				80A0A56F190533B800E73AA2 /* L8ArrayBufferAllocator.mm */,
-				80A0A570190533B800E73AA2 /* L8ArrayBufferAllocator.h */,
 			);
 			name = Private;
 			path = Source;
@@ -555,14 +554,15 @@
 		80477B7718D11A9800B16692 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				80A0A57E19054A5800E73AA2 /* L8ArrayBuffer_Private.h */,
+				80477B9318D11AB600B16692 /* L8Context_Private.h */,
 				80477B8C18D11AB600B16692 /* L8Exception_Private.h */,
 				80477B8E18D11AB600B16692 /* L8ManagedValue_Private.h */,
 				80477B9118D11AB600B16692 /* L8Reporter_Private.h */,
-				80477B9318D11AB600B16692 /* L8Context_Private.h */,
 				80477B9518D11AB600B16692 /* L8StackTrace_Private.h */,
 				80477B9718D11AB600B16692 /* L8Value_Private.h */,
 				80E5142218D67954007B436E /* L8VirtualMachine_Private.h */,
-				80A0A57E19054A5800E73AA2 /* L8ArrayBuffer_Private.h */,
+				80B682A918D7FAF200445BF9 /* L8Export_Private.h */,
 			);
 			name = Extensions;
 			sourceTree = "<group>";

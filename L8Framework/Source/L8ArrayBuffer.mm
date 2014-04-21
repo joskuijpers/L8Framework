@@ -47,7 +47,6 @@ static void L8ArrayBufferWeakReferenceCallback(const WeakCallbackData<ArrayBuffe
 @end
 
 @implementation L8ArrayBuffer {
-	void *_buffer;
 	Isolate *_isolate;
 }
 
@@ -68,8 +67,6 @@ static void L8ArrayBufferWeakReferenceCallback(const WeakCallbackData<ArrayBuffe
 		_buffer = contents.Data();
 		_length = contents.ByteLength();
 
-		_data = [NSMutableData dataWithBytesNoCopy:_buffer length:_length freeWhenDone:NO];
-
 		array->SetAlignedPointerInInternalField(0, (__bridge void *)self);
 
 		// Yes, this indeed causes a retain cycle.
@@ -88,10 +85,11 @@ static void L8ArrayBufferWeakReferenceCallback(const WeakCallbackData<ArrayBuffe
 	if L8_LIKELY(self) {
 		Local<ArrayBuffer> array;
 
-		_data = [data mutableCopy];
-		_length = _data.length;
-		_buffer = [_data mutableBytes];
 		_isolate = Isolate::GetCurrent();
+
+		_length = data.length;
+		_buffer = malloc(_length);
+		memcpy(_buffer, [data bytes], _length);
 
 		array = ArrayBuffer::New(_isolate, _buffer, _length);
 		array->SetAlignedPointerInInternalField(0, (__bridge void *)self);
@@ -114,14 +112,24 @@ static void L8ArrayBufferWeakReferenceCallback(const WeakCallbackData<ArrayBuffe
 	return [[L8ArrayBuffer alloc] initWithV8Value:v8value inIsolate:isolate];
 }
 
+- (void)dealloc
+{
+	free(_buffer);
+}
+
 - (Local<Value>)V8Value
 {
 	return Local<ArrayBuffer>::New(_isolate, _v8value);
 }
 
+- (NSMutableData *)data
+{
+	return [NSMutableData dataWithBytesNoCopy:_buffer length:_length freeWhenDone:NO];
+}
+
 - (NSString *)description
 {
-	return [NSString stringWithFormat:@"<L8ArrayBuffer>(%@)",_data];
+	return [NSString stringWithFormat:@"<L8ArrayBuffer>(%@)",self.data];
 }
 
 @end
