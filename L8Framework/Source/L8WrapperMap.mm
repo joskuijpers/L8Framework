@@ -69,9 +69,6 @@ static NSString *l8_selector_to_property_name(const char *start, bool instanceMe
 	buffer = (char *)malloc(header + strlen(firstColon + 1) + 1);
 	memcpy(buffer, start, header);
 
-	if(!instanceMethod)
-		buffer[0] = toupper(buffer[0]);
-
 	output = buffer + header;
 	input = start + header + 1;
 
