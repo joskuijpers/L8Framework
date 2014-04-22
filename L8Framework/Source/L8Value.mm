@@ -723,7 +723,7 @@ static JavaScriptContainerConverter::Job valueToObjectWithoutCopy(Isolate *isola
 		return (JavaScriptContainerConverter::Job){ object, wrapped, COLLECTION_NONE };
 
 	if(object->IsDate())
-		return (JavaScriptContainerConverter::Job) { object, [NSDate dateWithTimeIntervalSince1970:object->ToNumber()->Value()], COLLECTION_NONE };
+		return (JavaScriptContainerConverter::Job) { object, [NSDate dateWithTimeIntervalSince1970:object->ToNumber()->Value()/1000], COLLECTION_NONE };
 
 	if(object->IsArray())
 		return (JavaScriptContainerConverter::Job){ object, [NSMutableArray array], COLLECTION_ARRAY };
@@ -817,7 +817,7 @@ NSDate *valueToDate(Isolate *isolate, L8Context *context, Local<Value> value)
 		return wrapped;
 	}
 
-	return [NSDate dateWithTimeIntervalSince1970:value->NumberValue()];
+	return [NSDate dateWithTimeIntervalSince1970:value->NumberValue()/1000];
 }
 
 NSArray *valueToArray(Isolate *isolate, L8Context *context, Local<Value> value)
@@ -953,7 +953,7 @@ static ObjCContainerConverter::Job objectToValueWithoutCopy(Isolate *isolate, L8
 		}
 
 		if([object isKindOfClass:[NSDate class]])
-			return (ObjCContainerConverter::Job){object, Date::New(isolate,[object timeIntervalSince1970]), COLLECTION_NONE};
+			return (ObjCContainerConverter::Job){object, Date::New(isolate,[object timeIntervalSince1970]*1000), COLLECTION_NONE};
 
 		if([object isKindOfClass:BlockClass()])
 			return (ObjCContainerConverter::Job){object, [[context wrapperForObjCObject:object] V8Value], COLLECTION_NONE};

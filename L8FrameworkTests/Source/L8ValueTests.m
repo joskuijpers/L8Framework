@@ -210,7 +210,7 @@ L8_EXPORT_AS_NO_ARGS(list,
 			L8Value *value = [L8Value valueWithObject:date inContext:context];
 
 			XCTAssertNotNil(value, "-[valuewithObject:]");
-			XCTAssertEqual((long long)[value toDouble],(long long)[date timeIntervalSince1970],"-[toDouble]");
+			XCTAssertEqual((long long)[value toDouble],(long long)([date timeIntervalSince1970]*1000),"-[toDouble]");
 			XCTAssertNotNil([value toObject], "-[toObject]");
 			XCTAssertTrue([value isObject], "-[isObject]");
 		}];

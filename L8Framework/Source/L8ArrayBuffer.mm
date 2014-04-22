@@ -115,6 +115,7 @@ static void L8ArrayBufferWeakReferenceCallback(const WeakCallbackData<ArrayBuffe
 - (void)dealloc
 {
 	free(_buffer);
+	_buffer = NULL;
 }
 
 - (Local<Value>)V8Value
