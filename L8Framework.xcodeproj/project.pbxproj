@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		800A5240190E8C8100B1F072 /* L8ClassTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 800A523F190E8C8100B1F072 /* L8ClassTests.m */; };
 		8024959818D2A8710071F3C4 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 80477B2918D119ED00B16692 /* Foundation.framework */; };
 		8024959B18D2A8710071F3C4 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 8024959A18D2A8710071F3C4 /* main.m */; };
 		8024959F18D2A8720071F3C4 /* L8Debugger.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8024959E18D2A8710071F3C4 /* L8Debugger.1 */; };
@@ -121,6 +122,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		800A523F190E8C8100B1F072 /* L8ClassTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = L8ClassTests.m; sourceTree = "<group>"; };
 		8024956B18D2A82D0071F3C4 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		8024956E18D2A82D0071F3C4 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		8024956F18D2A82D0071F3C4 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
@@ -457,6 +459,7 @@
 				80477BBE18D11BFC00B16692 /* L8ValueTests.m */,
 				802495E618D378EA0071F3C4 /* L8DebugTests.m */,
 				8049F80918DA500B00B454F8 /* L8ExceptionTests.m */,
+				800A523F190E8C8100B1F072 /* L8ClassTests.m */,
 				80477B4218D119F000B16692 /* Supporting Files */,
 			);
 			path = L8FrameworkTests;
@@ -884,6 +887,7 @@
 				802495E718D378EA0071F3C4 /* L8DebugTests.m in Sources */,
 				80477BC218D11BFC00B16692 /* L8ValueTests.m in Sources */,
 				80477BC118D11BFC00B16692 /* L8ContextTests.m in Sources */,
+				800A5240190E8C8100B1F072 /* L8ClassTests.m in Sources */,
 				8049F80A18DA500B00B454F8 /* L8ExceptionTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

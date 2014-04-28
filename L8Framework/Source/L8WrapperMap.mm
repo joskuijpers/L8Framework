@@ -503,7 +503,7 @@ SEL l8_initializer_selector_for_class(Class cls)
 	classTemplate = FunctionTemplate::New(isolate);
 
 	parentClass = class_getSuperclass(cls);
-	if(parentClass != Nil && cls != parentClass && class_isMetaClass(parentClass)) { // Top-level class
+	if(parentClass != Nil && cls != parentClass && !class_isMetaClass(parentClass)) {
 		Local<FunctionTemplate> parentTemplate;
 
 		parentTemplate = [self getCachedFunctionTemplateForClass:parentClass];
